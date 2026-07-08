@@ -1,0 +1,18 @@
+[
+  {"text": "備品管理、もう迷わない", "start": 0.3, "end": 4.5, "position": "top",
+   "font_size": 56, "color": "#FFFFFF", "box_color": "#2563EB", "box_opacity": 0.95, "margin": 48},
+  {"text": "在庫状況がひと目でわかる", "start": 4.5, "end": 9.0, "position": "bottom",
+   "font_size": 52, "color": "#FFFFFF", "box_color": "#111827", "box_opacity": 0.88, "margin": 48},
+  {"text": "QRコードでサッと貸出・返却", "start": 9.0, "end": 16.0, "position": "top",
+   "font_size": 52, "color": "#FFFFFF", "box_color": "#2563EB", "box_opacity": 0.95, "margin": 48},
+  {"text": "備品はカードで見やすく整理", "start": 16.0, "end": 24.0, "position": "bottom",
+   "font_size": 52, "color": "#FFFFFF", "box_color": "#111827", "box_opacity": 0.88, "margin": 48},
+  {"text": "「貸出中」だけ瞬時に絞り込み", "start": 24.0, "end": 33.0, "position": "top",
+   "font_size": 52, "color": "#FFFFFF", "box_color": "#2563EB", "box_opacity": 0.95, "margin": 48},
+  {"text": "延滞もすぐ気づける", "start": 33.0, "end": 40.0, "position": "bottom",
+   "font_size": 52, "color": "#FFFFFF", "box_color": "#DC2626", "box_opacity": 0.92, "margin": 48},
+  {"text": "借りた人の代わりに返却もOK", "start": 40.0, "end": 48.0, "position": "top",
+   "font_size": 52, "color": "#FFFFFF", "box_color": "#2563EB", "box_opacity": 0.95, "margin": 48},
+  {"text": "ワンタップで返却完了", "start": 48.0, "end": 55.2, "position": "bottom",
+   "font_size": 54, "color": "#FFFFFF", "box_color": "#16A34A", "box_opacity": 0.95, "margin": 48}
+]
