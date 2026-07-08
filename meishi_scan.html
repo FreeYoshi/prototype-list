@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MeishiSense</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0e1a;
+    --surface:#141a2e;
+    --surface2:#1d2540;
+    --line:#2a3354;
+    --txt:#eef1fa;
+    --sub:#8e98bd;
+    --accent:#3ddc97;
+    --accent2:#4d7cff;
+    --warn:#ffb347;
+    --radius:22px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    background:#05070f;
+    font-family:'Zen Kaku Gothic New',sans-serif;
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;
+    color:var(--txt);
+  }
+  .phone{
+    width:375px;height:812px;
+    background:var(--bg);
+    border-radius:44px;
+    overflow:hidden;
+    position:relative;
+    box-shadow:0 40px 120px rgba(0,0,0,.6), 0 0 0 11px #11131c, 0 0 0 13px #2a2d3a;
+  }
+  .notch{
+    position:absolute;top:0;left:50%;transform:translateX(-50%);
+    width:150px;height:30px;background:#05070f;border-radius:0 0 20px 20px;z-index:99;
+  }
+  .screen{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;
+    opacity:0;visibility:hidden;
+    transform:translateX(30px);
+    transition:opacity .45s ease, transform .45s ease, visibility .45s;
+    overflow-y:auto;
+  }
+  .screen.active{opacity:1;visibility:visible;transform:translateX(0);}
+  .screen::-webkit-scrollbar{display:none;}
+
+  .statusbar{
+    height:46px;display:flex;align-items:flex-end;justify-content:space-between;
+    padding:0 28px 6px;font-family:'Space Grotesk';font-size:13px;font-weight:500;
+    color:var(--txt);flex-shrink:0;
+  }
+  .topbar{
+    display:flex;align-items:center;gap:14px;padding:6px 22px 16px;flex-shrink:0;
+  }
+  .back{
+    width:40px;height:40px;border-radius:50%;background:var(--surface2);
+    border:1px solid var(--line);color:var(--txt);font-size:20px;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  .brand{font-family:'Space Grotesk';font-weight:700;font-size:18px;letter-spacing:-.5px;}
+  .brand span{color:var(--accent);}
+
+  /* ---------- Screen 1: capture ---------- */
+  #s1{background:radial-gradient(120% 80% at 50% 10%, #18203a 0%, var(--bg) 60%);}
+  .cap-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 30px;}
+  .cap-head{text-align:center;margin-bottom:34px;}
+  .cap-head h1{font-size:25px;font-weight:900;line-height:1.4;letter-spacing:-.5px;}
+  .cap-head p{color:var(--sub);font-size:14px;margin-top:10px;line-height:1.6;}
+  .viewfinder{
+    width:100%;aspect-ratio:1.7/1;border-radius:18px;position:relative;
+    background:linear-gradient(135deg,#222c4a,#161d33);
+    display:flex;align-items:center;justify-content:center;overflow:hidden;
+    box-shadow:inset 0 0 0 1px var(--line);
+  }
+  .card-preview{
+    width:84%;border-radius:12px;overflow:hidden;
+    box-shadow:0 20px 40px rgba(0,0,0,.5);transform:rotate(-3deg);
+  }
+  .card-preview img{width:100%;display:block;}
+  /* CSS business card */
+  .meishi{
+    background:linear-gradient(135deg,#fdfdfb 0%,#eef1f6 100%);
+    padding:18px 20px;color:#1a2238;text-align:left;position:relative;overflow:hidden;
+    font-family:'Space Grotesk','Zen Kaku Gothic New',sans-serif;
+  }
+  .meishi::after{content:"";position:absolute;right:-30px;bottom:-30px;width:90px;height:90px;
+    border-radius:50%;background:linear-gradient(135deg,#3ddc97,#4d7cff);opacity:.18;}
+  .meishi.big{padding:26px 26px;}
+  .m-top{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+  .m-logo{width:18px;height:18px;border-radius:5px;background:linear-gradient(135deg,#3ddc97,#4d7cff);flex-shrink:0;}
+  .m-co{font-weight:700;font-size:12px;letter-spacing:1px;color:#4d7cff;}
+  .meishi.big .m-co{font-size:14px;}
+  .m-name{font-weight:700;font-size:15px;color:#1a2238;}
+  .meishi.big .m-name{font-size:19px;}
+  .m-name span{font-size:10px;color:#8a93a8;font-weight:400;margin-left:6px;}
+  .m-role{font-size:11px;color:#5a6478;margin-top:3px;}
+  .meishi.big .m-role{font-size:13px;margin-top:5px;}
+  .m-info{font-size:9.5px;color:#8a93a8;margin-top:12px;letter-spacing:.3px;}
+  .meishi.big .m-info{font-size:11px;margin-top:16px;}
+  .co-logo{width:54px;height:54px;border-radius:14px;border:1px solid var(--line);
+    background:linear-gradient(135deg,#3ddc97,#4d7cff);position:relative;}
+  .co-logo::after{content:"L";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-family:'Space Grotesk';font-weight:700;font-size:26px;color:#fff;}
+  .corner{position:absolute;width:30px;height:30px;border:3px solid var(--accent);}
+  .corner.tl{top:18px;left:18px;border-right:none;border-bottom:none;border-radius:8px 0 0 0;}
+  .corner.tr{top:18px;right:18px;border-left:none;border-bottom:none;border-radius:0 8px 0 0;}
+  .corner.bl{bottom:18px;left:18px;border-right:none;border-top:none;border-radius:0 0 0 8px;}
+  .corner.br{bottom:18px;right:18px;border-left:none;border-top:none;border-radius:0 0 8px 0;}
+  .scanline{
+    position:absolute;left:6%;right:6%;height:2px;
+    background:linear-gradient(90deg,transparent,var(--accent),transparent);
+    box-shadow:0 0 12px var(--accent);top:10%;opacity:0;
+  }
+  .scanning .scanline{animation:scan 1.4s ease-in-out infinite;opacity:1;}
+  @keyframes scan{0%{top:12%}50%{top:85%}100%{top:12%}}
+  .hint{color:var(--sub);font-size:13px;margin-top:22px;}
+  .shutter{
+    margin-top:30px;width:74px;height:74px;border-radius:50%;
+    background:var(--accent);border:5px solid rgba(61,220,151,.25);
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 10px 30px rgba(61,220,151,.4);transition:transform .15s;
+  }
+  .shutter:active{transform:scale(.9);}
+  .shutter::after{content:"";width:50px;height:50px;border-radius:50%;background:#0a0e1a;}
+  .loading-txt{color:var(--accent);font-weight:700;font-size:15px;margin-top:26px;height:20px;letter-spacing:.5px;}
+
+  /* ---------- Screen 2: data extracted ---------- */
+  #s2{background:radial-gradient(120% 80% at 50% 0%, #16203c 0%, var(--bg) 55%);}
+  .extract-card{
+    margin:6px 22px 0;background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius);overflow:hidden;
+  }
+  .extract-img{position:relative;}
+  .extract-img img{width:100%;display:block;}
+  .ocr-badge{
+    position:absolute;top:14px;right:14px;background:rgba(10,14,26,.8);
+    backdrop-filter:blur(8px);color:var(--accent);font-size:11px;font-weight:700;
+    padding:6px 12px;border-radius:20px;border:1px solid rgba(61,220,151,.4);
+    font-family:'Space Grotesk';
+  }
+  .field{
+    display:flex;align-items:center;gap:14px;padding:15px 20px;border-bottom:1px solid var(--line);
+    opacity:0;transform:translateY(8px);
+  }
+  .field:last-child{border-bottom:none;}
+  .field.show{opacity:1;transform:translateY(0);transition:all .4s ease;}
+  .field-ic{width:34px;height:34px;border-radius:10px;background:var(--surface2);
+    display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .field-lbl{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;}
+  .field-val{font-size:15px;font-weight:500;margin-top:2px;}
+  .progress-zone{margin:20px 22px;}
+  .progress-zone p{color:var(--accent2);font-size:13px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--accent2);animation:pulse 1s infinite;}
+  @keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+  .bar{height:6px;background:var(--surface2);border-radius:10px;overflow:hidden;}
+  .bar-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:10px;transition:width 2s ease;}
+
+  /* ---------- Screen 3: insight ---------- */
+  .scroll-pad{padding:0 22px 30px;}
+  .company-hero{
+    background:linear-gradient(135deg,#1e2a52,#141a2e);border:1px solid var(--line);
+    border-radius:var(--radius);padding:22px;position:relative;overflow:hidden;
+  }
+  .company-hero::before{content:"";position:absolute;top:-40px;right:-40px;width:140px;height:140px;
+    background:radial-gradient(circle,rgba(77,124,255,.25),transparent 70%);}
+  .co-logo{width:54px;height:54px;border-radius:14px;object-fit:cover;border:1px solid var(--line);}
+  .co-name{font-size:21px;font-weight:900;margin-top:14px;letter-spacing:-.5px;}
+  .co-desc{color:var(--sub);font-size:13px;line-height:1.7;margin-top:8px;}
+  .co-stats{display:flex;gap:10px;margin-top:18px;}
+  .stat{flex:1;background:rgba(10,14,26,.5);border-radius:14px;padding:12px;text-align:center;}
+  .stat .n{font-family:'Space Grotesk';font-weight:700;font-size:17px;color:var(--accent);}
+  .stat .l{font-size:10px;color:var(--sub);margin-top:3px;}
+  .section-t{font-size:14px;font-weight:700;margin:26px 0 14px;display:flex;align-items:center;gap:8px;}
+  .section-t .ic{color:var(--accent);}
+  .topic{
+    background:var(--surface);border:1px solid var(--line);border-radius:18px;
+    padding:16px;margin-bottom:12px;display:flex;gap:14px;align-items:flex-start;
+    opacity:0;transform:translateX(20px);
+  }
+  .topic.show{opacity:1;transform:translateX(0);transition:all .5s ease;}
+  .topic-ic{width:42px;height:42px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;}
+  .topic-ic.money{background:rgba(61,220,151,.15);}
+  .topic-ic.launch{background:rgba(77,124,255,.15);}
+  .topic-ic.hire{background:rgba(255,179,71,.15);}
+  .topic-tag{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+  .topic.money .topic-tag{color:var(--accent);}
+  .topic.launch .topic-tag{color:var(--accent2);}
+  .topic.hire .topic-tag{color:var(--warn);}
+  .topic-txt{font-size:14px;font-weight:500;margin-top:4px;line-height:1.5;}
+  .topic-date{font-size:11px;color:var(--sub);margin-top:6px;}
+
+  .cta{
+    margin:18px 22px;padding:16px;border-radius:18px;border:none;width:calc(100% - 44px);
+    background:linear-gradient(135deg,var(--accent),#2bb87c);color:#04140c;font-weight:700;
+    font-size:15px;cursor:pointer;font-family:'Zen Kaku Gothic New';
+    box-shadow:0 10px 30px rgba(61,220,151,.3);transition:transform .15s;
+  }
+  .cta:active{transform:scale(.97);}
+
+  /* ---------- Screen 4: briefing ---------- */
+  #s4{background:radial-gradient(120% 80% at 50% 0%, #1a2340 0%, var(--bg) 55%);}
+  .brief-head{padding:0 24px 10px;}
+  .brief-head h2{font-size:22px;font-weight:900;letter-spacing:-.5px;}
+  .brief-head p{color:var(--sub);font-size:13px;margin-top:6px;}
+  .ai-card{
+    margin:14px 22px;background:var(--surface);border:1px solid var(--line);
+    border-radius:18px;padding:18px;position:relative;
+    opacity:0;transform:translateY(14px);
+  }
+  .ai-card.show{opacity:1;transform:translateY(0);transition:all .5s ease;}
+  .ai-card .num{position:absolute;top:-10px;left:18px;width:26px;height:26px;border-radius:50%;
+    background:var(--accent2);color:#fff;font-family:'Space Grotesk';font-weight:700;font-size:13px;
+    display:flex;align-items:center;justify-content:center;}
+  .ai-card p{font-size:14px;line-height:1.65;margin-top:4px;}
+  .ai-card .hi{color:var(--accent);font-weight:700;}
+  .btn-row{display:flex;gap:12px;padding:8px 22px 0;}
+  .btn-row button{
+    flex:1;padding:15px;border-radius:16px;font-weight:700;font-size:14px;cursor:pointer;
+    font-family:'Zen Kaku Gothic New';border:1px solid var(--line);transition:transform .15s;
+  }
+  .btn-row button:active{transform:scale(.96);}
+  .btn-ghost{background:var(--surface2);color:var(--txt);}
+  .btn-fill{background:var(--accent2);color:#fff;border-color:var(--accent2)!important;}
+  .toast{
+    position:absolute;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);
+    background:var(--accent);color:#04140c;padding:14px 26px;border-radius:30px;
+    font-weight:700;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.4);
+    opacity:0;transition:all .4s ease;z-index:50;white-space:nowrap;
+  }
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+
+  <!-- SCREEN 1 -->
+  <div class="screen active" id="s1">
+    <div class="statusbar"><span>9:41</span><span>📶 🔋</span></div>
+    <div class="topbar"><div class="brand">Meishi<span>Sense</span></div></div>
+    <div class="cap-wrap">
+      <div class="cap-head">
+        <h1>名刺を撮るだけで<br>相手の会社が丸わかり</h1>
+        <p>枠内に名刺を合わせて撮影してください</p>
+      </div>
+      <div class="viewfinder" id="vf">
+        <div class="corner tl"></div><div class="corner tr"></div>
+        <div class="corner bl"></div><div class="corner br"></div>
+        <div class="scanline"></div>
+        <div class="card-preview"><div class="meishi">
+          <div class="m-top"><div class="m-logo"></div><div class="m-co">LUMINAFLOW Inc.</div></div>
+          <div class="m-name">田中 健太郎 <span>Kentaro Tanaka</span></div>
+          <div class="m-role">事業開発部 部長</div>
+          <div class="m-info">k.tanaka@luminaflow.co.jp ・ 03-1234-5678</div>
+        </div></div>
+      </div>
+      <div class="loading-txt" id="loadTxt"></div>
+      <div class="shutter" id="shutter" onclick="capture()"></div>
+      <div class="hint">タップして撮影</div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2 -->
+  <div class="screen" id="s2">
+    <div class="statusbar"><span>9:41</span><span>📶 🔋</span></div>
+    <div class="topbar"><div class="back" onclick="go(1)">‹</div><div class="brand">読み取り結果</div></div>
+    <div class="extract-card">
+      <div class="extract-img">
+        <div class="meishi big">
+          <div class="m-top"><div class="m-logo"></div><div class="m-co">LUMINAFLOW Inc.</div></div>
+          <div class="m-name">田中 健太郎 <span>Kentaro Tanaka</span></div>
+          <div class="m-role">事業開発部 部長</div>
+          <div class="m-info">k.tanaka@luminaflow.co.jp ・ 03-1234-5678</div>
+        </div>
+        <div class="ocr-badge">✓ OCR 完了</div>
+      </div>
+      <div class="field" id="f1"><div class="field-ic">👤</div><div><div class="field-lbl">氏名</div><div class="field-val">田中 健太郎</div></div></div>
+      <div class="field" id="f2"><div class="field-ic">🏢</div><div><div class="field-lbl">会社名</div><div class="field-val">株式会社ルミナフロー</div></div></div>
+      <div class="field" id="f3"><div class="field-ic">💼</div><div><div class="field-lbl">役職</div><div class="field-val">事業開発部 部長</div></div></div>
+      <div class="field" id="f4"><div class="field-ic">📧</div><div><div class="field-lbl">メール</div><div class="field-val">k.tanaka@luminaflow.co.jp</div></div></div>
+    </div>
+    <div class="progress-zone">
+      <p><span class="dot"></span>会社情報をWebから取得中…</p>
+      <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+    </div>
+  </div>
+
+  <!-- SCREEN 3 -->
+  <div class="screen" id="s3">
+    <div class="statusbar"><span>9:41</span><span>📶 🔋</span></div>
+    <div class="topbar"><div class="back" onclick="go(2)">‹</div><div class="brand">会社インサイト</div></div>
+    <div class="scroll-pad">
+      <div class="company-hero">
+        <div class="co-logo"></div>
+        <div class="co-name">株式会社ルミナフロー</div>
+        <div class="co-desc">中小企業向けの業務自動化SaaSを開発。請求・在庫・顧客管理を一元化するクラウドサービスを展開。</div>
+        <div class="co-stats">
+          <div class="stat"><div class="n">120名</div><div class="l">従業員数</div></div>
+          <div class="stat"><div class="n">2019年</div><div class="l">設立</div></div>
+          <div class="stat"><div class="n">東京</div><div class="l">本社</div></div>
+        </div>
+      </div>
+
+      <div class="section-t"><span class="ic">📡</span>最新トピック</div>
+
+      <div class="topic money" id="t1">
+        <div class="topic-ic money">💰</div>
+        <div><div class="topic-tag">資金調達</div>
+        <div class="topic-txt">シリーズBで総額15億円の資金調達を実施</div>
+        <div class="topic-date">2026年4月 · 日本経済新聞</div></div>
+      </div>
+      <div class="topic launch" id="t2">
+        <div class="topic-ic launch">🚀</div>
+        <div><div class="topic-tag">新サービス</div>
+        <div class="topic-txt">AI在庫予測機能「LumiPredict」を先月リリース</div>
+        <div class="topic-date">2026年5月 · プレスリリース</div></div>
+      </div>
+      <div class="topic hire" id="t3">
+        <div class="topic-ic hire">📈</div>
+        <div><div class="topic-tag">採用強化</div>
+        <div class="topic-txt">エンジニア20名を新規募集中。事業拡大フェーズ</div>
+        <div class="topic-date">2026年6月 · 採用ページ</div></div>
+      </div>
+    </div>
+    <button class="cta" onclick="go(4)">この情報で商談に備える →</button>
+  </div>
+
+  <!-- SCREEN 4 -->
+  <div class="screen" id="s4">
+    <div class="statusbar"><span>9:41</span><span>📶 🔋</span></div>
+    <div class="topbar"><div class="back" onclick="go(3)">‹</div><div class="brand">商談カンペ</div></div>
+    <div class="brief-head">
+      <h2>話のきっかけ、用意できました</h2>
+      <p>AIが最新情報から会話の糸口を提案します</p>
+    </div>
+    <div class="ai-card" id="a1"><div class="num">1</div>
+      <p>「先日の<span class="hi">シリーズB調達</span>、おめでとうございます」と切り出すと好印象。事業拡大への期待を共有できます。</p>
+    </div>
+    <div class="ai-card" id="a2"><div class="num">2</div>
+      <p>新サービス<span class="hi">「LumiPredict」</span>に触れ、在庫予測の精度や導入事例を質問すると、相手が話しやすくなります。</p>
+    </div>
+    <div class="ai-card" id="a3"><div class="num">3</div>
+      <p><span class="hi">採用強化中＝事業拡大期</span>。今が提案の好機です。組織拡大に伴う課題を起点に提案を組み立てましょう。</p>
+    </div>
+    <div class="btn-row">
+      <button class="btn-ghost" onclick="toast('メモを保存しました')">メモを追加</button>
+      <button class="btn-fill" onclick="toast('商談30分前に通知します')">商談前に通知</button>
+    </div>
+    <div class="toast" id="toast"></div>
+  </div>
+
+</div>
+
+<script>
+  const screens=[null,document.getElementById('s1'),document.getElementById('s2'),document.getElementById('s3'),document.getElementById('s4')];
+  let current=1;
+  function go(n){
+    screens[current].classList.remove('active');
+    screens[n].classList.add('active');
+    current=n;
+    if(n===2)runExtract();
+    if(n===3)runInsight();
+    if(n===4)runBrief();
+  }
+  function capture(){
+    const vf=document.getElementById('vf');
+    const txt=document.getElementById('loadTxt');
+    const sh=document.getElementById('shutter');
+    vf.classList.add('scanning');
+    sh.style.pointerEvents='none';
+    const msgs=['読み取り中…','文字を解析中…','データ化完了 ✓'];
+    let i=0;txt.textContent=msgs[0];
+    const iv=setInterval(()=>{i++;if(i<msgs.length)txt.textContent=msgs[i];},550);
+    setTimeout(()=>{
+      clearInterval(iv);vf.classList.remove('scanning');
+      txt.textContent='';sh.style.pointerEvents='auto';
+      go(2);
+    },1650);
+  }
+  function runExtract(){
+    ['f1','f2','f3','f4'].forEach((id,i)=>{
+      const el=document.getElementById(id);el.classList.remove('show');
+      setTimeout(()=>el.classList.add('show'),200+i*220);
+    });
+    const bar=document.getElementById('barFill');bar.style.width='0';
+    setTimeout(()=>bar.style.width='100%',1200);
+    setTimeout(()=>{if(current===2)go(3);},3600);
+  }
+  function runInsight(){
+    ['t1','t2','t3'].forEach((id,i)=>{
+      const el=document.getElementById(id);el.classList.remove('show');
+      setTimeout(()=>el.classList.add('show'),250+i*250);
+    });
+  }
+  function runBrief(){
+    ['a1','a2','a3'].forEach((id,i)=>{
+      const el=document.getElementById(id);el.classList.remove('show');
+      setTimeout(()=>el.classList.add('show'),200+i*260);
+    });
+  }
+  function toast(msg){
+    const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),2200);
+  }
+</script>
+</body>
+</html>

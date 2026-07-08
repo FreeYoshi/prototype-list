@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>管理画面ログイン | ReserveMate</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+  <script src="assets/a11y.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0F172A 0%, #1E293B 60%, #312E81 100%);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    /* 背景の装飾 */
+    body::before, body::after {
+      content: '';
+      position: absolute;
+      width: 520px;
+      height: 520px;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.35;
+      pointer-events: none;
+    }
+    body::before {
+      background: #0EA5E9;
+      top: -160px;
+      left: -120px;
+    }
+    body::after {
+      background: #8B5CF6;
+      bottom: -160px;
+      right: -120px;
+    }
+
+    .login-shell {
+      background: white;
+      width: 100%;
+      max-width: 420px;
+      border-radius: 22px;
+      padding: 40px 36px 32px;
+      box-shadow: 0 30px 80px rgba(2, 6, 23, 0.55);
+      position: relative;
+      z-index: 1;
+      animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .login-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 17px;
+      margin-bottom: 28px;
+    }
+    .login-brand .icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #0EA5E9, #6366F1);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-shell h1 {
+      font-size: 22px;
+      font-weight: 800;
+      margin: 0 0 6px;
+    }
+    .login-shell .sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+    .login-shell .field input {
+      padding: 13px 14px 13px 40px;
+    }
+    .input-wrap { position: relative; }
+    .input-wrap i {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      z-index: 2;
+    }
+    .row-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 6px 0 18px;
+      font-size: 13px;
+    }
+    .row-between label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .row-between a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .alt-login {
+      margin: 22px 0 16px;
+      display: flex;
+      gap: 10px;
+    }
+    .alt-btn {
+      flex: 1;
+      padding: 11px;
+      border-radius: 11px;
+      border: 1.5px solid var(--border);
+      background: white;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.12s;
+    }
+    .alt-btn:hover { background: var(--bg); }
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 22px 0;
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .login-foot {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 24px;
+    }
+    .login-foot a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .hint {
+      background: #F0F9FF;
+      border: 1px dashed #BAE6FD;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 11px;
+      color: #0369A1;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    .hint strong { color: #0C4A6E; }
+
+    /* 患者画面への戻り(外部・小さく) */
+    .patient-back {
+      position: absolute;
+      top: 24px;
+      left: 24px;
+      color: rgba(255,255,255,0.8);
+      font-size: 13px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      z-index: 2;
+    }
+    .patient-back:hover { color: white; }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="patient-back">
+    <i data-lucide="arrow-left" width="14"></i>患者向け予約サイトへ
+  </a>
+
+  <div class="login-shell">
+    <div class="login-brand">
+      <div class="icon"><i data-lucide="stethoscope" width="20"></i></div>
+      ReserveMate
+    </div>
+
+    <h1>管理画面にログイン</h1>
+    <div class="sub">クリニックスタッフ専用のページです</div>
+
+    <div class="hint">
+      <strong>デモ用</strong> 任意の値で「ログイン」を押すと管理画面に入れます
+    </div>
+
+    <form onsubmit="event.preventDefault(); doLogin();">
+      <div class="field">
+        <label>メールアドレス</label>
+        <div class="input-wrap">
+          <i data-lucide="mail" width="16"></i>
+          <input type="email" value="admin@sakura-dental.example" required />
+        </div>
+      </div>
+      <div class="field">
+        <label>パスワード</label>
+        <div class="input-wrap">
+          <i data-lucide="lock" width="16"></i>
+          <input type="password" id="pw" value="demo-password" required />
+        </div>
+      </div>
+
+      <div class="row-between">
+        <label><input type="checkbox" checked> ログイン状態を保持</label>
+        <a href="#">パスワードを忘れた</a>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%;padding:14px;font-size:15px">
+        <i data-lucide="log-in" width="16"></i>ログインする
+      </button>
+    </form>
+
+    <div class="divider">または</div>
+
+    <div class="alt-login">
+      <button class="alt-btn" onclick="doLogin()">
+        <i data-lucide="key-round" width="14"></i>SSO
+      </button>
+      <button class="alt-btn" onclick="doLogin()">
+        <i data-lucide="smartphone" width="14"></i>2段階認証
+      </button>
+    </div>
+
+    <div class="login-foot">
+      まだアカウントをお持ちでない方は<br>
+      <a href="#">クリニック導入のお問い合わせ →</a>
+    </div>
+  </div>
+
+  <script>
+    function doLogin() {
+      window.location.href = 'admin.html';
+    }
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
+</body>
+</html>

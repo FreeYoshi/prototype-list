@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>設定 | さくら歯科クリニック</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+  <script src="assets/a11y.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .settings-layout {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 900px) {
+      .settings-layout { grid-template-columns: 1fr; }
+    }
+    .settings-tabs {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      position: sticky;
+      top: 24px;
+    }
+    .settings-tab {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .settings-tab:hover { background: white; color: var(--text); }
+    .settings-tab.active {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+    }
+    .settings-section {
+      background: white;
+      border-radius: 14px;
+      padding: 24px;
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .settings-section h3 {
+      margin: 0 0 4px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .settings-section .desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+    }
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 600px) {
+      .row-2 { grid-template-columns: 1fr; }
+    }
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: #CBD5E1;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.18s;
+    }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.18s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .toggle.on { background: var(--primary); }
+    .toggle.on::after { transform: translateX(20px); }
+    .row-toggle {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .row-toggle:last-child { border-bottom: none; }
+    .row-toggle .title {
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .row-toggle .sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .business-hour-row {
+      display: grid;
+      grid-template-columns: 80px 1fr 1fr 60px;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .business-hour-row:last-child { border-bottom: none; }
+    .day-label { font-weight: 700; }
+    .pay-card {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 8px;
+      transition: all 0.15s;
+    }
+    .pay-card.active {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+    .pay-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: white;
+      flex-shrink: 0;
+      font-size: 12px;
+    }
+    .save-bar {
+      position: sticky;
+      bottom: 0;
+      background: white;
+      padding: 14px;
+      margin-top: 16px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="admin-sidebar" data-page="settings"></aside>
+
+    <main class="admin-main">
+      <div class="admin-header">
+        <div>
+          <h1>設定</h1>
+          <div class="text-sm muted mt-2">クリニックの基本情報や運営ルールを管理します</div>
+        </div>
+      </div>
+
+      <div class="settings-layout">
+        <!-- タブ -->
+        <div class="settings-tabs">
+          <div class="settings-tab active" onclick="goTab('clinic', this)">
+            <i data-lucide="building-2" width="16"></i>クリニック情報
+          </div>
+          <div class="settings-tab" onclick="goTab('hours', this)">
+            <i data-lucide="clock" width="16"></i>営業時間
+          </div>
+          <div class="settings-tab" onclick="goTab('payment', this)">
+            <i data-lucide="credit-card" width="16"></i>決済方法
+          </div>
+          <div class="settings-tab" onclick="goTab('notify', this)">
+            <i data-lucide="bell" width="16"></i>通知設定
+          </div>
+          <div class="settings-tab" onclick="goTab('account', this)">
+            <i data-lucide="user-cog" width="16"></i>アカウント
+          </div>
+        </div>
+
+        <!-- パネル -->
+        <div>
+          <!-- クリニック情報 -->
+          <div id="tab-clinic" class="tab-panel">
+            <div class="settings-section">
+              <h3>クリニック基本情報</h3>
+              <div class="desc">予約画面の上部などに表示されます</div>
+              <div class="field">
+                <label>クリニック名<span class="required">必須</span></label>
+                <input type="text" id="s-name" value="さくら歯科クリニック" />
+              </div>
+              <div class="field">
+                <label>キャッチコピー</label>
+                <input type="text" id="s-tagline" value="やさしい歯医者さん" />
+              </div>
+              <div class="row-2">
+                <div class="field">
+                  <label>電話番号</label>
+                  <input type="tel" id="s-phone" value="03-1234-5678" />
+                </div>
+                <div class="field">
+                  <label>メールアドレス</label>
+                  <input type="email" id="s-email" value="info@sakura-dental.example" />
+                </div>
+              </div>
+              <div class="field">
+                <label>住所</label>
+                <input type="text" id="s-addr" value="東京都渋谷区桜丘町1-2-3" />
+              </div>
+              <div class="field">
+                <label>アクセス・補足</label>
+                <textarea id="s-access" rows="2">JR渋谷駅 桜丘口より徒歩5分。提携駐車場あり。</textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- 営業時間 -->
+          <div id="tab-hours" class="tab-panel" hidden>
+            <div class="settings-section">
+              <h3>営業時間</h3>
+              <div class="desc">曜日ごとの診療時間を設定します。お昼休みは12:00〜14:00で固定です</div>
+              <div id="hours-list"></div>
+            </div>
+            <div class="settings-section">
+              <h3>予約受付ルール</h3>
+              <div class="desc">予約受付の制限を設定します</div>
+              <div class="row-2">
+                <div class="field">
+                  <label>予約枠の単位(分)</label>
+                  <select id="s-slot">
+                    <option>15</option>
+                    <option selected>30</option>
+                    <option>45</option>
+                    <option>60</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>何日先まで予約受付するか</label>
+                  <select id="s-ahead">
+                    <option>14日先まで</option>
+                    <option selected>30日先まで</option>
+                    <option>60日先まで</option>
+                    <option>90日先まで</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row-2">
+                <div class="field">
+                  <label>当日予約の受付</label>
+                  <select>
+                    <option selected>当日も受け付ける</option>
+                    <option>受け付けない</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>キャンセル受付期限</label>
+                  <select>
+                    <option>24時間前まで</option>
+                    <option selected>3時間前まで</option>
+                    <option>1時間前まで</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 決済 -->
+          <div id="tab-payment" class="tab-panel" hidden>
+            <div class="settings-section">
+              <h3>受付可能な決済方法</h3>
+              <div class="desc">予約時に選択肢として表示する決済を有効化します</div>
+              <div class="pay-card active">
+                <div class="pay-icon" style="background:#06C755">LINE</div>
+                <div style="flex:1">
+                  <div class="font-semibold">LINE Pay</div>
+                  <div class="text-xs muted">予約時のオンライン決済に対応</div>
+                </div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="pay-card active">
+                <div class="pay-icon" style="background:#0F172A">CARD</div>
+                <div style="flex:1">
+                  <div class="font-semibold">クレジットカード</div>
+                  <div class="text-xs muted">Visa / Mastercard / JCB / Amex</div>
+                </div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="pay-card active">
+                <div class="pay-icon" style="background:#F59E0B">現金</div>
+                <div style="flex:1">
+                  <div class="font-semibold">現地払い(現金)</div>
+                  <div class="text-xs muted">来院時にお支払い</div>
+                </div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="pay-card">
+                <div class="pay-icon" style="background:#3B82F6">PP</div>
+                <div style="flex:1">
+                  <div class="font-semibold">PayPay</div>
+                  <div class="text-xs muted">追加申請後に利用可能</div>
+                </div>
+                <div class="toggle" onclick="this.classList.toggle('on')"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 通知 -->
+          <div id="tab-notify" class="tab-panel" hidden>
+            <div class="settings-section">
+              <h3>患者さま向け自動通知</h3>
+              <div class="desc">予約状況に応じて送信されるメッセージ</div>
+              <div class="row-toggle">
+                <div>
+                  <div class="title">予約完了メール / LINE</div>
+                  <div class="sub">予約確定時に即時送信</div>
+                </div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="row-toggle">
+                <div>
+                  <div class="title">前日リマインド</div>
+                  <div class="sub">予約前日18時にLINE通知</div>
+                </div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="row-toggle">
+                <div>
+                  <div class="title">当日朝のお知らせ</div>
+                  <div class="sub">予約当日9時に再通知</div>
+                </div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="row-toggle">
+                <div>
+                  <div class="title">来院後アンケート</div>
+                  <div class="sub">来院翌日に満足度調査を送信</div>
+                </div>
+                <div class="toggle" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="row-toggle">
+                <div>
+                  <div class="title">定期検診のお誘い</div>
+                  <div class="sub">最終来院から3か月後に自動配信</div>
+                </div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- アカウント -->
+          <div id="tab-account" class="tab-panel" hidden>
+            <div class="settings-section">
+              <h3>管理者アカウント</h3>
+              <div class="desc">この管理画面へのログイン情報</div>
+              <div class="flex gap-3 items-center mb-4">
+                <div class="avatar" style="width:56px;height:56px;font-size:22px">山</div>
+                <div>
+                  <div class="font-bold text-lg">山田 健一</div>
+                  <div class="text-xs muted">院長 · admin@sakura-dental.example</div>
+                </div>
+              </div>
+              <div class="row-2">
+                <div class="field">
+                  <label>表示名</label>
+                  <input type="text" value="山田 健一" />
+                </div>
+                <div class="field">
+                  <label>メールアドレス</label>
+                  <input type="email" value="admin@sakura-dental.example" />
+                </div>
+              </div>
+              <div class="field">
+                <label>パスワード</label>
+                <input type="password" value="••••••••••" />
+              </div>
+            </div>
+
+            <div class="settings-section">
+              <h3>追加スタッフ</h3>
+              <div class="desc">スタッフごとに権限を分けて招待できます</div>
+              <div class="row-toggle">
+                <div class="flex items-center gap-3">
+                  <div class="avatar" style="background:linear-gradient(135deg,#F472B6,#A78BFA)">佐</div>
+                  <div>
+                    <div class="title">佐藤 美咲</div>
+                    <div class="sub">歯科医師 · 予約管理のみ</div>
+                  </div>
+                </div>
+                <button class="btn btn-ghost btn-sm">編集</button>
+              </div>
+              <div class="row-toggle">
+                <div class="flex items-center gap-3">
+                  <div class="avatar" style="background:linear-gradient(135deg,#34D399,#22D3EE)">受</div>
+                  <div>
+                    <div class="title">受付スタッフ</div>
+                    <div class="sub">受付 · 予約一覧のみ</div>
+                  </div>
+                </div>
+                <button class="btn btn-ghost btn-sm">編集</button>
+              </div>
+              <button class="btn btn-ghost btn-sm mt-3"><i data-lucide="user-plus" width="14"></i>スタッフを招待</button>
+            </div>
+
+            <div class="settings-section" style="border-left: 4px solid var(--danger);">
+              <h3 style="color: var(--danger)">危険ゾーン</h3>
+              <div class="desc">この操作は取り消せません</div>
+              <button class="btn" style="background:white; color:var(--danger); border:1.5px solid #FCA5A5">
+                <i data-lucide="log-out" width="14"></i>すべての予約データを削除
+              </button>
+            </div>
+          </div>
+
+          <!-- 保存バー -->
+          <div class="save-bar">
+            <button class="btn btn-ghost">変更を破棄</button>
+            <button class="btn btn-primary" onclick="saveSettings()">
+              <i data-lucide="save" width="14"></i>変更を保存
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast-area"></div>
+
+  <script src="assets/data.js"></script>
+  <script src="assets/sidebar.js"></script>
+  <script src="assets/settings.js"></script>
+</body>
+</html>

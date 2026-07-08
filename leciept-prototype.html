@@ -1,0 +1,389 @@
+<!-- 経費自動仕分け × Notion連携 プロトタイプ -->
+<meta charset="utf-8">
+<title>Receipt → Notion 自動仕分けツール</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Outfit:wght@400;600;800&display=swap');
+
+  :root{
+    --ink:#16140f;
+    --paper:#faf6ee;
+    --card:#ffffff;
+    --line:#e6ddcb;
+    --accent:#e8552b;       /* レシート赤 */
+    --accent-soft:#fce9e0;
+    --green:#2f9e6f;
+    --green-soft:#e2f4ea;
+    --blue:#3556c4;
+    --muted:#8a8170;
+    --notion:#1c1b18;
+    --shadow:0 18px 40px -22px rgba(40,28,10,.45);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Zen Kaku Gothic New',sans-serif;
+    background:
+      radial-gradient(1200px 500px at 85% -10%, #fff4e7 0%, transparent 60%),
+      radial-gradient(900px 500px at 5% 110%, #f0ece0 0%, transparent 55%),
+      var(--paper);
+    color:var(--ink);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---- App chrome ---- */
+  .topbar{
+    display:flex;align-items:center;gap:14px;
+    padding:16px 30px;
+    border-bottom:1px solid var(--line);
+    background:rgba(255,255,255,.7);
+    backdrop-filter:blur(8px);
+    position:sticky;top:0;z-index:30;
+  }
+  .logo{
+    width:38px;height:38px;border-radius:11px;
+    background:linear-gradient(145deg,var(--accent),#ff7d52);
+    display:grid;place-items:center;color:#fff;font-size:20px;
+    box-shadow:0 6px 14px -4px rgba(232,85,43,.6);
+  }
+  .brand{font-weight:900;font-size:18px;letter-spacing:-.01em}
+  .brand small{display:block;font-family:'Outfit';font-weight:600;font-size:10px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase}
+  .topbar .spacer{flex:1}
+  .pill{
+    font-size:12px;font-weight:700;padding:7px 13px;border-radius:999px;
+    background:var(--green-soft);color:var(--green);
+    display:flex;align-items:center;gap:7px;
+  }
+  .pill .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(47,158,111,.5);animation:pulse 1.8s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,158,111,.5)}70%{box-shadow:0 0 0 8px rgba(47,158,111,0)}100%{box-shadow:0 0 0 0 rgba(47,158,111,0)}}
+
+  .wrap{max-width:1120px;margin:0 auto;padding:30px;display:grid;grid-template-columns:400px 1fr;gap:26px}
+  @media(max-width:880px){.wrap{grid-template-columns:1fr}}
+
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);overflow:hidden}
+  .panel-h{padding:18px 20px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  .panel-h h2{font-size:15px;font-weight:800}
+  .panel-h .num{font-family:'Outfit';font-weight:800;font-size:12px;color:#fff;background:var(--ink);width:22px;height:22px;border-radius:7px;display:grid;place-items:center}
+
+  /* ---- Upload / receipt tray ---- */
+  .tray{padding:18px 20px}
+  .hint{font-size:12.5px;color:var(--muted);margin-bottom:14px;line-height:1.6}
+  .recpick{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .recbtn{
+    border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:12px 12px;
+    cursor:pointer;text-align:left;transition:.18s;display:flex;flex-direction:column;gap:7px;
+  }
+  .recbtn:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 10px 20px -14px rgba(232,85,43,.5)}
+  .recbtn.used{opacity:.4;pointer-events:none}
+  .recbtn .thumb{height:54px;border-radius:8px;overflow:hidden;background:#f4efe4;display:grid;place-items:center}
+  .recbtn .thumb svg{width:100%;height:100%}
+  .recbtn .nm{font-weight:700;font-size:12.5px}
+  .recbtn .mt{font-size:11px;color:var(--muted)}
+
+  /* ---- Stage / preview ---- */
+  .stage{padding:22px;min-height:430px;position:relative}
+  .empty{height:380px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--muted);text-align:center}
+  .empty .big{font-size:46px}
+  .empty p{font-size:13px;max-width:240px;line-height:1.7}
+
+  .work{display:grid;grid-template-columns:200px 1fr;gap:22px;align-items:start}
+  @media(max-width:560px){.work{grid-template-columns:1fr}}
+  .receipt-view{border-radius:14px;overflow:hidden;border:1px solid var(--line);box-shadow:0 12px 26px -16px rgba(0,0,0,.35);background:#fff}
+  .receipt-view svg{display:block;width:100%}
+
+  .scanline{position:absolute;left:0;right:0;height:34px;
+    background:linear-gradient(180deg,rgba(232,85,43,0),rgba(232,85,43,.28),rgba(232,85,43,0));
+    pointer-events:none;border-radius:14px}
+
+  .ai{position:relative}
+  .ai-status{display:flex;align-items:center;gap:9px;font-weight:700;font-size:13px;color:var(--accent);margin-bottom:16px}
+  .spin{width:15px;height:15px;border:2.5px solid var(--accent-soft);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  .field{opacity:0;transform:translateY(8px);animation:rise .45s forwards}
+  @keyframes rise{to{opacity:1;transform:none}}
+  .field{margin-bottom:13px}
+  .field label{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-family:'Outfit';font-weight:600;display:block;margin-bottom:5px}
+  .field .val{font-size:16px;font-weight:700}
+  .field .val.big{font-size:24px;font-family:'Outfit';font-weight:800}
+
+  .verdict{
+    border:1.5px solid var(--accent);background:var(--accent-soft);border-radius:14px;
+    padding:14px 16px;margin:6px 0 16px;position:relative;
+  }
+  .verdict .tag{font-size:10px;font-family:'Outfit';font-weight:700;letter-spacing:.14em;color:var(--accent);text-transform:uppercase}
+  .verdict .cat{font-size:21px;font-weight:900;margin-top:4px}
+  .verdict .why{font-size:12px;color:#6b4a3e;margin-top:6px;line-height:1.55}
+  .conf{display:flex;align-items:center;gap:8px;margin-top:10px}
+  .conf .bar{flex:1;height:6px;border-radius:99px;background:#fff;overflow:hidden}
+  .conf .bar i{display:block;height:100%;width:0;background:var(--green);border-radius:99px;transition:width 1s ease}
+  .conf .pct{font-family:'Outfit';font-weight:800;font-size:12px;color:var(--green)}
+
+  .alt{font-size:11.5px;color:var(--muted);margin-bottom:16px}
+  .alt b{color:var(--ink)}
+  .alt .chip{display:inline-block;border:1px solid var(--line);border-radius:8px;padding:2px 8px;margin-left:5px;cursor:pointer;transition:.15s}
+  .alt .chip:hover{border-color:var(--accent);color:var(--accent)}
+
+  .send{
+    width:100%;border:none;border-radius:13px;padding:14px;cursor:pointer;
+    font-family:'Zen Kaku Gothic New';font-weight:800;font-size:14.5px;color:#fff;
+    background:var(--notion);display:flex;align-items:center;justify-content:center;gap:9px;transition:.18s;
+  }
+  .send:hover{transform:translateY(-2px);box-shadow:0 14px 26px -14px rgba(0,0,0,.6)}
+  .send:active{transform:translateY(0)}
+  .send.done{background:var(--green)}
+
+  /* ---- Notion table ---- */
+  .notion{margin-top:26px}
+  .notion-h{display:flex;align-items:center;gap:10px;padding:0 6px 14px}
+  .ndb{width:26px;height:26px;border-radius:7px;background:var(--notion);display:grid;place-items:center;color:#fff;font-weight:800;font-size:14px;font-family:'Outfit'}
+  .notion-h h3{font-size:16px;font-weight:800}
+  .notion-h .cnt{font-size:12px;color:var(--muted);margin-left:auto}
+
+  .ntable{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead th{
+    text-align:left;padding:11px 14px;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);font-family:'Outfit';font-weight:600;border-bottom:1px solid var(--line);background:#fbf8f2;white-space:nowrap;
+  }
+  tbody td{padding:12px 14px;border-bottom:1px solid #f1ebdd;vertical-align:middle}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr.fresh{animation:flash 1.4s ease}
+  @keyframes flash{0%{background:var(--green-soft)}100%{background:transparent}}
+  .amt{font-family:'Outfit';font-weight:700}
+  .cattag{font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+  .imglink{color:var(--blue);font-size:12px;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+  .imglink:hover{text-decoration:underline}
+  .sumrow td{background:#fbf8f2;font-weight:800}
+  .sumrow .amt{font-size:15px;color:var(--accent)}
+
+  .foot{max-width:1120px;margin:8px auto 50px;padding:0 30px;color:var(--muted);font-size:11.5px;text-align:center}
+</style>
+
+<div class="topbar">
+  <div class="logo">⚡</div>
+  <div class="brand">レシバコ <small>Receipt → Notion auto-filing</small></div>
+  <div class="spacer"></div>
+  <div class="pill"><span class="dot"></span>Notion 連携中</div>
+</div>
+
+<div class="wrap">
+  <!-- LEFT: pick a receipt -->
+  <div class="panel">
+    <div class="panel-h"><span class="num">1</span><h2>レシートをアップロード</h2></div>
+    <div class="tray">
+      <p class="hint">スマホで撮ったレシートや、ネット購入のスクショを選ぶだけ。下のサンプルを試してみてください。</p>
+      <div class="recpick" id="recpick"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: stage -->
+  <div class="panel">
+    <div class="panel-h"><span class="num">2</span><h2>AIが科目を自動判別</h2></div>
+    <div class="stage" id="stage">
+      <div class="empty">
+        <div class="big">🧾</div>
+        <p>左からレシートを選ぶと、AIが店舗・金額・<b>勘定科目</b>を自動で読み取ります。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Notion table full width -->
+<div class="wrap" style="grid-template-columns:1fr;margin-top:-6px">
+  <div class="notion">
+    <div class="notion-h">
+      <div class="ndb">N</div>
+      <h3>2026年 経費テーブル</h3>
+      <span class="cnt" id="rowcount">0 件</span>
+    </div>
+    <div class="ntable">
+      <table>
+        <thead>
+          <tr><th>日付</th><th>店舗名</th><th>金額</th><th>勘定科目</th><th>メモ</th><th>領収書</th></tr>
+        </thead>
+        <tbody id="ntbody">
+          <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:26px">まだデータがありません。レシートを送信すると自動で行が追加されます。</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<p class="foot">※ これはプロトタイプです。データは端末内のサンプルのみで、実際のNotionには接続していません。</p>
+
+<script>
+// ===== ハードコーディングの仮データ =====
+const CAT_COLORS = {
+  "会議費":      {bg:"#fce9e0", fg:"#c4502b"},
+  "消耗品費":    {bg:"#e2eefc", fg:"#2f5fb8"},
+  "旅費交通費":  {bg:"#e6f1e9", fg:"#2f8f5e"},
+  "新聞図書費":  {bg:"#f1e7fb", fg:"#7b4fc0"}
+};
+
+// レシート画像はSVGで自作（外部API/画像なし）
+function receiptSVG(o){
+  return `<svg viewBox="0 0 200 300" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="300" fill="#fff"/>
+    <path d="M0 0 H200 V288 l-12 8 -12 -8 -12 8 -12 -8 -12 8 -12 -8 -12 8 -12 -8 -12 8 -12 -8 -12 8 -12 -8 -12 8 -12 -8 V0Z" fill="#fff" stroke="#e6ddcb"/>
+    <rect x="70" y="22" width="60" height="22" rx="4" fill="${o.brandbg}"/>
+    <text x="100" y="37" font-family="Outfit,sans-serif" font-size="11" font-weight="800" fill="#fff" text-anchor="middle">${o.logo}</text>
+    <text x="100" y="60" font-family="sans-serif" font-size="9" fill="#333" text-anchor="middle" font-weight="700">${o.shop}</text>
+    <line x1="20" y1="72" x2="180" y2="72" stroke="#ddd" stroke-dasharray="3 3"/>
+    ${o.items.map((it,i)=>`
+      <text x="22" y="${92+i*18}" font-family="sans-serif" font-size="8" fill="#555">${it[0]}</text>
+      <text x="178" y="${92+i*18}" font-family="Outfit,sans-serif" font-size="8" fill="#555" text-anchor="end">¥${it[1]}</text>`).join("")}
+    <line x1="20" y1="${96+o.items.length*18}" x2="180" y2="${96+o.items.length*18}" stroke="#ddd"/>
+    <text x="22" y="${118+o.items.length*18}" font-family="sans-serif" font-size="9" fill="#000" font-weight="700">合計</text>
+    <text x="178" y="${118+o.items.length*18}" font-family="Outfit,sans-serif" font-size="13" fill="#000" font-weight="800" text-anchor="end">¥${o.total.toLocaleString()}</text>
+    <text x="100" y="${150+o.items.length*18}" font-family="sans-serif" font-size="7" fill="#999" text-anchor="middle">${o.date}  No.${o.no}</text>
+    <rect x="60" y="${166+o.items.length*18}" width="80" height="16" fill="#16140f"/>
+    <rect x="64" y="${168+o.items.length*18}" width="2" height="12" fill="#fff"/>
+    <rect x="70" y="${168+o.items.length*18}" width="1" height="12" fill="#fff"/>
+    <rect x="74" y="${168+o.items.length*18}" width="3" height="12" fill="#fff"/>
+    <rect x="81" y="${168+o.items.length*18}" width="1" height="12" fill="#fff"/>
+    <rect x="86" y="${168+o.items.length*18}" width="2" height="12" fill="#fff"/>
+    <rect x="92" y="${168+o.items.length*18}" width="3" height="12" fill="#fff"/>
+    <rect x="99" y="${168+o.items.length*18}" width="1" height="12" fill="#fff"/>
+    <rect x="104" y="${168+o.items.length*18}" width="2" height="12" fill="#fff"/>
+    <rect x="110" y="${168+o.items.length*18}" width="3" height="12" fill="#fff"/>
+    <rect x="118" y="${168+o.items.length*18}" width="1" height="12" fill="#fff"/>
+    <rect x="124" y="${168+o.items.length*18}" width="2" height="12" fill="#fff"/>
+    <rect x="130" y="${168+o.items.length*18}" width="3" height="12" fill="#fff"/>
+  </svg>`;
+}
+
+const RECEIPTS = [
+  {
+    id:"cafe", shop:"スターバックス 渋谷店", logo:"STAR", brandbg:"#0a6b46",
+    date:"2026/05/12", no:"00482", total:1280,
+    items:[["カフェラテ Tall x2","920"],["スコーン","360"]],
+    category:"会議費", confidence:96,
+    why:"飲食店での少額決済かつ複数人分の注文。打ち合わせ利用と判定。",
+    memo:"取引先との打ち合わせ", alt:"交際費",
+    catThumbbg:"#fce9e0"
+  },
+  {
+    id:"amazon", shop:"Amazon.co.jp", logo:"amzn", brandbg:"#ff9900",
+    date:"2026/05/14", no:"71103", total:3480,
+    items:[["コピー用紙 A4 500枚","1480"],["インクカートリッジ","2000"]],
+    category:"消耗品費", confidence:98,
+    why:"10万円未満の事務用品。事業で消費する物品のため消耗品費。",
+    memo:"オフィス備品", alt:"事務用品費",
+    catThumbbg:"#e2eefc"
+  },
+  {
+    id:"train", shop:"JR東日本 モバイルSuica", logo:"JR", brandbg:"#2f8f5e",
+    date:"2026/05/15", no:"SU920", total:880,
+    items:[["渋谷 → 東京","220"],["東京 → 品川 ほか","660"]],
+    category:"旅費交通費", confidence:99,
+    why:"鉄道事業者の乗車記録。移動にかかる費用のため旅費交通費。",
+    memo:"客先訪問の移動", alt:"会議費",
+    catThumbbg:"#e6f1e9"
+  },
+  {
+    id:"book", shop:"丸善 丸の内本店", logo:"BOOK", brandbg:"#7b4fc0",
+    date:"2026/05/18", no:"33019", total:2640,
+    items:[["決算書の読み方","1760"],["業界地図 2026","880"]],
+    category:"新聞図書費", confidence:94,
+    why:"書店での書籍購入。業務に関する情報収集のため新聞図書費。",
+    memo:"業務知識の習得", alt:"消耗品費",
+    catThumbbg:"#f1e7fb"
+  }
+];
+
+const rows = []; // Notionに入った行
+
+// ---- render receipt picker ----
+const recpick = document.getElementById('recpick');
+RECEIPTS.forEach(r=>{
+  const b = document.createElement('button');
+  b.className='recbtn'; b.id='pick-'+r.id;
+  b.innerHTML = `<div class="thumb">${receiptSVG(r)}</div>
+                 <div class="nm">${r.shop.split(' ')[0]}</div>
+                 <div class="mt">${r.date} ・ ¥${r.total.toLocaleString()}</div>`;
+  b.onclick = ()=>runFlow(r);
+  recpick.appendChild(b);
+});
+
+const stage = document.getElementById('stage');
+
+function runFlow(r){
+  // Step A: show receipt + scanning
+  stage.innerHTML = `
+    <div class="work">
+      <div style="position:relative">
+        <div class="receipt-view" style="position:relative">${receiptSVG(r)}<div class="scanline" id="scan"></div></div>
+      </div>
+      <div class="ai" id="ai">
+        <div class="ai-status"><span class="spin"></span> AIが読み取り中…</div>
+      </div>
+    </div>`;
+
+  // animate scanline
+  const scan = document.getElementById('scan');
+  let p=0; const h=stage.querySelector('.receipt-view').offsetHeight-34;
+  const iv = setInterval(()=>{ p+=14; scan.style.top=Math.min(p,h)+'px'; if(p>=h)clearInterval(iv); },60);
+
+  // Step B: reveal results
+  setTimeout(()=>{
+    const c = CAT_COLORS[r.category];
+    document.getElementById('ai').innerHTML = `
+      <div class="ai-status" style="color:var(--green)">✓ 読み取り完了</div>
+      <div class="field" style="animation-delay:.05s"><label>店舗名</label><div class="val">${r.shop}</div></div>
+      <div class="field" style="animation-delay:.12s"><label>日付</label><div class="val">${r.date}</div></div>
+      <div class="field" style="animation-delay:.19s"><label>金額</label><div class="val big">¥${r.total.toLocaleString()}</div></div>
+      <div class="verdict field" style="animation-delay:.28s">
+        <div class="tag">AI 推定 勘定科目</div>
+        <div class="cat" style="color:${c.fg}">${r.category}</div>
+        <div class="why">${r.why}</div>
+        <div class="conf"><div class="bar"><i id="cbar"></i></div><span class="pct">${r.confidence}%</span></div>
+      </div>
+      <div class="alt field" style="animation-delay:.36s">候補: <b>${r.category}</b><span class="chip">${r.alt}</span></div>
+      <button class="send field" id="sendbtn" style="animation-delay:.44s">
+        <span style="font-size:16px">N</span> Notionに送信
+      </button>`;
+    setTimeout(()=>{document.getElementById('cbar').style.width=r.confidence+'%';},120);
+    document.getElementById('sendbtn').onclick = ()=>sendToNotion(r);
+  },1050);
+}
+
+function sendToNotion(r){
+  const btn = document.getElementById('sendbtn');
+  btn.innerHTML = `<span class="spin" style="border-color:rgba(255,255,255,.3);border-top-color:#fff"></span> 送信中…`;
+  setTimeout(()=>{
+    btn.classList.add('done');
+    btn.innerHTML = `✓ Notionに追加しました`;
+    addRow(r);
+    // mark used
+    document.getElementById('pick-'+r.id).classList.add('used');
+  },700);
+}
+
+function addRow(r){
+  rows.push(r);
+  const tb = document.getElementById('ntbody');
+  if(rows.length===1) tb.innerHTML='';
+  const c = CAT_COLORS[r.category];
+  const tr = document.createElement('tr');
+  tr.className='fresh';
+  tr.innerHTML = `
+    <td>${r.date}</td>
+    <td><b>${r.shop.split(' ')[0]}</b></td>
+    <td class="amt">¥${r.total.toLocaleString()}</td>
+    <td><span class="cattag" style="background:${c.bg};color:${c.fg}">${r.category}</span></td>
+    <td style="color:var(--muted)">${r.memo}</td>
+    <td><a class="imglink" href="#" onclick="return false">🧾 receipt_${r.id}.jpg</a></td>`;
+  // remove old sum row if exists
+  const old = tb.querySelector('.sumrow'); if(old) old.remove();
+  tb.appendChild(tr);
+
+  // sum row
+  const total = rows.reduce((s,x)=>s+x.total,0);
+  const sum = document.createElement('tr');
+  sum.className='sumrow';
+  sum.innerHTML = `<td colspan="2">合計（${rows.length}件）</td><td class="amt">¥${total.toLocaleString()}</td><td colspan="3"></td>`;
+  tb.appendChild(sum);
+
+  document.getElementById('rowcount').textContent = rows.length+' 件';
+}
+</script>

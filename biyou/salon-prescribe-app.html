@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Salon Prescribe</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = { theme: { extend: {
+  fontFamily: { serif:['"Cormorant Garamond"','serif'], sans:['"Zen Kaku Gothic New"','sans-serif'] },
+  colors: { cream:'#F7F4EF', sand:'#EDE6DB', taupe:'#C9BBA8', umber:'#8A7B68', ink:'#3A352E', line:'#0BB14F', gold:'#B89B5E' },
+}}};
+</script>
+<style>
+  * { -webkit-tap-highlight-color: transparent; }
+  body { background:#E8E3DA; }
+  .phone { width:100%; max-width:390px; height:844px; max-height:100vh; background:#F7F4EF; position:relative; overflow:hidden; box-shadow:0 30px 80px -20px rgba(58,53,46,.45); }
+  @media (min-width:420px){ .phone { border-radius:42px; } }
+  /* tab views */
+  .tab { position:absolute; inset:0 0 76px 0; display:flex; flex-direction:column; opacity:0; visibility:hidden; transform:translateY(10px); transition:opacity .4s ease, transform .4s ease, visibility .4s; pointer-events:none; }
+  .tab.active { opacity:1; visibility:visible; transform:none; pointer-events:auto; }
+  .scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .scroll::-webkit-scrollbar { display:none; }
+  /* prescription sub-screens (overlay full phone) */
+  .rx-screen { position:absolute; inset:0; background:#F7F4EF; z-index:30; display:flex; flex-direction:column; opacity:0; visibility:hidden; transform:translateY(14px); transition:opacity .5s ease, transform .5s ease, visibility .5s; pointer-events:none; }
+  .rx-screen.active { opacity:1; visibility:visible; transform:none; pointer-events:auto; }
+  .chip { transition:all .25s ease; }
+  .chip.sel { background:#3A352E; color:#F7F4EF; border-color:#3A352E; transform:translateY(-1px); }
+  .press { transition:transform .12s ease; } .press:active { transform:scale(.96); }
+  .nav-btn { transition:color .2s ease; }
+  .fade-up { animation:fadeUp .6s ease both; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  .spin { width:46px;height:46px;border:3px solid #EDE6DB;border-top-color:#8A7B68;border-radius:50%;animation:sp 1s linear infinite; }
+  @keyframes sp { to{transform:rotate(360deg)} }
+  .dot { animation:blink 1.4s infinite both; } .dot:nth-child(2){animation-delay:.2s} .dot:nth-child(3){animation-delay:.4s}
+  @keyframes blink { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
+  .line-pop { animation:pop .5s cubic-bezier(.2,.9,.3,1.3) both; }
+  @keyframes pop { from{opacity:0;transform:scale(.9) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} }
+  .sheet { transition:transform .45s cubic-bezier(.25,.8,.3,1); transform:translateY(100%); } .sheet.up { transform:translateY(0); }
+  .overlay { transition:opacity .45s ease; }
+  .radar-poly { animation:radarGrow 1.1s cubic-bezier(.3,.9,.3,1.1) both .2s; transform-origin:center; }
+  @keyframes radarGrow { from{transform:scale(0);opacity:0} to{transform:scale(1)} }
+  .ba-handle { transition:left .05s linear; }
+  .ba-range { -webkit-appearance:none; appearance:none; background:transparent; cursor:ew-resize; }
+  .ba-range::-webkit-slider-thumb { -webkit-appearance:none; width:44px; height:100%; }
+  .cal-cell.on { background:#3A352E; color:#F7F4EF; } .cal-cell.mask { box-shadow:inset 0 0 0 2px #8A7B68; }
+  .slot { transition:all .2s ease; } .slot.sel { background:#3A352E; color:#F7F4EF; border-color:#3A352E; }
+  .slot.off { opacity:.32; pointer-events:none; text-decoration:line-through; }
+  .qr-cell { width:6px;height:6px; } /* qr built in JS */
+  .stamp { transition:transform .3s ease; }
+  .stamp.got { animation:stampPop .5s cubic-bezier(.2,.9,.3,1.4) both; }
+  @keyframes stampPop { from{transform:scale(0) rotate(-20deg)} to{transform:scale(1) rotate(0)} }
+  .ring-fill { transition:stroke-dashoffset 1.2s cubic-bezier(.3,.9,.3,1); }
+  @media (prefers-reduced-motion:reduce){ *{animation-duration:.01ms!important;transition-duration:.01ms!important} }
+</style>
+</head>
+<body class="min-h-screen flex items-center justify-center font-sans text-ink">
+
+<div class="phone">
+
+  <!-- ============ HOME ============ -->
+  <section id="home" class="tab active">
+    <div class="scroll px-6 pt-9 pb-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="font-serif text-taupe tracking-[.32em] text-[11px] uppercase">Salon Prescribe</p>
+          <h1 class="text-xl font-medium mt-1">こんにちは、花子さん</h1>
+        </div>
+        <div class="w-11 h-11 rounded-full bg-gradient-to-br from-taupe to-umber flex items-center justify-center text-cream font-serif">H</div>
+      </div>
+
+      <!-- membership strip -->
+      <button onclick="go('member')" class="press w-full mt-6 rounded-3xl p-5 text-cream text-left relative overflow-hidden" style="background:linear-gradient(120deg,#3A352E,#6B5E4C)">
+        <div class="absolute -right-6 -top-8 w-32 h-32 rounded-full" style="background:radial-gradient(circle,rgba(184,155,94,.5),transparent 70%)"></div>
+        <p class="text-[10px] tracking-[.3em] uppercase text-gold">Gold Member</p>
+        <p class="font-serif text-3xl mt-1"><span id="homePts">1,240</span> <span class="text-sm">pt</span></p>
+        <p class="text-[11px] text-cream/70 mt-2">タップして会員証を表示 →</p>
+      </button>
+
+      <!-- next booking -->
+      <p class="text-[11px] tracking-widest text-umber uppercase mt-7 mb-2">次回のご予約</p>
+      <div id="homeBooking" class="rounded-3xl bg-white border border-sand p-5 shadow-sm">
+        <div id="noBooking">
+          <p class="text-sm text-umber">まだ予約がありません。</p>
+          <button onclick="go('book')" class="press mt-3 bg-ink text-cream rounded-full px-5 py-2.5 text-sm font-medium">予約する</button>
+        </div>
+        <div id="hasBooking" class="hidden flex items-center justify-between">
+          <div>
+            <p class="font-medium text-lg" id="hbDate">—</p>
+            <p class="text-xs text-umber mt-1" id="hbMenu">—</p>
+          </div>
+          <span class="text-[10px] text-line border border-line rounded-full px-3 py-1">予約確定</span>
+        </div>
+      </div>
+
+      <!-- prescription summary -->
+      <p class="text-[11px] tracking-widest text-umber uppercase mt-7 mb-2">あなたの処方箋</p>
+      <button onclick="go('rx')" class="press w-full rounded-3xl bg-white border border-sand p-5 shadow-sm text-left flex items-center gap-4">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-sand to-taupe/50 flex items-center justify-center font-serif text-ink text-xs shrink-0">RX</div>
+        <div class="flex-1">
+          <p class="font-medium text-[15px]">高保水ケア処方箋</p>
+          <p class="text-xs text-umber mt-1">髪質スコア 38 ・ おすすめ2品</p>
+        </div>
+        <span class="text-umber">›</span>
+      </button>
+
+      <!-- today's care reminder -->
+      <div class="mt-4 rounded-3xl bg-[#DEF3E0] p-4 flex items-center gap-3">
+        <span class="text-xl">📅</span>
+        <p class="text-[13px] leading-6 text-ink">今日は<span class="font-medium">マスクの日</span>。週2回のケアでまとまりが続きます。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BOOKING ============ -->
+  <section id="book" class="tab">
+    <header class="px-6 pt-9 pb-4 border-b border-sand">
+      <p class="font-serif text-taupe tracking-[.3em] text-[11px] uppercase">Booking</p>
+      <h1 class="text-lg font-medium mt-1">ご予約</h1>
+    </header>
+    <div class="scroll px-6 py-6 space-y-6">
+      <div>
+        <p class="text-[11px] tracking-widest text-umber uppercase mb-3">メニュー</p>
+        <div class="grid grid-cols-2 gap-2" id="menuGroup">
+          <button class="chip sel border border-taupe rounded-2xl py-3 text-sm press" data-min="90">カット+カラー</button>
+          <button class="chip border border-taupe rounded-2xl py-3 text-sm press" data-min="60">カットのみ</button>
+          <button class="chip border border-taupe rounded-2xl py-3 text-sm press" data-min="120">ブリーチ+ケア</button>
+          <button class="chip border border-taupe rounded-2xl py-3 text-sm press" data-min="45">トリートメント</button>
+        </div>
+      </div>
+
+      <div>
+        <p class="text-[11px] tracking-widest text-umber uppercase mb-3">日付</p>
+        <div class="grid grid-cols-5 gap-2" id="dateGroup"></div>
+      </div>
+
+      <div>
+        <p class="text-[11px] tracking-widest text-umber uppercase mb-3">時間</p>
+        <div class="grid grid-cols-4 gap-2" id="timeGroup"></div>
+      </div>
+
+      <div class="rounded-3xl bg-white border border-sand p-4 text-sm flex justify-between items-center">
+        <span class="text-umber">選択中</span>
+        <span id="bookSummary" class="font-medium text-right">— / —</span>
+      </div>
+    </div>
+    <footer class="px-6 pb-6 pt-3 bg-cream border-t border-sand">
+      <button id="bookBtn" onclick="confirmBooking()" class="press w-full bg-ink text-cream rounded-full py-4 font-medium tracking-wide disabled:opacity-40" disabled>この内容で予約する</button>
+    </footer>
+  </section>
+
+  <!-- ============ PRESCRIPTION TAB (entry) ============ -->
+  <section id="rx" class="tab">
+    <header class="px-6 pt-9 pb-4 border-b border-sand">
+      <p class="font-serif text-taupe tracking-[.3em] text-[11px] uppercase">Prescription</p>
+      <h1 class="text-lg font-medium mt-1">ヘアケア処方箋</h1>
+    </header>
+    <div class="scroll px-6 py-6 space-y-4">
+      <button onclick="openRx('rxResult')" class="press w-full rounded-3xl bg-white border border-sand p-5 shadow-sm text-left flex items-center gap-4">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-sand to-taupe/50 flex items-center justify-center font-serif text-xs shrink-0">RX</div>
+        <div class="flex-1"><p class="font-medium">最新の処方箋を見る</p><p class="text-xs text-umber mt-1">2025.06.18 発行</p></div>
+        <span class="text-umber">›</span>
+      </button>
+      <button onclick="openRx('rxInput')" class="press w-full rounded-3xl border border-dashed border-taupe p-5 text-left flex items-center gap-4">
+        <div class="w-12 h-12 rounded-2xl bg-sand flex items-center justify-center text-umber shrink-0">＋</div>
+        <div class="flex-1"><p class="font-medium">新しく髪質診断をする</p><p class="text-xs text-umber mt-1">サロンでスタッフと一緒に</p></div>
+      </button>
+    </div>
+  </section>
+
+  <!-- ============ MEMBER ============ -->
+  <section id="member" class="tab">
+    <div class="scroll pb-6">
+      <!-- card -->
+      <div class="px-6 pt-9">
+        <div class="rounded-3xl p-6 text-cream relative overflow-hidden" style="background:linear-gradient(125deg,#2E2A24,#6B5E4C)">
+          <div class="absolute -right-8 -top-10 w-40 h-40 rounded-full" style="background:radial-gradient(circle,rgba(184,155,94,.45),transparent 70%)"></div>
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-[10px] tracking-[.3em] uppercase text-gold">Gold Member</p>
+              <p class="font-serif text-2xl mt-1">山田 花子</p>
+              <p class="text-[10px] text-cream/60 mt-1">No. 0042-1188</p>
+            </div>
+            <div class="bg-cream p-2 rounded-xl"><div id="qr" class="grid" style="grid-template-columns:repeat(11,6px)"></div></div>
+          </div>
+          <div class="mt-5 flex items-end justify-between">
+            <div><p class="text-[10px] text-cream/60 uppercase tracking-widest">Points</p><p class="font-serif text-3xl"><span id="memPts">1,240</span></p></div>
+            <p class="text-[10px] text-cream/60">来店で会員証を提示</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- rank progress -->
+      <div class="px-6 mt-6">
+        <div class="flex items-center justify-between text-xs mb-2">
+          <span class="text-gold font-medium">GOLD</span>
+          <span class="text-umber">あと 260pt で PLATINUM</span>
+        </div>
+        <div class="h-2 rounded-full bg-sand overflow-hidden"><div class="h-full rounded-full" style="width:74%;background:linear-gradient(90deg,#B89B5E,#8A7B68)"></div></div>
+      </div>
+
+      <!-- stamp card -->
+      <div class="px-6 mt-7">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-[11px] tracking-widest text-umber uppercase">来店スタンプ</p>
+          <button onclick="addStamp()" class="press text-[11px] text-ink border border-taupe rounded-full px-3 py-1">＋ 来店（デモ）</button>
+        </div>
+        <div class="rounded-3xl bg-white border border-sand p-5 grid grid-cols-5 gap-3" id="stampGrid"></div>
+        <p class="text-[11px] text-umber mt-2 text-center">10回でスペシャルトリートメント無料</p>
+      </div>
+
+      <!-- rewards -->
+      <div class="px-6 mt-7">
+        <p class="text-[11px] tracking-widest text-umber uppercase mb-3">ポイント交換</p>
+        <div class="space-y-2" id="rewardList"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BOTTOM NAV ============ -->
+  <nav class="absolute bottom-0 inset-x-0 h-[76px] bg-white/95 backdrop-blur border-t border-sand flex items-stretch z-40">
+    <button data-tab="home" onclick="go('home')" class="nav-btn flex-1 flex flex-col items-center justify-center gap-1 text-ink">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>
+      <span class="text-[10px]">ホーム</span>
+    </button>
+    <button data-tab="book" onclick="go('book')" class="nav-btn flex-1 flex flex-col items-center justify-center gap-1 text-umber/50">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>
+      <span class="text-[10px]">予約</span>
+    </button>
+    <button data-tab="rx" onclick="go('rx')" class="nav-btn flex-1 flex flex-col items-center justify-center gap-1 text-umber/50">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h9l7 7v9a0 0 0 0 1 0 0H4z"/><path d="M13 4v7h7"/></svg>
+      <span class="text-[10px]">処方箋</span>
+    </button>
+    <button data-tab="member" onclick="go('member')" class="nav-btn flex-1 flex flex-col items-center justify-center gap-1 text-umber/50">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg>
+      <span class="text-[10px]">会員証</span>
+    </button>
+  </nav>
+
+  <!-- ================= RX SUB-SCREENS ================= -->
+  <!-- input -->
+  <section id="rxInput" class="rx-screen">
+    <header class="px-6 pt-9 pb-4 border-b border-sand flex items-center gap-3">
+      <button onclick="closeRx()" class="press text-xl text-umber">‹</button>
+      <div><p class="font-serif text-taupe tracking-[.3em] text-[11px] uppercase">Counseling</p><h1 class="text-lg font-medium">髪質診断</h1></div>
+    </header>
+    <div class="scroll px-6 py-6 space-y-7">
+      <div><label class="text-[11px] tracking-widest text-umber uppercase">お客様名</label>
+        <input id="cust" value="山田 花子 様" class="mt-2 w-full bg-transparent border-b border-taupe/60 pb-2 text-xl font-medium focus:outline-none focus:border-ink transition"/></div>
+      <div><p class="text-[11px] tracking-widest text-umber uppercase mb-3">髪の太さ</p>
+        <div class="grid grid-cols-3 gap-2" data-group="thick" data-single>
+          <button class="chip border border-taupe rounded-full py-2.5 text-sm press">細め</button>
+          <button class="chip sel border border-taupe rounded-full py-2.5 text-sm press">普通</button>
+          <button class="chip border border-taupe rounded-full py-2.5 text-sm press">太め</button></div></div>
+      <div><p class="text-[11px] tracking-widest text-umber uppercase mb-3">お悩み（複数選択可）</p>
+        <div class="grid grid-cols-2 gap-2" data-group="worry">
+          <button class="chip sel border border-taupe rounded-2xl py-3 text-sm press">ブリーチの傷み</button>
+          <button class="chip sel border border-taupe rounded-2xl py-3 text-sm press">パサつき・乾燥</button>
+          <button class="chip border border-taupe rounded-2xl py-3 text-sm press">広がり・くせ</button>
+          <button class="chip border border-taupe rounded-2xl py-3 text-sm press">ボリューム不足</button></div></div>
+      <div><p class="text-[11px] tracking-widest text-umber uppercase mb-3">仕上がりの希望</p>
+        <div class="grid grid-cols-2 gap-2" data-group="finish" data-single>
+          <button class="chip border border-taupe rounded-2xl py-3 text-sm press">サラサラ・軽い</button>
+          <button class="chip sel border border-taupe rounded-2xl py-3 text-sm press">しっとり・まとまる</button></div></div>
+    </div>
+    <footer class="px-6 pb-8 pt-4 bg-cream border-t border-sand">
+      <button onclick="issue()" class="press w-full bg-ink text-cream rounded-full py-4 font-medium tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-ink/20">処方箋を発行する
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    </footer>
+  </section>
+
+  <!-- loading -->
+  <section id="rxLoading" class="rx-screen items-center justify-center">
+    <div class="flex flex-col items-center text-center px-10">
+      <div class="spin mb-7"></div>
+      <p class="font-serif text-2xl">Analyzing</p>
+      <p class="text-umber text-sm mt-3">AIが最適なヘアケアを分析中<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></p>
+    </div>
+  </section>
+
+  <!-- result -->
+  <section id="rxResult" class="rx-screen">
+    <header class="px-6 pt-9 pb-4 border-b border-sand bg-cream flex items-center gap-3">
+      <button onclick="closeRx()" class="press text-xl text-umber">‹</button>
+      <div><p class="font-serif text-taupe tracking-[.3em] text-[11px] uppercase">Prescription</p><h1 class="text-base font-medium"><span id="name2">山田 花子</span> 様の処方箋</h1></div>
+    </header>
+    <div class="scroll px-6 py-6 space-y-6">
+      <!-- score + radar -->
+      <div class="fade-up bg-white rounded-3xl p-6 border border-sand shadow-sm">
+        <div class="flex items-center gap-2 mb-1"><span class="w-1.5 h-1.5 rounded-full bg-umber"></span><p class="text-[11px] tracking-widest text-umber uppercase">髪質スコア診断</p></div>
+        <div class="flex items-center justify-between">
+          <div><p class="font-serif text-5xl leading-none"><span id="scoreVal">0</span><span class="text-lg text-umber">/100</span></p><p id="scoreLabel" class="text-xs text-umber mt-2">要・集中ケア</p></div>
+          <svg width="138" height="138" viewBox="0 0 200 200" class="shrink-0">
+            <g fill="none" stroke="#EDE6DB" stroke-width="1"><polygon points="100,20 169,60 169,140 100,180 31,140 31,60"/><polygon points="100,47 146,73 146,127 100,153 54,127 54,73"/><polygon points="100,73 123,87 123,113 100,127 77,113 77,87"/></g>
+            <g stroke="#EDE6DB" stroke-width="1"><line x1="100" y1="100" x2="100" y2="20"/><line x1="100" y1="100" x2="169" y2="60"/><line x1="100" y1="100" x2="169" y2="140"/><line x1="100" y1="100" x2="100" y2="180"/><line x1="100" y1="100" x2="31" y2="140"/><line x1="100" y1="100" x2="31" y2="60"/></g>
+            <polygon id="radarPoly" class="radar-poly" points="100,100 100,100 100,100 100,100 100,100 100,100" fill="rgba(138,123,104,.28)" stroke="#8A7B68" stroke-width="2"/>
+            <g fill="#8A7B68" font-size="11" font-family="sans-serif" text-anchor="middle"><text x="100" y="13">保水</text><text x="185" y="58">補修</text><text x="185" y="150">まとまり</text><text x="100" y="195">ツヤ</text><text x="15" y="150">軽さ</text><text x="15" y="58">頭皮</text></g>
+          </svg>
+        </div>
+      </div>
+      <!-- before/after -->
+      <div class="fade-up bg-white rounded-3xl overflow-hidden border border-sand shadow-sm" style="animation-delay:.08s">
+        <div class="px-5 pt-4 pb-3 flex items-center justify-between"><p class="text-[11px] tracking-widest text-umber uppercase">4週間後の予測</p><p class="text-[10px] text-umber">← スワイプ →</p></div>
+        <div id="baBox" class="relative h-56 select-none overflow-hidden">
+          <div class="absolute inset-0 flex flex-col items-center justify-center" style="background:linear-gradient(135deg,#F2EFE9,#E4D9C6)">
+            <div class="w-14 rounded-b-[40px] rounded-t-lg mb-3" style="height:120px;background:linear-gradient(180deg,#C9BBA8,#8A7B68);box-shadow:0 6px 16px -4px rgba(58,53,46,.4)"></div>
+            <p class="text-xs tracking-widest text-umber uppercase">After</p><p class="text-[11px] text-ink mt-1">うるおい・ツヤ ↑</p></div>
+          <div id="baBefore" class="absolute inset-0 flex flex-col items-center justify-center" style="width:50%;background:linear-gradient(135deg,#E8E3DA,#CFC6B8);overflow:hidden">
+            <div class="absolute inset-0 flex flex-col items-center justify-center" style="width:390px">
+              <div class="w-14 rounded-b-[28px] rounded-t-lg mb-3" style="height:120px;background:linear-gradient(180deg,#B8AC9A,#9A8D78);filter:saturate(.7)"></div>
+              <p class="text-xs tracking-widest text-umber uppercase">Before</p><p class="text-[11px] text-ink/70 mt-1">乾燥・広がり</p></div></div>
+          <div id="baHandle" class="ba-handle absolute top-0 bottom-0 w-0.5 bg-white shadow" style="left:50%"><div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white shadow-md flex items-center justify-center text-umber text-xs">⇆</div></div>
+          <input id="baRange" type="range" min="0" max="100" value="50" class="ba-range absolute inset-0 w-full h-full opacity-0">
+        </div>
+      </div>
+      <!-- AI comment -->
+      <div class="fade-up bg-white rounded-3xl p-6 border border-sand shadow-sm" style="animation-delay:.14s">
+        <div class="flex items-center gap-2 mb-3"><span class="w-1.5 h-1.5 rounded-full bg-umber"></span><p class="text-[11px] tracking-widest text-umber uppercase">AI 診断コメント</p></div>
+        <p class="text-[15px] leading-7 text-ink/90">髪の内部の水分量が低下し、カラーやブリーチによるダメージでキューティクルが弱くなっています。今必要なのは、タンパク質を補給しつつ湿気から髪を守る<span class="font-medium">「高保水ケア」</span>です。</p>
+      </div>
+      <p class="text-[11px] tracking-widest text-umber uppercase pl-1">おすすめの2品</p>
+      <div class="fade-up bg-white rounded-3xl overflow-hidden border border-sand shadow-sm" style="animation-delay:.2s">
+        <div class="h-36 bg-gradient-to-br from-sand to-taupe/40 flex items-center justify-center"><div class="w-12 h-24 rounded-t-2xl rounded-b-lg bg-gradient-to-b from-[#F2EFE9] to-[#E2D8C6] shadow-md border border-white/60"></div></div>
+        <div class="p-5"><h3 class="font-medium text-[15px]">オーガニック リペア シャンプー 300ml</h3><p class="text-xs text-umber mt-2">カチオン化ケラチン配合で、ブリーチ毛を芯から補修。</p><p class="font-serif text-2xl mt-3">¥3,850 <span class="text-xs font-sans text-umber">税込</span></p></div>
+      </div>
+      <div class="fade-up bg-white rounded-3xl overflow-hidden border border-sand shadow-sm" style="animation-delay:.26s">
+        <div class="h-36 bg-gradient-to-br from-[#E8E0D2] to-taupe/40 flex items-center justify-center"><div class="w-20 h-20 rounded-2xl bg-gradient-to-b from-[#F2EFE9] to-[#E0D4C0] shadow-md border border-white/60"></div></div>
+        <div class="p-5"><h3 class="font-medium text-[15px]">ディープモイスト ヘアマスク 200g</h3><p class="text-xs text-umber mt-2">週2回の特別ケア。広がる髪をストンとまとめる高濃度オイル配合。</p><p class="font-serif text-2xl mt-3">¥4,200 <span class="text-xs font-sans text-umber">税込</span></p></div>
+      </div>
+    </div>
+    <footer class="px-6 pb-8 pt-4 bg-cream border-t border-sand">
+      <button onclick="openEC()" class="press w-full bg-ink text-cream rounded-full py-4 font-medium tracking-wide flex items-center justify-center gap-2">商品を購入する 🛒</button>
+    </footer>
+  </section>
+
+  <!-- EC sheet -->
+  <div id="ec" class="absolute inset-0 z-50 pointer-events-none">
+    <div id="ecOverlay" class="overlay absolute inset-0 bg-ink/40 opacity-0"></div>
+    <div id="ecSheet" class="sheet absolute inset-x-0 bottom-0 top-6 bg-cream rounded-t-3xl flex flex-col overflow-hidden">
+      <div class="px-6 pt-4 pb-4 border-b border-sand flex items-center justify-between">
+        <div><p class="font-serif text-taupe tracking-[.3em] text-[10px] uppercase">Order</p><h2 class="font-medium">あなた専用ケアセット</h2></div>
+        <button onclick="closeEC()" class="press w-9 h-9 rounded-full bg-sand flex items-center justify-center text-umber">✕</button>
+      </div>
+      <div class="scroll px-6 py-5 space-y-4">
+        <div class="bg-white rounded-3xl p-4 border border-sand flex gap-4">
+          <div class="w-20 h-24 rounded-2xl bg-gradient-to-b from-[#F2EFE9] to-[#E2D8C6] shrink-0 border border-taupe/30"></div>
+          <div class="flex-1"><h3 class="text-sm font-medium">オーガニック リペア シャンプー 300ml</h3><p class="font-serif text-xl mt-1">¥3,850</p>
+            <div class="flex gap-2 mt-3"><button onclick="addCart(this,'A')" class="press flex-1 border border-ink rounded-full py-2 text-xs font-medium">カートに入れる</button><button class="press flex-1 bg-ink text-cream rounded-full py-2 text-xs font-medium">今すぐ購入</button></div></div>
+        </div>
+        <div class="bg-white rounded-3xl p-4 border border-sand flex gap-4">
+          <div class="w-20 h-24 rounded-2xl bg-gradient-to-b from-[#F2EFE9] to-[#E0D4C0] shrink-0 border border-taupe/30"></div>
+          <div class="flex-1"><h3 class="text-sm font-medium">ディープモイスト ヘアマスク 200g</h3><p class="font-serif text-xl mt-1">¥4,200</p>
+            <div class="flex gap-2 mt-3"><button onclick="addCart(this,'B')" class="press flex-1 border border-ink rounded-full py-2 text-xs font-medium">カートに入れる</button><button class="press flex-1 bg-ink text-cream rounded-full py-2 text-xs font-medium">今すぐ購入</button></div></div>
+        </div>
+        <p class="text-center text-xs text-umber pt-1">購入で <span class="text-ink font-medium">+80pt</span> ・送料無料</p>
+      </div>
+      <div class="px-6 pb-7 pt-3 bg-white border-t border-sand flex items-center justify-between">
+        <div><p class="text-xs text-umber">合計 <span id="cartCount">0</span>点</p><p class="font-serif text-2xl">¥<span id="cartTotal">0</span></p></div>
+        <button class="press bg-ink text-cream rounded-full px-7 py-3.5 font-medium">レジに進む</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- toast -->
+<div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-ink text-cream text-sm px-5 py-3 rounded-full opacity-0 transition-opacity duration-300 pointer-events-none z-[60]">完了しました</div>
+
+<script>
+  // ---------- state ----------
+  let points = 1240;
+  let stamps = 6;
+  const TOTAL_STAMPS = 10;
+  const prices = { A:3850, B:4200 };
+  let cart = [];
+  let booking = { menu:'カット+カラー', min:90, date:null, time:null };
+
+  // ---------- tab nav ----------
+  function go(id){
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(b=>{
+      const on = b.dataset.tab===id;
+      b.classList.toggle('text-ink', on);
+      b.classList.toggle('text-umber/50', !on);
+    });
+    if(id==='rx'){ // entering rx tab: ensure no sub-screen open
+    }
+  }
+
+  // ---------- rx sub-screens ----------
+  function openRx(id){ document.getElementById(id).classList.add('active'); if(id==='rxResult'){ replayResult(); } }
+  function closeRx(){ document.querySelectorAll('.rx-screen').forEach(s=>s.classList.remove('active')); }
+
+  // ---------- chips ----------
+  document.querySelectorAll('[data-group]').forEach(g=>{
+    const single=g.hasAttribute('data-single');
+    g.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
+      if(single){ g.querySelectorAll('.chip').forEach(x=>x.classList.remove('sel')); c.classList.add('sel'); }
+      else c.classList.toggle('sel');
+    }));
+  });
+
+  // ---------- radar/score ----------
+  function buildScore(){
+    const worries=[...document.querySelectorAll('[data-group="worry"] .chip.sel')].map(c=>c.textContent.trim());
+    let v={hydro:38,repair:42,smooth:50,shine:45,light:60,scalp:65};
+    if(worries.includes('ブリーチの傷み')){v.repair=28;v.shine=35;}
+    if(worries.includes('パサつき・乾燥')){v.hydro=24;v.shine=38;}
+    if(worries.includes('広がり・くせ')){v.smooth=30;v.light=42;}
+    if(worries.includes('ボリューム不足')){v.scalp=40;v.light=78;}
+    const order=['hydro','repair','smooth','shine','light','scalp'];
+    const ang=[-90,-30,30,90,150,210];
+    const pts=order.map((k,i)=>{const r=80*(v[k]/100);const a=ang[i]*Math.PI/180;return [100+r*Math.cos(a),100+r*Math.sin(a)].map(n=>n.toFixed(1)).join(',');}).join(' ');
+    document.getElementById('radarPoly').setAttribute('points',pts);
+    return Math.round(order.reduce((s,k)=>s+v[k],0)/6);
+  }
+  function animateScore(t){
+    const el=document.getElementById('scoreVal');let n=0;const step=Math.max(1,Math.round(t/28));
+    const iv=setInterval(()=>{n+=step;if(n>=t){n=t;clearInterval(iv);}el.textContent=n;},28);
+    document.getElementById('scoreLabel').textContent=t<45?'要・集中ケア':t<65?'バランス調整中':'良好';
+  }
+  function replayResult(){
+    const sc=buildScore();
+    document.querySelectorAll('#rxResult .fade-up').forEach(e=>{e.style.animation='none';e.offsetHeight;e.style.animation='';});
+    const rp=document.getElementById('radarPoly');rp.style.animation='none';rp.offsetHeight;rp.style.animation='';
+    animateScore(sc);
+    document.querySelector('#rxResult .scroll').scrollTop=0;
+    const r=document.getElementById('baRange');r.value=50;r.dispatchEvent(new Event('input'));
+  }
+
+  // before/after slider
+  (function(){const r=document.getElementById('baRange'),h=document.getElementById('baHandle'),b=document.getElementById('baBefore');
+    function upd(){const p=r.value+'%';h.style.left=p;b.style.width=p;}r.addEventListener('input',upd);upd();})();
+
+  function issue(){
+    const raw=document.getElementById('cust').value.trim().replace(/\s*様$/,'');
+    document.getElementById('name2').textContent=raw||'山田 花子';
+    document.getElementById('rxInput').classList.remove('active');
+    document.getElementById('rxLoading').classList.add('active');
+    setTimeout(()=>{ document.getElementById('rxLoading').classList.remove('active'); openRx('rxResult'); },2000);
+  }
+
+  // ---------- EC ----------
+  function openEC(){const ec=document.getElementById('ec');ec.classList.remove('pointer-events-none');document.getElementById('ecOverlay').style.opacity='1';requestAnimationFrame(()=>document.getElementById('ecSheet').classList.add('up'));}
+  function closeEC(){document.getElementById('ecSheet').classList.remove('up');document.getElementById('ecOverlay').style.opacity='0';setTimeout(()=>document.getElementById('ec').classList.add('pointer-events-none'),450);}
+  function addCart(btn,k){cart.push(k);document.getElementById('cartCount').textContent=cart.length;document.getElementById('cartTotal').textContent=cart.reduce((s,x)=>s+prices[x],0).toLocaleString();btn.textContent='追加済み ✓';btn.classList.add('bg-sand','border-sand');toast('カートに追加しました');}
+
+  // ---------- booking ----------
+  function initBooking(){
+    const days=['月','火','水','木','金','土','日'];
+    const dg=document.getElementById('dateGroup');
+    for(let i=1;i<=5;i++){
+      const d=6+i; const wd=days[(i+2)%7];
+      const b=document.createElement('button');
+      b.className='slot border border-taupe rounded-2xl py-2 press flex flex-col items-center';
+      b.innerHTML=`<span class="text-[10px] text-umber">6/${d}</span><span class="text-sm font-medium">${wd}</span>`;
+      b.onclick=()=>{document.querySelectorAll('#dateGroup .slot').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');booking.date=`6/${d}(${wd})`;updBook();};
+      dg.appendChild(b);
+    }
+    const times=['10:00','11:30','13:00','14:30','16:00','17:30','19:00','20:30'];
+    const taken=['13:00','17:30'];
+    const tg=document.getElementById('timeGroup');
+    times.forEach(t=>{
+      const b=document.createElement('button');
+      const off=taken.includes(t);
+      b.className='slot border border-taupe rounded-xl py-2.5 text-sm press'+(off?' off':'');
+      b.textContent=t;
+      if(!off) b.onclick=()=>{document.querySelectorAll('#timeGroup .slot').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');booking.time=t;updBook();};
+      tg.appendChild(b);
+    });
+    document.querySelectorAll('#menuGroup .chip').forEach(c=>c.addEventListener('click',()=>{booking.menu=c.textContent.trim();booking.min=+c.dataset.min;updBook();}));
+  }
+  function updBook(){
+    document.getElementById('bookSummary').textContent=`${booking.menu} / ${booking.date||'—'} ${booking.time||''}`.trim();
+    document.getElementById('bookBtn').disabled=!(booking.date&&booking.time);
+  }
+  function confirmBooking(){
+    document.getElementById('noBooking').classList.add('hidden');
+    const hb=document.getElementById('hasBooking');hb.classList.remove('hidden');
+    document.getElementById('hbDate').textContent=`${booking.date} ${booking.time}`;
+    document.getElementById('hbMenu').textContent=`${booking.menu}（約${booking.min}分）`;
+    points+=50; renderPoints();
+    toast('予約が確定しました（+50pt）');
+    go('home');
+  }
+
+  // ---------- member ----------
+  function renderPoints(){
+    document.getElementById('homePts').textContent=points.toLocaleString();
+    document.getElementById('memPts').textContent=points.toLocaleString();
+  }
+  function buildQR(){
+    // deterministic pseudo-QR pattern
+    const q=document.getElementById('qr');const n=11;
+    for(let i=0;i<n*n;i++){
+      const r=Math.floor(i/n),c=i%n;
+      const corner=(r<3&&c<3)||(r<3&&c>n-4)||(r>n-4&&c<3);
+      const on=corner?((r+c)%2===0||r===0||c===0||r===n-1||c===n-1?false:true):(Math.sin(i*12.9898)*43758.5>0);
+      const cell=document.createElement('div');cell.className='qr-cell';cell.style.background=on?'#2E2A24':'transparent';q.appendChild(cell);
+    }
+    // force the three finder squares
+  }
+  function renderStamps(){
+    const g=document.getElementById('stampGrid');g.innerHTML='';
+    for(let i=0;i<TOTAL_STAMPS;i++){
+      const d=document.createElement('div');
+      const got=i<stamps;
+      d.className='stamp aspect-square rounded-full flex items-center justify-center text-sm '+(got?'bg-ink text-cream got':'bg-sand text-umber/40');
+      d.textContent=got?'✓':(i+1);
+      g.appendChild(d);
+    }
+  }
+  function addStamp(){
+    if(stamps>=TOTAL_STAMPS){toast('スタンプが満タンです');return;}
+    stamps++; renderStamps();
+    points+=20; renderPoints();
+    if(stamps>=TOTAL_STAMPS) toast('コンプリート！無料トリートメント獲得');
+    else toast('スタンプ +1（+20pt）');
+  }
+  const rewards=[
+    {n:'1,000円割引クーポン',p:500},
+    {n:'ヘッドスパ 10分延長',p:300},
+    {n:'ヘアマスク サンプル',p:150},
+    {n:'スタイリング剤 ミニ',p:200},
+  ];
+  function renderRewards(){
+    const l=document.getElementById('rewardList');l.innerHTML='';
+    rewards.forEach(r=>{
+      const ok=points>=r.p;
+      const row=document.createElement('div');
+      row.className='rounded-2xl bg-white border border-sand p-4 flex items-center justify-between';
+      row.innerHTML=`<div><p class="text-sm font-medium">${r.n}</p><p class="text-[11px] text-umber mt-0.5">${r.p} pt</p></div>`;
+      const btn=document.createElement('button');
+      btn.className='press rounded-full px-4 py-2 text-xs font-medium '+(ok?'bg-ink text-cream':'bg-sand text-umber/50');
+      btn.textContent='交換';
+      btn.onclick=()=>{ if(points<r.p){toast('ポイントが不足しています');return;} points-=r.p; renderPoints(); renderRewards(); toast(`「${r.n}」と交換しました`); };
+      row.appendChild(btn);
+      l.appendChild(row);
+    });
+  }
+
+  // ---------- toast ----------
+  let tt; function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';clearTimeout(tt);tt=setTimeout(()=>t.style.opacity='0',1700);}
+
+  // ---------- init ----------
+  initBooking(); updBook(); buildQR(); renderStamps(); renderRewards(); renderPoints();
+</script>
+</body>
+</html>

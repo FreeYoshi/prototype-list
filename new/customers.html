@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>顧客管理 | さくら歯科クリニック</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+  <script src="assets/a11y.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .cust-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+    }
+    .cust-card {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      transition: all 0.15s;
+      cursor: pointer;
+    }
+    .cust-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+      border-color: var(--primary);
+    }
+    .cust-head {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .cust-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0EA5E9, #6366F1);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .cust-avatar.vip {
+      background: linear-gradient(135deg, #8B5CF6, #EC4899);
+    }
+    .cust-name { font-weight: 700; font-size: 15px; }
+    .cust-kana { font-size: 11px; color: var(--text-muted); }
+    .cust-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+      padding: 10px;
+      background: var(--bg);
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+    .cust-stat { text-align: center; }
+    .cust-stat-label { font-size: 10px; color: var(--text-muted); margin-bottom: 2px; }
+    .cust-stat-value { font-weight: 700; font-size: 15px; }
+    .cust-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .cust-note {
+      margin-top: 10px;
+      padding: 8px 10px;
+      background: #FEF3C7;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #92400E;
+      border-left: 3px solid #F59E0B;
+    }
+    .filter-bar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+    .filter-bar input {
+      padding: 10px 14px 10px 36px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: white;
+      font-size: 14px;
+      flex: 1;
+      min-width: 200px;
+    }
+    .chip {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1.5px solid var(--border);
+      background: white;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .chip.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    .visit-list {
+      margin-top: 12px;
+    }
+    .visit-item {
+      display: flex;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px dashed var(--border);
+      font-size: 13px;
+    }
+    .visit-item:last-child { border-bottom: none; }
+    .visit-date {
+      width: 86px;
+      flex-shrink: 0;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="admin-sidebar" data-page="customers"></aside>
+
+    <main class="admin-main">
+      <div class="admin-header">
+        <div>
+          <h1>顧客管理</h1>
+          <div class="text-sm muted mt-2">登録顧客 <span id="cust-total">0</span> 名</div>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-ghost btn-sm"><i data-lucide="download" width="14"></i>CSV出力</button>
+          <button class="btn btn-primary btn-sm"><i data-lucide="plus" width="14"></i>顧客を追加</button>
+        </div>
+      </div>
+
+      <!-- KPI -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">総顧客数</div>
+          <div class="kpi-value" id="cust-kpi-total">-</div>
+          <div class="kpi-delta">+3名(今月)</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">VIP顧客</div>
+          <div class="kpi-value" id="cust-kpi-vip" style="color:#8B5CF6">-</div>
+          <div class="kpi-delta">来院回数3回以上</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">リピート率</div>
+          <div class="kpi-value">68<span style="font-size:18px">%</span></div>
+          <div class="kpi-delta">前月比 +4%</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">平均来院単価</div>
+          <div class="kpi-value">¥<span id="cust-kpi-avg">-</span></div>
+          <div class="kpi-delta">前月比 +¥320</div>
+        </div>
+      </div>
+
+      <!-- フィルタ -->
+      <div class="filter-bar">
+        <div style="position:relative; flex:1; min-width: 200px;">
+          <i data-lucide="search" width="16" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);z-index:1"></i>
+          <input id="search" type="text" placeholder="お名前・電話番号で検索" oninput="renderCustomers()" />
+        </div>
+      </div>
+
+      <div class="flex gap-2 mb-4" id="tag-chips">
+        <div class="chip active" data-tag="all" onclick="filterTag('all')">すべて</div>
+        <div class="chip" data-tag="VIP" onclick="filterTag('VIP')">VIP</div>
+        <div class="chip" data-tag="リピーター" onclick="filterTag('リピーター')">リピーター</div>
+        <div class="chip" data-tag="新規" onclick="filterTag('新規')">新規</div>
+      </div>
+
+      <div id="cust-grid" class="cust-grid"></div>
+    </main>
+  </div>
+
+  <div id="modal-area"></div>
+  <div id="toast-area"></div>
+
+  <script src="assets/data.js"></script>
+  <script src="assets/sidebar.js"></script>
+  <script src="assets/customers.js"></script>
+</body>
+</html>

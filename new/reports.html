@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>レポート | さくら歯科クリニック</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+  <script src="assets/a11y.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .rep-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 1000px) {
+      .rep-grid { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      border: 1px solid var(--border);
+    }
+    .panel h3 {
+      margin: 0 0 4px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .panel .sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .chart-wrap {
+      width: 100%;
+      overflow: hidden;
+    }
+    .bar-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .bar-row {
+      display: grid;
+      grid-template-columns: 60px 1fr 60px;
+      gap: 10px;
+      align-items: center;
+      font-size: 13px;
+    }
+    .bar-track {
+      height: 24px;
+      background: var(--bg);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #0EA5E9, #6366F1);
+      border-radius: 6px;
+      transition: width 0.6s ease;
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      display: inline-block;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    .donut-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 13px;
+    }
+    .donut-legend-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .switch-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .top-list-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .top-list-row:last-child { border-bottom: none; }
+    .rank-badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 13px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .rank-badge.gold { background: #FEF3C7; color: #B45309; }
+    .rank-badge.silver { background: #E5E7EB; color: #374151; }
+    .rank-badge.bronze { background: #FED7AA; color: #9A3412; }
+  </style>
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="admin-sidebar" data-page="reports"></aside>
+
+    <main class="admin-main">
+      <div class="admin-header">
+        <div>
+          <h1>レポート</h1>
+          <div class="text-sm muted mt-2">2026年1月 〜 6月の集計データ</div>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-ghost btn-sm"><i data-lucide="calendar" width="14"></i>期間を変更</button>
+          <button class="btn btn-ghost btn-sm"><i data-lucide="download" width="14"></i>レポート出力</button>
+        </div>
+      </div>
+
+      <!-- KPI -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">予約総数</div>
+          <div class="kpi-value" id="rep-total">-</div>
+          <div class="kpi-delta">前月比 +18%</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">売上(半年合計)</div>
+          <div class="kpi-value" id="rep-revenue">-</div>
+          <div class="kpi-delta">目標達成率 112%</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">キャンセル率</div>
+          <div class="kpi-value">5.2<span style="font-size:18px">%</span></div>
+          <div class="kpi-delta" style="color: var(--success)">先月比 -1.4%</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">新規/リピート比</div>
+          <div class="kpi-value">32 : 68</div>
+          <div class="kpi-delta">リピート率上昇中</div>
+        </div>
+      </div>
+
+      <!-- 売上推移 + メニュー比率 -->
+      <div class="rep-grid">
+        <div class="panel">
+          <h3>月別売上推移</h3>
+          <div class="sub">2026年1月〜6月</div>
+          <div class="chart-wrap" id="line-chart"></div>
+        </div>
+        <div class="panel">
+          <h3>メニュー別予約比率</h3>
+          <div class="sub">この半年の予約データから集計</div>
+          <div class="flex gap-4 items-center justify-center mt-4">
+            <div id="donut-chart"></div>
+            <div class="donut-legend" id="donut-legend"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 曜日別予約 + 人気時間帯 -->
+      <div class="rep-grid">
+        <div class="panel">
+          <h3>曜日別予約数</h3>
+          <div class="sub">この4週間の平均</div>
+          <div class="chart-wrap" id="bar-chart"></div>
+        </div>
+        <div class="panel">
+          <h3>人気の時間帯</h3>
+          <div class="sub">最も予約が集中する時間</div>
+          <div class="bar-list" id="time-popular"></div>
+        </div>
+      </div>
+
+      <!-- リピーターランキング -->
+      <div class="panel">
+        <h3>来院回数 トップ顧客</h3>
+        <div class="sub">来院数の多い患者さま</div>
+        <div id="top-customers"></div>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast-area"></div>
+
+  <script src="assets/data.js"></script>
+  <script src="assets/sidebar.js"></script>
+  <script src="assets/reports.js"></script>
+</body>
+</html>

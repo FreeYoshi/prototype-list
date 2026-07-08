@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PlotGuard — キャラ設定＆時系列 矛盾チェッカー</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- ===== Top bar ===== -->
+    <header class="topbar">
+      <div class="logo">
+        <span class="mark">🛡️</span>
+        PlotGuard
+        <span class="beta">PROTOTYPE</span>
+      </div>
+      <span class="tagline">キャラクター設定＆時系列の矛盾チェッカー</span>
+      <div class="spacer"></div>
+      <div class="live-pill"><span class="live-dot"></span> リアルタイム解析 ON</div>
+    </header>
+
+    <!-- ===== 3-column body ===== -->
+    <div class="body">
+      <!-- Left : character DB -->
+      <section class="col left">
+        <div class="col-head">
+          <span>キャラクターDB</span>
+          <button class="btn tiny primary" id="addCharBtn">＋ 登録</button>
+        </div>
+        <div class="col-scroll" id="charList"></div>
+      </section>
+
+      <!-- Center : editor -->
+      <section class="col center">
+        <div class="editor-head">
+          <div>
+            <div class="doc-title">📄 第2章 — 東京、桜舞う放課後.txt</div>
+            <div class="doc-sub">本文を編集すると、自動で矛盾を解析します</div>
+          </div>
+          <div class="spacer" style="flex:1"></div>
+          <div class="scanning" id="scanning">
+            <span>解析中</span><span class="bar"></span>
+          </div>
+        </div>
+        <div class="editor-wrap">
+          <div class="editor-stack">
+            <div class="backdrop" id="backdrop"></div>
+            <textarea class="editor" id="editor" spellcheck="false"
+              placeholder="ここにシナリオやセリフを執筆／貼り付けてください…"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right : warnings -->
+      <section class="col right">
+        <div class="col-head"><span>整合性レポート</span></div>
+        <div class="score-card">
+          <div class="score-row">
+            <div class="gauge">
+              <svg width="78" height="78">
+                <circle cx="39" cy="39" r="33" stroke="#2a2e42" stroke-width="8" fill="none" />
+                <circle id="gaugeArc" cx="39" cy="39" r="33" stroke="#46d39a" stroke-width="8"
+                  fill="none" stroke-linecap="round" stroke-dasharray="207" stroke-dashoffset="0" />
+              </svg>
+              <div class="num" id="scoreNum">100</div>
+            </div>
+            <div class="score-meta">
+              <div class="score-label">整合性スコア</div>
+              <div class="score-state" id="scoreState">問題なし</div>
+            </div>
+          </div>
+          <div class="score-stats">
+            <div class="stat timeline"><div class="n" id="cntTimeline">0</div><div class="l">時系列</div></div>
+            <div class="stat personality"><div class="n" id="cntPersonality">0</div><div class="l">性格</div></div>
+            <div class="stat setting"><div class="n" id="cntSetting">0</div><div class="l">設定</div></div>
+          </div>
+        </div>
+        <div class="col-scroll" id="warnList"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ===== Add character modal ===== -->
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <h3>キャラクターを登録</h3>
+      <p class="hint">基本設定をDBに登録します。NGワードを入れると口調の矛盾も検出します。</p>
+      <div class="field"><label>キャラクター名</label><input id="fName" placeholder="例：サクラ" /></div>
+      <div class="field"><label>役割・肩書き</label><input id="fRole" placeholder="例：転校生 / 第3章で登場" /></div>
+      <div class="field"><label>基本設定（カンマ区切り）</label><input id="fFacts" placeholder="例：眼鏡をかけている, 甘いものが苦手" /></div>
+      <div class="field"><label>口調NGワード（任意・カンマ区切り）</label><input id="fNg" placeholder="例：おい, うるせえ" /></div>
+      <div class="modal-actions">
+        <button class="btn ghost" id="cancelChar">キャンセル</button>
+        <button class="btn primary" id="saveChar">DBに登録</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

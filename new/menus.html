@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>診療メニュー | さくら歯科クリニック</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+  <script src="assets/a11y.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .m-card {
+      background: white;
+      border-radius: 16px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      transition: all 0.15s;
+      position: relative;
+    }
+    .m-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+    }
+    .m-card.disabled { opacity: 0.55; background: #FAFAFA; }
+    .m-icon-big {
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+    .m-icon-big.sky     { background: #E0F2FE; color: #0369A1; }
+    .m-icon-big.emerald { background: #D1FAE5; color: #047857; }
+    .m-icon-big.violet  { background: #EDE9FE; color: #6D28D9; }
+    .m-icon-big.rose    { background: #FFE4E6; color: #BE123C; }
+    .m-icon-big.amber   { background: #FEF3C7; color: #B45309; }
+    .m-icon-big.indigo  { background: #E0E7FF; color: #4338CA; }
+    .m-name {
+      font-weight: 700;
+      font-size: 16px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .m-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 12px;
+      min-height: 36px;
+    }
+    .m-meta {
+      display: flex;
+      justify-content: space-between;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .m-meta .label { color: var(--text-muted); font-size: 11px; }
+    .m-meta .value { font-weight: 700; }
+    .m-actions {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      display: flex;
+      gap: 4px;
+    }
+    .icon-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: white;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .icon-btn:hover { background: var(--bg); }
+    .icon-btn.danger:hover { background: #FEE2E2; color: var(--danger); border-color: #FCA5A5; }
+    .add-card {
+      border: 2px dashed var(--border);
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 8px;
+      color: var(--text-muted);
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 220px;
+      transition: all 0.15s;
+    }
+    .add-card:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: #F0F9FF;
+    }
+    .color-picker {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .color-swatch {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.12s;
+    }
+    .color-swatch.selected { border-color: var(--text); transform: scale(1.1); }
+    .icon-picker {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .icon-pick {
+      aspect-ratio: 1;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+    .icon-pick.selected {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="admin-sidebar" data-page="menus"></aside>
+
+    <main class="admin-main">
+      <div class="admin-header">
+        <div>
+          <h1>診療メニュー</h1>
+          <div class="text-sm muted mt-2">予約画面に表示されるメニューを管理します</div>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-primary btn-sm" onclick="openMenuEditor()">
+            <i data-lucide="plus" width="14"></i>メニューを追加
+          </button>
+        </div>
+      </div>
+
+      <div id="menu-grid" class="menu-grid"></div>
+    </main>
+  </div>
+
+  <div id="modal-area"></div>
+  <div id="toast-area"></div>
+
+  <script src="assets/data.js"></script>
+  <script src="assets/sidebar.js"></script>
+  <script src="assets/menus.js"></script>
+</body>
+</html>

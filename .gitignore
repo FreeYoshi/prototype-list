@@ -1,0 +1,29 @@
+# 別リポジトリ (独自のリモートを持つため除外)
+/sprout/
+/nippouApp/nippouApp/
+
+# Claude Code ローカル設定
+**/.claude/settings.local.json
+
+# 大容量アーカイブ (GitHub 100MB制限超過)
+*.zip
+
+# 依存パッケージ
+node_modules/
+
+# ビルド成果物
+dist/
+build/
+.next/
+out/
+
+# ログ・一時ファイル
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# 環境変数
+.env
+.env.local
+.env.*.local

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>スケジュール管理 | さくら歯科クリニック</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+  <script src="assets/a11y.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .settings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 900px) {
+      .settings-grid { grid-template-columns: 1fr; }
+    }
+    .setting-card {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      border: 1px solid var(--border);
+    }
+    .setting-card.warn { border-left: 4px solid var(--warning); }
+    .setting-card.success { border-left: 4px solid var(--success); }
+    .setting-card h3 {
+      margin: 0 0 4px;
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .setting-card .desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+    .form-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .form-row input, .form-row select {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      font-size: 14px;
+      background: white;
+    }
+    .week-calendar {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .week-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .week-grid {
+      display: grid;
+      grid-template-columns: 70px repeat(7, 1fr);
+      gap: 2px;
+    }
+    .wg-cell {
+      padding: 6px 4px;
+      font-size: 11px;
+      text-align: center;
+      border-radius: 6px;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .wg-head {
+      font-weight: 700;
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+    .wg-time {
+      color: var(--text-muted);
+      font-size: 11px;
+      justify-content: flex-end;
+      padding-right: 8px;
+    }
+    .wg-slot {
+      background: #D1FAE5;
+      color: #047857;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .wg-slot:hover { background: #A7F3D0; }
+    .wg-booked {
+      background: #DBEAFE;
+      color: #1D4ED8;
+      cursor: pointer;
+    }
+    .wg-closed {
+      background: #FECACA;
+      color: #B91C1C;
+      font-weight: 600;
+    }
+    .wg-off {
+      background: #F1F5F9;
+      color: #94A3B8;
+    }
+    .legend {
+      display: flex;
+      gap: 14px;
+      font-size: 12px;
+      margin-top: 14px;
+    }
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .legend i {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="admin-sidebar" data-page="schedule"></aside>
+
+    <main class="admin-main">
+      <div class="admin-header">
+        <div>
+          <h1>スケジュール管理</h1>
+          <div class="text-sm muted mt-2">休業設定や時間枠の調整ができます</div>
+        </div>
+      </div>
+
+      <!-- 週ビュー -->
+      <div class="week-calendar">
+        <div class="week-head">
+          <div>
+            <div class="font-bold text-lg">予約状況</div>
+            <div class="text-xs muted">2026年5月25日 〜 5月31日</div>
+          </div>
+          <div class="flex gap-2">
+            <button class="icon-btn"><i data-lucide="chevron-left" width="14"></i></button>
+            <button class="btn btn-ghost btn-sm">今週</button>
+            <button class="icon-btn"><i data-lucide="chevron-right" width="14"></i></button>
+          </div>
+        </div>
+        <div id="week-grid" class="week-grid"></div>
+        <div class="legend">
+          <span><i style="background:#D1FAE5"></i>空き</span>
+          <span><i style="background:#DBEAFE"></i>予約済</span>
+          <span><i style="background:#FECACA"></i>休業</span>
+          <span><i style="background:#F1F5F9"></i>営業時間外</span>
+        </div>
+      </div>
+
+      <!-- 設定カード -->
+      <div class="settings-grid">
+        <!-- 終日休業 -->
+        <div class="setting-card warn">
+          <h3><i data-lucide="calendar-off" width="18" style="color:#F59E0B"></i>終日休業</h3>
+          <div class="desc">指定した日を終日休業日として設定します</div>
+          <div class="form-row">
+            <input type="date" id="closure-date" value="2026-06-20" />
+            <input type="text" id="closure-reason" placeholder="理由(例: 院内研修)" style="flex:1; min-width: 160px;" value="院内研修" />
+            <button class="btn btn-primary btn-sm" onclick="addFullClosure()">
+              <i data-lucide="plus" width="14"></i>休業日を追加
+            </button>
+          </div>
+        </div>
+
+        <!-- 時間枠休業 -->
+        <div class="setting-card warn">
+          <h3><i data-lucide="clock-9" width="18" style="color:#F59E0B"></i>時間枠休業</h3>
+          <div class="desc">特定の時間帯のみ予約を受け付けない設定</div>
+          <div class="form-row">
+            <input type="date" id="slot-date" value="2026-06-18" />
+            <input type="time" id="slot-start" value="14:00" />
+            <span class="text-sm">〜</span>
+            <input type="time" id="slot-end" value="16:00" />
+            <button class="btn btn-primary btn-sm" onclick="addSlotClosure()">
+              <i data-lucide="plus" width="14"></i>追加
+            </button>
+          </div>
+        </div>
+
+        <!-- 営業再開 -->
+        <div class="setting-card success">
+          <h3><i data-lucide="play-circle" width="18" style="color:#10B981"></i>営業再開</h3>
+          <div class="desc">登録済みの休業設定を解除して営業を再開します</div>
+          <div class="form-row">
+            <select id="reopen-select" style="flex:1; min-width: 200px;"></select>
+            <button class="btn btn-primary btn-sm" onclick="reopen()">
+              <i data-lucide="check" width="14"></i>営業を再開
+            </button>
+          </div>
+        </div>
+
+        <!-- 通知設定 -->
+        <div class="setting-card">
+          <h3><i data-lucide="bell" width="18" style="color:#0EA5E9"></i>リマインド設定</h3>
+          <div class="desc">予約者への自動通知タイミング</div>
+          <div class="flex flex-col gap-3 mt-4">
+            <label class="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked /> 予約完了時に確認メール
+            </label>
+            <label class="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked /> 前日18時にLINEリマインド
+            </label>
+            <label class="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked /> 当日朝9時にLINE再通知
+            </label>
+            <label class="flex items-center gap-2 text-sm">
+              <input type="checkbox" /> 来店後にレビュー依頼メール
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- 休業履歴 -->
+      <div class="card" style="padding: 0; overflow: hidden;">
+        <div style="padding: 18px 20px; border-bottom: 1px solid var(--border);" class="flex items-center justify-between">
+          <div>
+            <div class="font-bold text-lg">休業・営業履歴</div>
+            <div class="text-xs muted mt-2">登録済み <span id="closure-count">0</span> 件</div>
+          </div>
+        </div>
+        <div id="closure-list"></div>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast-area"></div>
+
+  <script src="assets/data.js"></script>
+  <script src="assets/sidebar.js"></script>
+  <script src="assets/schedule.js"></script>
+</body>
+</html>

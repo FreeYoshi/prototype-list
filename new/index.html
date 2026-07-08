@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>さくら歯科クリニック | かんたんネット予約</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+  <script src="assets/a11y.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { background: white; }
+
+    /* ===== ナビバー ===== */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 18px;
+    }
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #0EA5E9, #6366F1);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .nav-links a {
+      color: var(--text);
+      text-decoration: none;
+      padding: 4px 0;
+      transition: color 0.12s;
+    }
+    .nav-links a:hover { color: var(--primary); }
+    @media (max-width: 800px) { .nav-links { display: none; } }
+
+    /* ===== ヒーロー ===== */
+    .hero-section {
+      background: linear-gradient(135deg, #F0F9FF 0%, #EDE9FE 100%);
+      padding: 80px 0 100px;
+      overflow: hidden;
+      position: relative;
+    }
+    .hero-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 32px;
+      display: grid;
+      grid-template-columns: 1.05fr 1fr;
+      gap: 56px;
+      align-items: center;
+    }
+    @media (max-width: 900px) {
+      .hero-section { padding: 50px 0 60px; }
+      .hero-grid { grid-template-columns: 1fr; gap: 32px; }
+    }
+    .hero-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: white;
+      border: 1px solid #BAE6FD;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 20px;
+    }
+    .hero-title {
+      font-size: 52px;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin: 0 0 18px;
+    }
+    @media (max-width: 900px) { .hero-title { font-size: 36px; } }
+    .hero-title em {
+      font-style: normal;
+      background: linear-gradient(135deg, #0EA5E9, #8B5CF6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-lead {
+      font-size: 17px;
+      line-height: 1.7;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+    .hero-cta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .hero-trust {
+      display: flex;
+      gap: 24px;
+      margin-top: 36px;
+      padding-top: 28px;
+      border-top: 1px solid #DBEAFE;
+    }
+    .hero-trust .num {
+      font-size: 24px;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .hero-trust .lbl {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .hero-visual {
+      position: relative;
+      border-radius: 24px;
+      overflow: hidden;
+      aspect-ratio: 4 / 5;
+      box-shadow: 0 30px 60px -20px rgba(15, 23, 42, 0.25);
+      background-size: cover;
+      background-position: center;
+    }
+    .hero-float {
+      position: absolute;
+      background: white;
+      border-radius: 14px;
+      padding: 12px 14px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: floaty 4s ease-in-out infinite;
+    }
+    .hero-float .icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--primary-light);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .hero-float.float-1 { top: 24px; left: -24px; }
+    .hero-float.float-2 { bottom: 60px; right: -24px; animation-delay: -2s; }
+    @keyframes floaty {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    /* ===== セクション ===== */
+    .section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 32px;
+    }
+    .section-head {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .section-tag {
+      display: inline-block;
+      padding: 4px 12px;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: 34px;
+      font-weight: 800;
+      line-height: 1.3;
+      letter-spacing: -0.01em;
+      margin: 0 0 12px;
+    }
+    @media (max-width: 700px) { .section-title { font-size: 26px; } }
+    .section-sub {
+      color: var(--text-muted);
+      font-size: 16px;
+    }
+
+    /* ===== 特徴グリッド ===== */
+    .feat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    @media (max-width: 900px) { .feat-grid { grid-template-columns: 1fr; } }
+    .feat-card {
+      padding: 32px 28px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      transition: all 0.18s;
+    }
+    .feat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px -10px rgba(15, 23, 42, 0.12);
+    }
+    .feat-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+    }
+    .feat-icon.c1 { background: #DBEAFE; color: #1D4ED8; }
+    .feat-icon.c2 { background: #FCE7F3; color: #BE185D; }
+    .feat-icon.c3 { background: #D1FAE5; color: #047857; }
+    .feat-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 0 10px;
+    }
+    .feat-card p {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    /* ===== ドクターセクション ===== */
+    .doc-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+    @media (max-width: 800px) { .doc-grid { grid-template-columns: 1fr; } }
+    .doc-card {
+      display: flex;
+      gap: 20px;
+      padding: 24px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      align-items: center;
+    }
+    .doc-img {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #E0F2FE, #EDE9FE);
+    }
+    .doc-name { font-weight: 700; font-size: 17px; }
+    .doc-role {
+      font-size: 12px;
+      color: var(--primary);
+      background: var(--primary-light);
+      padding: 3px 10px;
+      border-radius: 999px;
+      display: inline-block;
+      margin: 4px 0 8px;
+    }
+    .doc-bio { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+    /* ===== CTAバナー ===== */
+    .cta-banner {
+      max-width: 1200px;
+      margin: 40px auto 80px;
+      padding: 56px 48px;
+      background: linear-gradient(135deg, #0EA5E9, #6366F1);
+      border-radius: 28px;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 32px;
+    }
+    @media (max-width: 800px) {
+      .cta-banner {
+        flex-direction: column;
+        text-align: center;
+        padding: 40px 24px;
+        margin: 20px 16px 40px;
+      }
+    }
+    .cta-banner h2 {
+      font-size: 28px;
+      font-weight: 800;
+      margin: 0 0 8px;
+    }
+    .cta-banner p { margin: 0; opacity: 0.92; font-size: 15px; }
+
+    /* ===== フッター ===== */
+    .footer {
+      background: #0F172A;
+      color: #94A3B8;
+      padding: 48px 0 28px;
+      font-size: 13px;
+    }
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 32px;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 32px;
+    }
+    @media (max-width: 800px) { .footer-inner { grid-template-columns: 1fr 1fr; } }
+    .footer h4 {
+      color: white;
+      font-size: 13px;
+      margin: 0 0 14px;
+      font-weight: 700;
+    }
+    .footer a { color: #94A3B8; text-decoration: none; display: block; padding: 4px 0; }
+    .footer a:hover { color: white; }
+    .footer-bottom {
+      max-width: 1200px;
+      margin: 32px auto 0;
+      padding: 20px 32px 0;
+      border-top: 1px solid #1E293B;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    /* ===== 予約フロー(センター寄せ) ===== */
+    .booking-shell {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 32px 24px 80px;
+    }
+    .booking-head {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .booking-head h1 {
+      font-size: 26px;
+      font-weight: 800;
+      margin: 0;
+      flex: 1;
+    }
+    .booking-head .sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .back-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .back-btn:hover { background: var(--border); }
+    .stepper {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+    .step-dot {
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--border);
+      transition: background 0.3s;
+    }
+    .step-dot.done, .step-dot.active { background: var(--primary); }
+
+    /* ===== メニューカード(Web版) ===== */
+    .menu-list-web {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+    @media (max-width: 700px) { .menu-list-web { grid-template-columns: 1fr; } }
+    .menu-card-web {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      padding: 18px;
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .menu-card-web:hover {
+      transform: translateY(-2px);
+      border-color: var(--primary);
+      box-shadow: 0 8px 24px -8px rgba(14, 165, 233, 0.25);
+    }
+    .menu-icon-web {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .menu-icon-web.sky     { background: #E0F2FE; color: #0369A1; }
+    .menu-icon-web.emerald { background: #D1FAE5; color: #047857; }
+    .menu-icon-web.violet  { background: #EDE9FE; color: #6D28D9; }
+    .menu-icon-web.rose    { background: #FFE4E6; color: #BE123C; }
+    .menu-icon-web.amber   { background: #FEF3C7; color: #B45309; }
+    .menu-icon-web.indigo  { background: #E0E7FF; color: #4338CA; }
+    .menu-body-web { flex: 1; min-width: 0; }
+    .menu-name-web {
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    .menu-desc-web {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .menu-meta-web {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* ===== カレンダー + タイム の2カラム ===== */
+    .date-time-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 720px) { .date-time-grid { grid-template-columns: 1fr; } }
+
+    /* ===== 情報入力フォームのレイアウト ===== */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } }
+    .info-grid .full { grid-column: 1 / -1; }
+
+    /* ===== 完了画面 ===== */
+    .success-icon {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: #D1FAE5;
+      color: #047857;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 30px auto 24px;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px dashed var(--border);
+      font-size: 15px;
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-row .label { color: var(--text-muted); }
+    .summary-row .value { font-weight: 700; }
+
+    .screen { animation: fadeIn 0.3s ease; }
+  </style>
+</head>
+<body>
+  <!-- ===== ナビバー ===== -->
+  <header class="nav" id="nav">
+    <div class="nav-inner">
+      <a href="#" class="brand" onclick="goStep('welcome');return false;">
+        <span class="brand-icon"><i data-lucide="stethoscope" width="20"></i></span>
+        さくら歯科クリニック
+      </a>
+      <nav class="nav-links">
+        <a href="#features">特長</a>
+        <a href="#doctors">医師紹介</a>
+        <a href="#access">アクセス</a>
+        <a href="javascript:void(0)" onclick="goStep('mypage')">予約確認</a>
+      </nav>
+      <button class="btn btn-primary btn-sm" onclick="goStep('menu')">
+        <i data-lucide="calendar-plus" width="14"></i>ネット予約
+      </button>
+    </div>
+  </header>
+
+  <!-- ============ STEP 0: WELCOME ============ -->
+  <section id="step-welcome" class="screen">
+    <!-- ヒーロー -->
+    <div class="hero-section">
+      <div class="hero-grid">
+        <div>
+          <div class="hero-pill">
+            <i data-lucide="badge-check" width="14"></i> ネット予約 24時間受付中
+          </div>
+          <h1 class="hero-title">
+            電話いらず、<br>
+            <em>30秒で予約完了</em>。
+          </h1>
+          <p class="hero-lead">
+            渋谷駅から徒歩5分。土曜診療・キッズスペースあり。<br>
+            お仕事の合間でも、夜中でも、ネットですぐに予約できます。
+          </p>
+          <div class="hero-cta">
+            <button class="btn btn-primary" style="padding:16px 26px;font-size:15px" onclick="goStep('menu')">
+              <i data-lucide="calendar-plus" width="16"></i>予約をはじめる
+            </button>
+            <button class="btn btn-ghost" style="padding:16px 24px;font-size:15px" onclick="goStep('mypage')">
+              <i data-lucide="list" width="16"></i>予約の確認・変更
+            </button>
+          </div>
+          <div class="hero-trust">
+            <div>
+              <div class="num">15<span style="font-size:14px">年</span></div>
+              <div class="lbl">開院</div>
+            </div>
+            <div>
+              <div class="num">12,000<span style="font-size:14px">+</span></div>
+              <div class="lbl">来院数</div>
+            </div>
+            <div>
+              <div class="num">4.8<span style="font-size:14px">/5</span></div>
+              <div class="lbl">満足度</div>
+            </div>
+          </div>
+        </div>
+        <div class="hero-visual" id="hero-visual">
+          <div class="hero-float float-1">
+            <div class="icon"><i data-lucide="check" width="18"></i></div>
+            <div>
+              <div style="font-weight:700;font-size:13px">予約が確定しました</div>
+              <div style="font-size:11px;color:var(--text-muted)">6月10日(水) 10:00</div>
+            </div>
+          </div>
+          <div class="hero-float float-2">
+            <div class="icon" style="background:#FEF3C7;color:#B45309"><i data-lucide="bell" width="18"></i></div>
+            <div>
+              <div style="font-weight:700;font-size:13px">前日リマインド</div>
+              <div style="font-size:11px;color:var(--text-muted)">LINEに通知が届きました</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 特徴 -->
+    <div id="features" class="section">
+      <div class="section-head">
+        <span class="section-tag">FEATURES</span>
+        <h2 class="section-title">こんなお悩み、ありませんか?</h2>
+        <p class="section-sub">さくら歯科のネット予約なら、よくある「面倒」を全部スキップできます</p>
+      </div>
+      <div class="feat-grid">
+        <div class="feat-card">
+          <div class="feat-icon c1"><i data-lucide="phone-off" width="22"></i></div>
+          <h3>電話する時間がない</h3>
+          <p>仕事中、夜中、休日でも。スマホから24時間、空いている時間枠だけが見えるので迷わず予約できます。</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon c2"><i data-lucide="bell-ring" width="22"></i></div>
+          <h3>予約していたか忘れる</h3>
+          <p>前日と当日の朝、LINEで自動リマインド。うっかり忘れも、ドタキャンもグッと減ります。</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon c3"><i data-lucide="credit-card" width="22"></i></div>
+          <h3>会計の待ち時間が嫌</h3>
+          <p>予約時にLINE Pay・クレカで事前決済OK。診療後はそのまま帰れます。お子さま連れにも安心。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ドクター -->
+    <div id="doctors" class="section" style="padding-top: 0;">
+      <div class="section-head">
+        <span class="section-tag">DOCTORS</span>
+        <h2 class="section-title">担当する医師</h2>
+        <p class="section-sub">経験豊富な専門医が、一人ひとりに寄り添って診療します</p>
+      </div>
+      <div class="doc-grid" id="doc-grid"></div>
+    </div>
+
+    <!-- CTAバナー -->
+    <div class="cta-banner">
+      <div>
+        <h2>はじめての方も、いつでもどうぞ。</h2>
+        <p>診療メニューを選んで、日時を選ぶだけ。30秒で予約完了します。</p>
+      </div>
+      <button class="btn" style="background:white;color:var(--primary);padding:18px 32px;font-size:16px" onclick="goStep('menu')">
+        <i data-lucide="calendar-plus" width="18"></i>今すぐ予約する
+      </button>
+    </div>
+
+    <!-- フッター -->
+    <footer class="footer" id="access">
+      <div class="footer-inner" style="grid-template-columns: 2fr 1fr 1fr;">
+        <div>
+          <div class="brand" style="color:white;margin-bottom:14px">
+            <span class="brand-icon"><i data-lucide="stethoscope" width="20"></i></span>
+            さくら歯科クリニック
+          </div>
+          <p style="line-height:1.7;margin:0">
+            東京都渋谷区桜丘町1-2-3<br>
+            TEL: 03-1234-5678<br>
+            診療: 平日9:00〜18:00 / 土9:00〜17:00<br>
+            休診: 水曜・日曜・祝日
+          </p>
+        </div>
+        <div>
+          <h4>診療案内</h4>
+          <a href="#">一般診療</a>
+          <a href="#">定期検診</a>
+          <a href="#">ホワイトニング</a>
+          <a href="#">矯正相談</a>
+        </div>
+        <div>
+          <h4>クリニック</h4>
+          <a href="#">院長紹介</a>
+          <a href="#">アクセス</a>
+          <a href="#">料金表</a>
+          <a href="#">よくある質問</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 さくら歯科クリニック</span>
+        <span>Powered by ReserveMate</span>
+      </div>
+    </footer>
+  </section>
+
+  <!-- ============ STEP 1: MENU ============ -->
+  <section id="step-menu" class="screen" hidden>
+    <div class="booking-shell">
+      <div class="booking-head">
+        <button class="back-btn" onclick="goStep('welcome')"><i data-lucide="chevron-left" width="20"></i></button>
+        <div style="flex:1">
+          <h1>診療メニューを選択</h1>
+          <div class="sub">ご希望の診療内容をお選びください</div>
+        </div>
+      </div>
+      <div class="stepper">
+        <div class="step-dot active"></div>
+        <div class="step-dot"></div>
+        <div class="step-dot"></div>
+      </div>
+      <div id="menu-list" class="menu-list-web"></div>
+    </div>
+  </section>
+
+  <!-- ============ STEP 2: DATE ============ -->
+  <section id="step-date" class="screen" hidden>
+    <div class="booking-shell">
+      <div class="booking-head">
+        <button class="back-btn" onclick="goStep('menu')"><i data-lucide="chevron-left" width="20"></i></button>
+        <div style="flex:1">
+          <h1>日付・お時間を選択</h1>
+          <div class="sub">ご都合のよい日時を選んでください</div>
+        </div>
+      </div>
+      <div class="stepper">
+        <div class="step-dot done"></div>
+        <div class="step-dot active"></div>
+        <div class="step-dot"></div>
+      </div>
+      <div class="date-time-grid">
+        <div class="calendar fade-in" id="calendar"></div>
+        <div>
+          <div id="time-section">
+            <div class="card" style="padding:24px;text-align:center;color:var(--text-muted)">
+              <i data-lucide="calendar-clock" width="32" style="opacity:0.4"></i>
+              <div class="mt-3 text-sm">左の日付を選択すると<br>空き時間が表示されます</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-4 text-xs muted flex items-center gap-3">
+        <span class="flex items-center gap-2"><span style="width:8px;height:8px;border-radius:50%;background:var(--success);display:inline-block"></span>予約可能</span>
+        <span class="flex items-center gap-2"><span style="width:8px;height:8px;border-radius:50%;background:#CBD5E1;display:inline-block"></span>休診日</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STEP 3: INFO ============ -->
+  <section id="step-info" class="screen" hidden>
+    <div class="booking-shell">
+      <div class="booking-head">
+        <button class="back-btn" onclick="goStep('date')"><i data-lucide="chevron-left" width="20"></i></button>
+        <div style="flex:1">
+          <h1>お客さま情報のご入力</h1>
+          <div class="sub">あと少しで予約完了です</div>
+        </div>
+      </div>
+      <div class="stepper">
+        <div class="step-dot done"></div>
+        <div class="step-dot done"></div>
+        <div class="step-dot active"></div>
+      </div>
+
+      <div class="card mb-4" style="background: var(--primary-light); border-color: #BAE6FD;">
+        <div class="text-xs muted mb-2">ご予約内容</div>
+        <div class="summary-row"><span class="label">メニュー</span><span class="value" id="sum-menu">-</span></div>
+        <div class="summary-row"><span class="label">日時</span><span class="value" id="sum-datetime">-</span></div>
+        <div class="summary-row"><span class="label">料金</span><span class="value" id="sum-price">-</span></div>
+      </div>
+
+      <div class="info-grid">
+        <div class="field">
+          <label>お名前<span class="required">必須</span></label>
+          <input type="text" id="f-name" placeholder="山田 花子" />
+        </div>
+        <div class="field">
+          <label>フリガナ<span class="required">必須</span></label>
+          <input type="text" id="f-kana" placeholder="ヤマダ ハナコ" />
+        </div>
+        <div class="field">
+          <label>電話番号<span class="required">必須</span></label>
+          <input type="tel" id="f-phone" placeholder="090-1234-5678" />
+        </div>
+        <div class="field">
+          <label>メールアドレス</label>
+          <input type="email" id="f-email" placeholder="example@email.com" />
+        </div>
+        <div class="field full">
+          <label>ご相談内容(任意)</label>
+          <textarea id="f-note" rows="3" placeholder="気になっている症状などをご記入ください"></textarea>
+        </div>
+      </div>
+
+      <div class="card mt-3" style="background: #FEFCE8; border-color: #FEF08A;">
+        <div class="flex items-center gap-2">
+          <i data-lucide="bell-ring" width="18" style="color:#CA8A04"></i>
+          <div class="text-sm font-semibold">予約前日にLINEでリマインドします</div>
+        </div>
+        <div class="text-xs muted mt-2">完了画面のQRコードからLINE連携してください(任意)</div>
+      </div>
+
+      <div class="mt-4 flex gap-3">
+        <button class="btn btn-ghost" style="flex:1;padding:16px" onclick="goStep('date')">戻る</button>
+        <button class="btn btn-primary" style="flex:2;padding:16px" onclick="submitBooking()">
+          予約を確定する <i data-lucide="arrow-right" width="16"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STEP 4: COMPLETE ============ -->
+  <section id="step-complete" class="screen" hidden>
+    <div class="booking-shell" style="text-align:center">
+      <div class="success-icon pop-in">
+        <i data-lucide="check" width="52" style="stroke-width: 3"></i>
+      </div>
+      <h2 style="font-size:28px;font-weight:800;margin:0 0 8px" class="fade-in">ご予約ありがとうございました</h2>
+      <p class="muted mb-6 fade-in">ご登録の電話番号に確認連絡をお送りしました</p>
+
+      <div class="card mb-4 fade-in" style="text-align: left;">
+        <div class="text-xs muted mb-2">予約番号</div>
+        <div class="font-bold text-xl mb-4" id="done-id">-</div>
+        <div class="summary-row"><span class="label">お名前</span><span class="value" id="done-name">-</span></div>
+        <div class="summary-row"><span class="label">メニュー</span><span class="value" id="done-menu">-</span></div>
+        <div class="summary-row"><span class="label">日時</span><span class="value" id="done-datetime">-</span></div>
+        <div class="summary-row"><span class="label">料金</span><span class="value" id="done-price">-</span></div>
+      </div>
+
+      <div class="card mb-4 fade-in" style="background: #06C755; color: white; border: none;">
+        <div class="flex items-center justify-between">
+          <div style="text-align: left;">
+            <div class="font-bold">LINEでお知らせを受け取る</div>
+            <div class="text-xs" style="opacity: 0.9; margin-top: 4px;">前日のリマインドや変更通知が届きます</div>
+          </div>
+          <button class="btn btn-sm" style="background: white; color: #06C755;">連携する</button>
+        </div>
+      </div>
+
+      <button class="btn btn-ghost fade-in" style="padding:16px 28px" onclick="goStep('welcome'); resetBooking();">
+        トップへ戻る
+      </button>
+    </div>
+  </section>
+
+  <!-- ============ MYPAGE ============ -->
+  <section id="step-mypage" class="screen" hidden>
+    <div class="booking-shell">
+      <div class="booking-head">
+        <button class="back-btn" onclick="goStep('welcome')"><i data-lucide="chevron-left" width="20"></i></button>
+        <div style="flex:1">
+          <h1>あなたの予約</h1>
+          <div class="sub">登録済みの予約の確認や変更ができます</div>
+        </div>
+      </div>
+
+      <div class="card mb-3 fade-in" style="border-left: 4px solid var(--primary);">
+        <div class="flex items-center justify-between mb-2">
+          <span class="badge badge-emerald">確定</span>
+          <span class="text-xs muted">予約番号 R-2026-0521</span>
+        </div>
+        <div class="font-bold text-lg">定期検診・クリーニング</div>
+        <div class="text-sm muted mt-1">6月10日(水) 10:00 〜 11:00</div>
+        <div class="text-sm muted">担当: 山田 健一 院長</div>
+        <div class="flex gap-2 mt-3">
+          <button class="btn btn-ghost btn-sm" style="flex:1">日時を変更</button>
+          <button class="btn btn-ghost btn-sm" style="flex:1; color: var(--danger)">キャンセル</button>
+        </div>
+      </div>
+
+      <div class="card mb-3 fade-in" style="opacity: 0.7;">
+        <div class="flex items-center justify-between mb-2">
+          <span class="badge badge-blue">完了</span>
+          <span class="text-xs muted">2026/03/15</span>
+        </div>
+        <div class="font-semibold">一般診療</div>
+        <div class="text-sm muted mt-1">3月15日(土) 14:00</div>
+      </div>
+
+      <button class="btn btn-primary mt-4" style="width:100%;padding:16px" onclick="goStep('menu')">
+        <i data-lucide="plus" width="16"></i>新しい予約をする
+      </button>
+    </div>
+  </section>
+
+  <div id="toast-area"></div>
+
+  <script src="assets/data.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

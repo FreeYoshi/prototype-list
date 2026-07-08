@@ -1,0 +1,3623 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>MeishiAI — 名刺から商談まで</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  :root {
+    --accent: #6366f1;
+    --accent-2: #8b5cf6;
+    --accent-grad: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    --bg: #f5f6fb;
+    --card: #ffffff;
+    --text: #14152b;
+    --text-sub: #6b7088;
+    --text-light: #9ca0b5;
+    --border: #eceef5;
+    --success: #10b981;
+    --warn: #f59e0b;
+    --pink: #ec4899;
+    --shadow-sm: 0 2px 8px rgba(20, 21, 43, 0.04);
+    --shadow-md: 0 8px 28px rgba(20, 21, 43, 0.08);
+    --shadow-lg: 0 16px 48px rgba(99, 102, 241, 0.18);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: 'Noto Sans JP', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #1a1a2e;
+    color: var(--text);
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* Phone frame */
+  .phone {
+    width: 375px;
+    height: 812px;
+    background: var(--bg);
+    border-radius: 44px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45), 0 0 0 10px #111, 0 0 0 11px #2a2a3e;
+  }
+
+  /* Status bar */
+  .status-bar {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px 0 32px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    position: relative;
+    z-index: 50;
+  }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+  .notch {
+    position: absolute; top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 120px; height: 28px;
+    background: #111; border-radius: 0 0 18px 18px;
+    z-index: 100;
+  }
+
+  /* Screens container */
+  .screens {
+    position: absolute; inset: 0;
+    overflow: hidden;
+  }
+  .screen {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    opacity: 0; pointer-events: none;
+    transform: translateX(20px);
+    transition: opacity 0.45s ease, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .screen.active {
+    opacity: 1; pointer-events: auto; transform: translateX(0);
+  }
+  .screen.leaving {
+    opacity: 0; transform: translateX(-20px);
+  }
+
+  /* Header bar */
+  .header {
+    padding: 8px 20px 12px;
+    display: flex; align-items: center; justify-content: space-between;
+    min-height: 48px;
+  }
+  .back-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--text);
+    font-size: 15px;
+    transition: transform 0.15s ease;
+  }
+  .back-btn:active { transform: scale(0.92); }
+  .header-title {
+    font-size: 16px; font-weight: 700; color: var(--text);
+  }
+  .header-spacer { width: 38px; }
+
+  /* ====== Screen 1: Camera ====== */
+  #screen1 {
+    background: #0f0f1a;
+  }
+  #screen1 .status-bar { color: white; }
+  #screen1 .header { color: white; }
+  #screen1 .header-title { color: white; }
+  #screen1 .back-btn {
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+
+  .camera-view {
+    flex: 1;
+    background:
+      radial-gradient(ellipse at top, rgba(99, 102, 241, 0.18) 0%, transparent 60%),
+      linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .camera-view::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 30px 30px;
+  }
+  .scan-frame {
+    width: 280px; height: 175px;
+    border-radius: 14px;
+    position: relative;
+    z-index: 2;
+    background: rgba(255,255,255,0.02);
+  }
+  .scan-frame .corner {
+    position: absolute; width: 26px; height: 26px;
+    border-color: var(--accent);
+    border-style: solid; border-width: 0;
+  }
+  .scan-frame .corner.tl { top: -3px; left: -3px; border-top-width: 3px; border-left-width: 3px; border-radius: 4px 0 0 0; }
+  .scan-frame .corner.tr { top: -3px; right: -3px; border-top-width: 3px; border-right-width: 3px; border-radius: 0 4px 0 0; }
+  .scan-frame .corner.bl { bottom: -3px; left: -3px; border-bottom-width: 3px; border-left-width: 3px; border-radius: 0 0 0 4px; }
+  .scan-frame .corner.br { bottom: -3px; right: -3px; border-bottom-width: 3px; border-right-width: 3px; border-radius: 0 0 4px 0; }
+  .scan-line {
+    position: absolute; left: 8px; right: 8px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    box-shadow: 0 0 10px var(--accent);
+    animation: scan 2.2s ease-in-out infinite;
+    border-radius: 2px;
+  }
+  @keyframes scan {
+    0% { top: 8%; opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { top: 92%; opacity: 0; }
+  }
+
+  /* Mock business card inside scan area */
+  .card-preview {
+    position: absolute;
+    inset: 6px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #ffffff 0%, #f7f8fb 100%);
+    display: flex;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    opacity: 0.92;
+  }
+  .card-preview .left {
+    width: 6px;
+    background: var(--accent-grad);
+  }
+  .card-preview .content {
+    flex: 1;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+  }
+  .card-preview .logo-line {
+    font-size: 8px; font-weight: 700; color: var(--accent);
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .card-preview .name {
+    font-size: 14px; font-weight: 800; color: var(--text);
+  }
+  .card-preview .title-line {
+    font-size: 8px; color: var(--text-sub);
+  }
+  .card-preview .contact {
+    font-size: 7px; color: var(--text-light);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  .scan-hint {
+    margin-top: 28px;
+    color: white;
+    text-align: center;
+    z-index: 2;
+  }
+  .scan-hint .label {
+    display: inline-block;
+    background: rgba(99,102,241,0.2);
+    border: 1px solid rgba(99,102,241,0.4);
+    color: #c7c9ff;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .scan-hint .text {
+    font-size: 15px; font-weight: 600;
+  }
+  .scan-hint .sub {
+    font-size: 12px; color: rgba(255,255,255,0.5);
+    margin-top: 4px;
+  }
+
+  /* Camera controls */
+  .camera-controls {
+    padding: 24px 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,0.3));
+    position: relative;
+    z-index: 3;
+  }
+  .ctrl-btn {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  .shutter {
+    width: 76px; height: 76px;
+    border-radius: 50%;
+    background: white;
+    border: 4px solid white;
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.25);
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.15s ease;
+  }
+  .shutter:active { transform: scale(0.93); }
+  .shutter::after {
+    content: '';
+    position: absolute; inset: 4px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid #111;
+  }
+
+  /* Loading overlay */
+  .loading-overlay {
+    position: absolute; inset: 0;
+    background: rgba(15, 15, 26, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .loading-overlay.show { opacity: 1; pointer-events: auto; }
+  .loader-ring {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.1);
+    border-top-color: var(--accent);
+    border-right-color: var(--accent-2);
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 20px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-overlay .text {
+    color: white; font-size: 15px; font-weight: 600;
+  }
+  .loading-overlay .sub {
+    color: rgba(255,255,255,0.5); font-size: 12px;
+    margin-top: 6px;
+  }
+
+  /* ====== Screen 2: Data extraction ====== */
+  #screen2 {
+    background: var(--bg);
+  }
+  .extract-content {
+    flex: 1;
+    padding: 0 20px 20px;
+    overflow-y: auto;
+  }
+  .extract-card-preview {
+    background: white;
+    border-radius: 20px;
+    padding: 16px;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 20px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+  .extract-card-preview .thumb {
+    width: 84px; height: 54px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .extract-card-preview .info .label {
+    font-size: 11px;
+    color: var(--success);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .extract-card-preview .info .file {
+    font-size: 13px; font-weight: 600;
+    color: var(--text);
+    margin-top: 4px;
+  }
+  .extract-card-preview .info .meta {
+    font-size: 11px; color: var(--text-sub);
+    margin-top: 2px;
+  }
+
+  .extract-fields {
+    background: white;
+    border-radius: 20px;
+    padding: 8px 0;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 20px;
+  }
+  .field-row {
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-bottom: 1px solid var(--border);
+    opacity: 0;
+    transform: translateY(8px);
+    animation: fadeUp 0.5s ease forwards;
+  }
+  .field-row:last-child { border-bottom: none; }
+  .field-row:nth-child(1) { animation-delay: 0.2s; }
+  .field-row:nth-child(2) { animation-delay: 0.5s; }
+  .field-row:nth-child(3) { animation-delay: 0.8s; }
+  .field-row:nth-child(4) { animation-delay: 1.1s; }
+  .field-row:nth-child(5) { animation-delay: 1.4s; }
+  @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+  .field-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .field-body { flex: 1; min-width: 0; }
+  .field-label {
+    font-size: 11px; color: var(--text-sub);
+    font-weight: 500;
+  }
+  .field-value {
+    font-size: 14px; color: var(--text);
+    font-weight: 600;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .check {
+    color: var(--success); font-size: 14px;
+  }
+
+  .progress-section {
+    background: white;
+    border-radius: 20px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 16px;
+  }
+  .progress-section .top {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px;
+  }
+  .progress-section .label-text {
+    font-size: 13px; font-weight: 600; color: var(--text);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .pulse-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+    animation: pulse 1.2s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.5); }
+    70% { box-shadow: 0 0 0 8px rgba(99, 102, 241, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+  }
+  .progress-section .percent {
+    font-size: 13px; font-weight: 700; color: var(--accent);
+  }
+  .progress-bar {
+    height: 6px;
+    background: #f0f1f7;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-bar .fill {
+    height: 100%;
+    background: var(--accent-grad);
+    border-radius: 4px;
+    width: 0%;
+    transition: width 0.1s linear;
+  }
+  .progress-section .stage {
+    font-size: 11px; color: var(--text-sub);
+    margin-top: 8px;
+  }
+
+  .extract-next-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent-grad);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: inherit;
+  }
+  .extract-next-btn.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .extract-next-btn:active { transform: scale(0.98); }
+
+  /* ====== Screen 3: Company Insight ====== */
+  #screen3 {
+    background: var(--bg);
+  }
+  .insight-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 20px 100px;
+  }
+  .company-hero {
+    background: white;
+    border-radius: 22px;
+    padding: 20px;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .company-hero::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 140px; height: 140px;
+    background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.06));
+    border-radius: 50%;
+  }
+  .hero-top {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 14px;
+    position: relative;
+  }
+  .company-logo {
+    width: 56px; height: 56px;
+    border-radius: 14px;
+    background: var(--accent-grad);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 22px;
+    font-weight: 800;
+    box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+    flex-shrink: 0;
+  }
+  .company-name {
+    font-size: 18px; font-weight: 800; color: var(--text);
+    line-height: 1.3;
+  }
+  .company-tag {
+    font-size: 12px; color: var(--text-sub);
+    margin-top: 3px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .tag-pill {
+    display: inline-block;
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 700;
+  }
+  .hero-summary {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.7;
+    position: relative;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 14px 8px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+  }
+  .stat-card .icon {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    margin: 0 auto 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+  }
+  .stat-card .icon.blue { background: rgba(99,102,241,0.1); color: var(--accent); }
+  .stat-card .icon.green { background: rgba(16,185,129,0.1); color: var(--success); }
+  .stat-card .icon.orange { background: rgba(245,158,11,0.1); color: var(--warn); }
+  .stat-value {
+    font-size: 16px; font-weight: 800; color: var(--text);
+  }
+  .stat-label {
+    font-size: 10px; color: var(--text-sub);
+    margin-top: 2px;
+  }
+
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 4px 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title .badge {
+    font-size: 10px;
+    background: var(--accent-grad);
+    color: white;
+    padding: 2px 7px;
+    border-radius: 8px;
+    font-weight: 700;
+  }
+
+  /* Topic cards */
+  .topic-card {
+    background: white;
+    border-radius: 18px;
+    padding: 14px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    border-left: 3px solid transparent;
+    transition: transform 0.15s ease;
+  }
+  .topic-card:active { transform: scale(0.99); }
+  .topic-card.funding { border-left-color: var(--success); }
+  .topic-card.product { border-left-color: var(--accent); }
+  .topic-card.hiring { border-left-color: var(--pink); }
+
+  .topic-icon {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .topic-card.funding .topic-icon { background: rgba(16,185,129,0.1); color: var(--success); }
+  .topic-card.product .topic-icon { background: rgba(99,102,241,0.1); color: var(--accent); }
+  .topic-card.hiring .topic-icon { background: rgba(236,72,153,0.1); color: var(--pink); }
+
+  .topic-body { flex: 1; min-width: 0; }
+  .topic-meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 10px;
+    color: var(--text-light);
+    margin-bottom: 4px;
+  }
+  .topic-meta .source {
+    font-weight: 600;
+    color: var(--text-sub);
+  }
+  .topic-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.4;
+    margin-bottom: 4px;
+  }
+  .topic-desc {
+    font-size: 11px;
+    color: var(--text-sub);
+    line-height: 1.5;
+  }
+
+  .insight-cta {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 16px 20px 24px;
+    background: linear-gradient(180deg, transparent, var(--bg) 30%);
+    z-index: 10;
+  }
+  .insight-cta button {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent-grad);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: inherit;
+  }
+  .insight-cta button:active { transform: scale(0.98); }
+
+  /* ====== Screen 4: Talk script ====== */
+  #screen4 {
+    background: var(--bg);
+  }
+  .script-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 20px 24px;
+  }
+  .ai-banner {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 20px;
+    padding: 14px 18px;
+    color: white;
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(99,102,241,0.3);
+  }
+  .ai-banner::before {
+    content: '';
+    position: absolute;
+    top: -30px; right: -30px;
+    width: 140px; height: 140px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+  }
+  .ai-banner::after {
+    content: '';
+    position: absolute;
+    bottom: -50px; left: -20px;
+    width: 100px; height: 100px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+  }
+  .ai-banner .ai-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 4px;
+    position: relative;
+  }
+  .ai-icon-bg {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .ai-banner .ai-title { font-size: 12px; font-weight: 600; opacity: 0.9; }
+  .ai-banner .ai-sub { font-size: 18px; font-weight: 800; }
+  .ai-banner .ai-desc {
+    font-size: 12px; opacity: 0.85;
+    line-height: 1.6;
+    position: relative;
+    margin-top: 6px;
+  }
+
+  .script-card {
+    background: white;
+    border-radius: 16px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+  }
+  .script-card .num {
+    position: absolute;
+    top: 12px; left: 12px;
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    background: var(--accent-grad);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 800;
+  }
+  .script-card .content { padding-left: 36px; }
+  .script-card .tag {
+    display: inline-block;
+    background: rgba(99,102,241,0.1);
+    color: var(--accent);
+    padding: 3px 8px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .script-card .quote {
+    font-size: 12.5px;
+    color: var(--text);
+    font-weight: 600;
+    line-height: 1.55;
+    margin-bottom: 6px;
+  }
+  .script-card .reason {
+    font-size: 10.5px;
+    color: var(--text-sub);
+    line-height: 1.5;
+    padding-top: 6px;
+    border-top: 1px dashed var(--border);
+  }
+  .script-card .reason strong { color: var(--accent); font-weight: 700; }
+
+  .action-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .action-btn {
+    padding: 14px 12px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+  .action-btn .ico {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(99,102,241,0.1);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+  }
+  .action-btn.bell .ico { background: rgba(245,158,11,0.12); color: var(--warn); }
+  .action-btn:active { transform: scale(0.97); }
+  .action-btn.flash {
+    animation: btnFlash 0.6s ease;
+  }
+  @keyframes btnFlash {
+    0% { background: white; }
+    50% { background: rgba(99,102,241,0.1); border-color: var(--accent); }
+    100% { background: white; }
+  }
+
+  /* Toast feedback */
+  .toast {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(20, 21, 43, 0.95);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .toast i { color: var(--success); }
+
+  /* Shutter flash */
+  .flash {
+    position: absolute; inset: 0;
+    background: white;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 150;
+  }
+  .flash.show {
+    animation: shutterFlash 0.4s ease;
+  }
+  @keyframes shutterFlash {
+    0% { opacity: 0; }
+    20% { opacity: 0.9; }
+    100% { opacity: 0; }
+  }
+
+  /* Home indicator */
+  .home-indicator {
+    position: absolute;
+    bottom: 8px; left: 50%;
+    transform: translateX(-50%);
+    width: 134px; height: 5px;
+    background: var(--text);
+    border-radius: 3px;
+    opacity: 0.4;
+    z-index: 100;
+  }
+  #screen1 .home-indicator { background: white; opacity: 0.6; }
+
+  /* Scroll bars hidden */
+  ::-webkit-scrollbar { width: 0; display: none; }
+
+  /* ====== Screen 0: Home / List ====== */
+  #screen0 { background: var(--bg); }
+  .home-header {
+    padding: 4px 20px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .home-logo { display: flex; align-items: center; gap: 10px; }
+  .home-logo .ico {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    background: var(--accent-grad);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+  }
+  .home-logo .name {
+    font-size: 17px; font-weight: 800; color: var(--text);
+    letter-spacing: -0.5px;
+  }
+  .home-logo .name span { color: var(--accent); }
+  .home-bell {
+    width: 38px; height: 38px;
+    border-radius: 12px;
+    background: white;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    border: 1px solid var(--border);
+    color: var(--text);
+    cursor: pointer;
+  }
+  .home-bell .badge {
+    position: absolute;
+    top: 7px; right: 7px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--pink);
+    border: 2px solid white;
+  }
+
+  .greeting { padding: 0 20px 12px; }
+  .greeting .hello {
+    font-size: 20px; font-weight: 800;
+    color: var(--text);
+    margin-bottom: 4px;
+    letter-spacing: -0.5px;
+  }
+  .greeting .sub {
+    font-size: 12px; color: var(--text-sub);
+  }
+  .greeting .sub strong {
+    color: var(--accent); font-weight: 700;
+  }
+
+  .home-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 0 20px;
+    margin-bottom: 16px;
+  }
+  .home-stat {
+    background: white;
+    border-radius: 14px;
+    padding: 10px 6px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+  }
+  .home-stat .num {
+    font-size: 17px; font-weight: 800; color: var(--text);
+  }
+  .home-stat .num small {
+    font-size: 10px; color: var(--text-sub);
+    font-weight: 500; margin-left: 2px;
+  }
+  .home-stat .lbl {
+    font-size: 10px; color: var(--text-sub);
+    margin-top: 2px;
+  }
+  .home-stat.highlight .num { color: var(--accent); }
+
+  .list-section {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 20px 100px;
+  }
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .section-head .title {
+    font-size: 14px; font-weight: 700; color: var(--text);
+  }
+  .section-head .more {
+    font-size: 11px; color: var(--accent);
+    font-weight: 600; cursor: pointer;
+  }
+
+  .contact-item {
+    background: white;
+    border-radius: 16px;
+    padding: 11px 14px;
+    margin-bottom: 8px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+    position: relative;
+    border: 1px solid transparent;
+  }
+  .contact-item:active { transform: scale(0.99); }
+  .contact-item.has-update { border-color: rgba(99,102,241,0.18); }
+  .contact-avatar {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 15px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .contact-avatar.purple { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+  .contact-avatar.green { background: linear-gradient(135deg, #10b981, #34d399); }
+  .contact-avatar.blue { background: linear-gradient(135deg, #3b82f6, #06b6d4); }
+  .contact-avatar.pink { background: linear-gradient(135deg, #ec4899, #f43f5e); }
+  .contact-avatar.orange { background: linear-gradient(135deg, #f59e0b, #f97316); }
+
+  .contact-info { flex: 1; min-width: 0; }
+  .contact-name {
+    font-size: 13.5px; font-weight: 700; color: var(--text);
+  }
+  .contact-company {
+    font-size: 11px; color: var(--text-sub);
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .contact-update {
+    font-size: 10px;
+    color: var(--accent);
+    margin-top: 5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 700;
+    background: rgba(99,102,241,0.1);
+    padding: 2px 7px;
+    border-radius: 6px;
+  }
+  .contact-update i { font-size: 8px; }
+  .contact-meta {
+    text-align: right;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+  .contact-date {
+    font-size: 10px; color: var(--text-light);
+  }
+  .contact-badge {
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 6px;
+    letter-spacing: 0.3px;
+  }
+  .contact-badge.new {
+    background: rgba(236, 72, 153, 0.12);
+    color: var(--pink);
+  }
+
+  /* Bottom Nav + FAB */
+  .bottom-nav {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 70px;
+    background: white;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-around;
+    padding: 10px 16px 0;
+    z-index: 50;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.04);
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    font-size: 9.5px;
+    color: var(--text-light);
+    cursor: pointer;
+    flex: 1;
+    font-weight: 600;
+  }
+  .nav-item.active { color: var(--accent); }
+  .nav-item i { font-size: 16px; }
+  .nav-fab-spacer { width: 58px; flex: 0 0 58px; }
+
+  .fab {
+    position: absolute;
+    bottom: 42px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 58px; height: 58px;
+    border-radius: 50%;
+    background: var(--accent-grad);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 8px 24px rgba(99,102,241,0.5);
+    cursor: pointer;
+    border: 4px solid white;
+    transition: transform 0.15s ease;
+    z-index: 51;
+  }
+  .fab:active { transform: translateX(-50%) scale(0.93); }
+
+  /* ====== Responsive: full screen on mobile devices ====== */
+  @media (max-width: 480px) {
+    body {
+      background: var(--bg);
+      align-items: stretch;
+      justify-content: stretch;
+    }
+    .phone {
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      border-radius: 0;
+      box-shadow: none;
+    }
+    .notch,
+    .status-bar,
+    .home-indicator { display: none; }
+    .header,
+    .home-header {
+      padding-top: max(10px, env(safe-area-inset-top));
+    }
+    .bottom-nav {
+      height: calc(70px + env(safe-area-inset-bottom));
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .fab {
+      bottom: calc(42px + env(safe-area-inset-bottom));
+    }
+  }
+
+  /* ====== Common: tab screen header ====== */
+  .tab-header {
+    padding: 8px 20px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .tab-header-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+  .tab-header-action { display: flex; gap: 8px; }
+  .icon-btn {
+    width: 36px; height: 36px;
+    border-radius: 12px;
+    background: white;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text);
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  /* ====== Screen 5: Search ====== */
+  #screen5 { background: var(--bg); }
+  .search-bar-wrap { padding: 0 20px 14px; }
+  .search-input {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    box-shadow: var(--shadow-sm);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+  }
+  .search-input .icon { color: var(--accent); font-size: 14px; }
+  .search-input .text { flex: 1; color: var(--text); font-weight: 700; }
+  .search-cursor {
+    display: inline-block;
+    width: 2px; height: 16px;
+    background: var(--accent);
+    vertical-align: middle;
+    margin-left: 1px;
+    animation: blink 1s steps(2) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+  .search-input .clear {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    color: var(--text-sub);
+    font-size: 9px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+
+  .chip-row {
+    display: flex;
+    gap: 8px;
+    padding: 0 20px 14px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .chip-row::-webkit-scrollbar { display: none; }
+  .chip {
+    white-space: nowrap;
+    padding: 7px 13px;
+    border-radius: 16px;
+    background: white;
+    border: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-sub);
+    cursor: pointer;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .chip i { font-size: 9px; }
+  .chip.active {
+    background: var(--accent-grad);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 3px 10px rgba(99,102,241,0.3);
+  }
+  .chip.trend {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warn);
+    border-color: rgba(245, 158, 11, 0.2);
+  }
+
+  .search-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 20px 100px;
+  }
+  .search-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 4px 0 10px;
+  }
+  .search-section-head .title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .search-section-head .count {
+    font-size: 11px;
+    color: var(--text-sub);
+  }
+  .recent-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+  .recent-tag {
+    background: white;
+    border: 1px solid var(--border);
+    padding: 5px 11px;
+    border-radius: 14px;
+    font-size: 11px;
+    color: var(--text-sub);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 500;
+  }
+  .recent-tag i { font-size: 9px; color: var(--text-light); }
+
+  .result-item {
+    background: white;
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  .result-item:active { transform: scale(0.99); }
+  .result-item .contact-avatar { width: 40px; height: 40px; font-size: 14px; }
+  .result-info { flex: 1; min-width: 0; }
+  .result-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .result-company {
+    font-size: 11px;
+    color: var(--text-sub);
+    margin-top: 1px;
+  }
+  .result-tags {
+    display: flex;
+    gap: 5px;
+    margin-top: 7px;
+    flex-wrap: wrap;
+  }
+  .result-tag {
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: rgba(99,102,241,0.1);
+    color: var(--accent);
+  }
+  .result-tag.match { background: rgba(245,158,11,0.12); color: var(--warn); }
+
+  /* ====== Screen 6: Analytics ====== */
+  #screen6 { background: var(--bg); }
+  .analytics-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 20px 100px;
+  }
+  .period-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .period-pill i { font-size: 10px; color: var(--text-sub); }
+
+  .hero-stat-card {
+    background: var(--accent-grad);
+    border-radius: 22px;
+    padding: 18px 20px 20px;
+    color: white;
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 28px rgba(99,102,241,0.3);
+  }
+  .hero-stat-card::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 150px; height: 150px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+  }
+  .hero-stat-card::after {
+    content: '';
+    position: absolute;
+    bottom: -50px; left: -30px;
+    width: 110px; height: 110px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+  }
+  .hero-stat-card .label {
+    font-size: 12px;
+    opacity: 0.85;
+    margin-bottom: 6px;
+    position: relative;
+    font-weight: 500;
+  }
+  .hero-stat-card .big {
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    line-height: 1;
+    position: relative;
+  }
+  .hero-stat-card .big small {
+    font-size: 14px;
+    font-weight: 600;
+    opacity: 0.85;
+    margin-left: 4px;
+  }
+  .hero-stat-card .delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255,255,255,0.2);
+    padding: 4px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 10px;
+    position: relative;
+  }
+  .hero-stat-card .delta i { font-size: 9px; }
+
+  .mini-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .mini-stat {
+    background: white;
+    border-radius: 14px;
+    padding: 12px 14px;
+    box-shadow: var(--shadow-sm);
+  }
+  .mini-stat .lbl {
+    font-size: 11px;
+    color: var(--text-sub);
+    font-weight: 500;
+  }
+  .mini-stat .val {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+    margin-top: 2px;
+    letter-spacing: -0.5px;
+  }
+  .mini-stat .sub {
+    font-size: 10.5px;
+    color: var(--success);
+    margin-top: 1px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .mini-stat .sub i { font-size: 8px; }
+
+  .chart-card {
+    background: white;
+    border-radius: 18px;
+    padding: 16px 16px 14px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow-sm);
+  }
+  .chart-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .chart-title .legend {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: var(--text-sub);
+    font-weight: 600;
+  }
+  .chart-title .legend .dot {
+    width: 8px; height: 8px;
+    border-radius: 3px;
+    background: linear-gradient(135deg, #ec4899, #8b5cf6);
+  }
+
+  .bar-chart {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    height: 130px;
+    padding: 16px 4px 0;
+  }
+  .bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .bar-track {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    position: relative;
+  }
+  .bar {
+    width: 100%;
+    background: linear-gradient(180deg, #a5b4fc, #6366f1);
+    border-radius: 6px 6px 0 0;
+    height: 0;
+    position: relative;
+    transition: height 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .bar.current {
+    background: linear-gradient(180deg, #f9a8d4, #8b5cf6);
+  }
+  .bar-value {
+    position: absolute;
+    top: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--text-sub);
+    white-space: nowrap;
+  }
+  .bar-label {
+    font-size: 9.5px;
+    color: var(--text-sub);
+    margin-top: 6px;
+    font-weight: 600;
+  }
+
+  .industry-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 11px;
+  }
+  .industry-row:last-child { margin-bottom: 0; }
+  .industry-label {
+    width: 78px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+    flex-shrink: 0;
+  }
+  .industry-bar-wrap {
+    flex: 1;
+    height: 10px;
+    background: #f0f1f7;
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .industry-bar-fill {
+    height: 100%;
+    border-radius: 5px;
+    width: 0;
+    transition: width 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .industry-value {
+    width: 28px;
+    text-align: right;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .ai-insight-card {
+    background: linear-gradient(135deg, #f0fdf4, #ecfeff);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 18px;
+    padding: 14px;
+    display: flex;
+    gap: 12px;
+  }
+  .ai-insight-card .icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #10b981, #34d399);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .ai-insight-card .head {
+    font-size: 11px;
+    color: var(--success);
+    font-weight: 800;
+    margin-bottom: 4px;
+    letter-spacing: 0.3px;
+  }
+  .ai-insight-card .body {
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.65;
+    font-weight: 500;
+  }
+  .ai-insight-card .body strong {
+    color: var(--accent);
+    font-weight: 800;
+  }
+
+  /* ====== Screen 7: Settings ====== */
+  #screen7 { background: var(--bg); }
+  .settings-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 20px 100px;
+  }
+  .profile-card {
+    background: white;
+    border-radius: 18px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .profile-avatar {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f59e0b, #ec4899);
+    color: white;
+    font-size: 20px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
+  }
+  .profile-info { flex: 1; min-width: 0; }
+  .profile-name {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .profile-company {
+    font-size: 11px;
+    color: var(--text-sub);
+    margin-top: 2px;
+  }
+  .profile-plan {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    color: white;
+    font-size: 9.5px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+  }
+  .profile-plan i { font-size: 8px; }
+  .profile-edit {
+    color: var(--text-light);
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .settings-section {
+    margin-bottom: 18px;
+  }
+  .settings-section-title {
+    font-size: 10.5px;
+    color: var(--text-sub);
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    padding: 0 6px 8px;
+  }
+  .settings-group {
+    background: white;
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .settings-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-row:active { background: var(--bg); }
+  .settings-icon {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .settings-icon.purple { background: rgba(99,102,241,0.12); color: var(--accent); }
+  .settings-icon.green { background: rgba(16,185,129,0.12); color: var(--success); }
+  .settings-icon.orange { background: rgba(245,158,11,0.12); color: var(--warn); }
+  .settings-icon.pink { background: rgba(236,72,153,0.12); color: var(--pink); }
+  .settings-icon.blue { background: rgba(59,130,246,0.12); color: #3b82f6; }
+  .settings-icon.gray { background: #f0f1f7; color: var(--text-sub); }
+  .settings-icon.red { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+
+  .settings-body { flex: 1; min-width: 0; }
+  .settings-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .settings-sub {
+    font-size: 10.5px;
+    color: var(--text-sub);
+    margin-top: 1px;
+  }
+  .settings-meta {
+    font-size: 11px;
+    color: var(--text-light);
+  }
+  .settings-chevron {
+    color: var(--text-light);
+    font-size: 11px;
+  }
+
+  .toggle {
+    width: 40px;
+    height: 24px;
+    border-radius: 12px;
+    background: #d1d5db;
+    position: relative;
+    transition: background 0.2s ease;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: white;
+    transition: transform 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .toggle.on { background: var(--success); }
+  .toggle.on::after { transform: translateX(16px); }
+
+  .settings-pill {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 8px;
+    background: var(--accent-grad);
+    color: white;
+    letter-spacing: 0.3px;
+  }
+  .settings-pill.alt {
+    background: rgba(99,102,241,0.12);
+    color: var(--accent);
+  }
+
+  .logout-btn {
+    width: 100%;
+    padding: 14px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    color: #ef4444;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 6px;
+    font-family: inherit;
+  }
+  .logout-btn:active { background: rgba(239, 68, 68, 0.05); }
+
+  .app-version {
+    text-align: center;
+    font-size: 10px;
+    color: var(--text-light);
+    margin-top: 14px;
+    font-weight: 500;
+  }
+
+  /* ====== Memo section (within screen 3) ====== */
+  .memo-section { margin-top: 8px; }
+  .memo-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 4px 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .memo-section-title i { color: var(--accent); }
+  .memo-count {
+    margin-left: auto;
+    font-size: 10.5px;
+    color: var(--text-sub);
+    font-weight: 600;
+    background: var(--bg);
+    padding: 2px 8px;
+    border-radius: 8px;
+  }
+
+  .memo-input-card {
+    background: white;
+    border-radius: 16px;
+    padding: 12px 14px 10px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 14px;
+    border: 1.5px solid var(--border);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .memo-input-card:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+  }
+  .memo-input {
+    width: 100%;
+    min-height: 60px;
+    max-height: 160px;
+    border: none;
+    outline: none;
+    resize: none;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.65;
+    padding: 4px 0 0;
+    background: transparent;
+  }
+  .memo-input::placeholder {
+    color: var(--text-light);
+    font-weight: 500;
+  }
+
+  .memo-tag-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--border);
+  }
+  .memo-tag-chip {
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text-sub);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+  }
+  .memo-tag-chip:active { transform: scale(0.96); }
+  .memo-tag-chip.selected {
+    background: rgba(99,102,241,0.12);
+    color: var(--accent);
+  }
+
+  .memo-save-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+  .memo-hint {
+    font-size: 10.5px;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 500;
+  }
+  .memo-hint i { color: var(--accent); font-size: 10px; }
+  .memo-save-btn {
+    background: var(--accent-grad);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+    transition: transform 0.1s ease, opacity 0.2s ease;
+  }
+  .memo-save-btn:active { transform: scale(0.97); }
+  .memo-save-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .memo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .memo-empty {
+    text-align: center;
+    padding: 22px 16px;
+    color: var(--text-light);
+    font-size: 12px;
+    line-height: 1.7;
+    background: white;
+    border-radius: 14px;
+    border: 1px dashed var(--border);
+  }
+  .memo-empty i {
+    font-size: 22px;
+    color: var(--text-light);
+    margin-bottom: 8px;
+    display: block;
+  }
+  .memo-card {
+    background: white;
+    border-radius: 14px;
+    padding: 11px 13px 12px;
+    box-shadow: var(--shadow-sm);
+    border-left: 3px solid var(--accent);
+    animation: memoIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes memoIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .memo-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .memo-date {
+    font-size: 10.5px;
+    color: var(--text-sub);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .memo-date i { color: var(--text-light); font-size: 10px; }
+  .memo-actions { display: flex; gap: 4px; }
+  .memo-action {
+    width: 24px; height: 24px;
+    border-radius: 6px;
+    border: none;
+    background: var(--bg);
+    color: var(--text-sub);
+    font-size: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+  }
+  .memo-action:active { background: var(--border); }
+  .memo-action.delete:hover { color: #ef4444; }
+  .memo-text {
+    font-size: 12.5px;
+    color: var(--text);
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .memo-tags {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .memo-tag {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: rgba(99,102,241,0.1);
+    color: var(--accent);
+  }
+
+  /* ====== Screen 8: Lock / Auth ====== */
+  #screen8 {
+    background:
+      radial-gradient(ellipse at top, rgba(99, 102, 241, 0.25) 0%, transparent 60%),
+      radial-gradient(ellipse at bottom, rgba(139, 92, 246, 0.18) 0%, transparent 60%),
+      linear-gradient(180deg, #14152b 0%, #1f1733 100%);
+    color: white;
+  }
+  #screen8 .status-bar { color: white; }
+
+  .lock-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 32px 36px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .lock-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .lock-logo .ico {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--accent-grad);
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    font-size: 16px;
+    box-shadow: 0 0 24px rgba(99,102,241,0.6);
+  }
+  .lock-logo .name {
+    font-size: 18px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.5px;
+  }
+  .lock-logo .name span { color: #a5b4fc; }
+
+  .lock-spacer { flex: 1; min-height: 16px; }
+
+  /* Face ID circle */
+  .faceid-wrap {
+    position: relative;
+    width: 140px; height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 22px;
+    cursor: pointer;
+  }
+  .faceid-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid rgba(99, 102, 241, 0.3);
+    pointer-events: none;
+  }
+  .faceid-ring.r2 {
+    inset: -14px;
+    border-color: rgba(99, 102, 241, 0.18);
+    animation: pulseRing 2.4s ease-out infinite;
+  }
+  .faceid-ring.r3 {
+    inset: -28px;
+    border-color: rgba(99, 102, 241, 0.1);
+    animation: pulseRing 2.4s ease-out infinite 0.8s;
+  }
+  @keyframes pulseRing {
+    0% { transform: scale(0.94); opacity: 1; }
+    100% { transform: scale(1.18); opacity: 0; }
+  }
+  .faceid-circle {
+    width: 110px; height: 110px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(139,92,246,0.25));
+    border: 2.5px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 0 50px rgba(99, 102, 241, 0.5), inset 0 0 24px rgba(99, 102, 241, 0.25);
+    position: relative;
+    z-index: 2;
+    transition: all 0.4s ease;
+  }
+  .faceid-circle svg { width: 56px; height: 56px; }
+  .faceid-circle.scanning { animation: scanPulse 1.4s ease-in-out infinite; }
+  @keyframes scanPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 50px rgba(99,102,241,0.5), inset 0 0 24px rgba(99,102,241,0.25); }
+    50% { transform: scale(1.04); box-shadow: 0 0 70px rgba(99,102,241,0.8), inset 0 0 28px rgba(99,102,241,0.4); }
+  }
+  .faceid-circle.success {
+    background: linear-gradient(135deg, rgba(16,185,129,0.3), rgba(52,211,153,0.3));
+    border-color: var(--success);
+    color: var(--success);
+    box-shadow: 0 0 60px rgba(16, 185, 129, 0.6);
+  }
+  .faceid-circle.success svg { display: none; }
+  .faceid-circle.success::before {
+    content: '\f00c';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    font-size: 42px;
+  }
+
+  .lock-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+    text-align: center;
+  }
+  .lock-sub {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    text-align: center;
+    line-height: 1.6;
+    max-width: 280px;
+  }
+
+  .lock-bottom {
+    width: 100%;
+    margin-top: 30px;
+  }
+  .lock-cta {
+    width: 100%;
+    padding: 15px;
+    background: var(--accent-grad);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(99,102,241,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-family: inherit;
+    margin-bottom: 14px;
+  }
+  .lock-cta:active { transform: scale(0.98); }
+  .lock-alt {
+    width: 100%;
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 8px;
+    text-align: center;
+  }
+  .lock-alt:active { color: white; }
+
+  /* PIN pad */
+  .pin-dots {
+    display: flex;
+    gap: 18px;
+    margin-bottom: 30px;
+  }
+  .pin-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.4);
+    transition: all 0.15s ease;
+  }
+  .pin-dot.filled {
+    background: white;
+    border-color: white;
+    transform: scale(1.1);
+  }
+  .pin-dots.error { animation: shake 0.4s ease; }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+
+  .pin-pad {
+    display: grid;
+    grid-template-columns: repeat(3, 64px);
+    gap: 16px 28px;
+    margin-bottom: 20px;
+  }
+  .pin-key {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: white;
+    font-size: 26px;
+    font-weight: 400;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 1px;
+    transition: transform 0.1s ease, background 0.1s ease;
+  }
+  .pin-key:active {
+    background: rgba(255,255,255,0.2);
+    transform: scale(0.94);
+  }
+  .pin-key .letters {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: rgba(255,255,255,0.55);
+  }
+  .pin-key.bare {
+    background: transparent;
+    border-color: transparent;
+    font-size: 16px;
+  }
+  .pin-key.bare:active { background: rgba(255,255,255,0.05); }
+
+  /* ====== Responsive: dynamic scaling on desktop / tablet handled by JS ====== */
+  .phone { transform-origin: center center; }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="notch"></div>
+
+    <div class="toast" id="globalToast" style="z-index:1000;">
+      <i class="fas fa-check-circle"></i>
+      <span id="globalToastText">保存しました</span>
+    </div>
+
+    <div class="screens">
+      <!-- ====== SCREEN 8: Lock / Auth ====== -->
+      <div class="screen active" id="screen8">
+        <div class="status-bar">
+          <span>9:41</span>
+          <span class="icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+          </span>
+        </div>
+        <div class="lock-body">
+          <!-- Face ID mode -->
+          <div class="lock-mode" id="lockFaceMode" style="display:flex; flex-direction:column; align-items:center; width:100%; flex:1;">
+            <div class="lock-logo">
+              <div class="ico"><i class="fas fa-id-card"></i></div>
+              <div class="name">Meishi<span>AI</span></div>
+            </div>
+            <div class="lock-spacer"></div>
+            <div class="faceid-wrap" id="faceidTrigger">
+              <div class="faceid-ring r3"></div>
+              <div class="faceid-ring r2"></div>
+              <div class="faceid-ring"></div>
+              <div class="faceid-circle" id="faceidCircle">
+                <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10 20 V14 Q10 10 14 10 H20" />
+                  <path d="M54 20 V14 Q54 10 50 10 H44" />
+                  <path d="M10 44 V50 Q10 54 14 54 H20" />
+                  <path d="M54 44 V50 Q54 54 50 54 H44" />
+                  <circle cx="24" cy="26" r="1.8" fill="currentColor" stroke="none" />
+                  <circle cx="40" cy="26" r="1.8" fill="currentColor" stroke="none" />
+                  <path d="M32 28 V38" />
+                  <path d="M24 44 Q32 48 40 44" />
+                </svg>
+              </div>
+            </div>
+            <div class="lock-title" id="lockFaceTitle">Face ID で認証</div>
+            <div class="lock-sub" id="lockFaceSub">情報を守るため、認証してロックを解除してください</div>
+            <div class="lock-spacer"></div>
+            <div class="lock-bottom">
+              <button class="lock-cta" id="faceidBtn">
+                <i class="fas fa-face-viewfinder" style="display:none;"></i>
+                <i class="fas fa-fingerprint"></i>
+                認証する
+              </button>
+              <button class="lock-alt" id="switchToPinBtn">パスコードを使用</button>
+            </div>
+          </div>
+
+          <!-- PIN mode -->
+          <div class="lock-mode" id="lockPinMode" style="display:none; flex-direction:column; align-items:center; width:100%; flex:1;">
+            <div class="lock-logo">
+              <div class="ico"><i class="fas fa-id-card"></i></div>
+              <div class="name">Meishi<span>AI</span></div>
+            </div>
+            <div class="lock-spacer"></div>
+            <div class="lock-title" style="margin-bottom:6px;">パスコードを入力</div>
+            <div class="lock-sub" style="margin-bottom:22px;" id="lockPinSub">6 桁のパスコードを入力してください</div>
+            <div class="pin-dots" id="pinDots">
+              <div class="pin-dot"></div>
+              <div class="pin-dot"></div>
+              <div class="pin-dot"></div>
+              <div class="pin-dot"></div>
+              <div class="pin-dot"></div>
+              <div class="pin-dot"></div>
+            </div>
+            <div class="pin-pad">
+              <button class="pin-key" data-digit="1">1</button>
+              <button class="pin-key" data-digit="2">2<span class="letters">ABC</span></button>
+              <button class="pin-key" data-digit="3">3<span class="letters">DEF</span></button>
+              <button class="pin-key" data-digit="4">4<span class="letters">GHI</span></button>
+              <button class="pin-key" data-digit="5">5<span class="letters">JKL</span></button>
+              <button class="pin-key" data-digit="6">6<span class="letters">MNO</span></button>
+              <button class="pin-key" data-digit="7">7<span class="letters">PQRS</span></button>
+              <button class="pin-key" data-digit="8">8<span class="letters">TUV</span></button>
+              <button class="pin-key" data-digit="9">9<span class="letters">WXYZ</span></button>
+              <button class="pin-key bare" id="switchToFaceBtn"><i class="fas fa-face-smile"></i></button>
+              <button class="pin-key" data-digit="0">0</button>
+              <button class="pin-key bare" id="pinDeleteBtn"><i class="fas fa-delete-left"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== SCREEN 0: Home / List ====== -->
+      <div class="screen" id="screen0">
+        <div class="status-bar">
+          <span>9:41</span>
+          <span class="icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+          </span>
+        </div>
+        <div class="home-header">
+          <div class="home-logo">
+            <div class="ico"><i class="fas fa-id-card"></i></div>
+            <div class="name">Meishi<span>AI</span></div>
+          </div>
+          <div class="home-bell">
+            <i class="fas fa-bell"></i>
+            <div class="badge"></div>
+          </div>
+        </div>
+        <div class="greeting">
+          <div class="hello">おはようございます</div>
+          <div class="sub"><strong>3社</strong>の名刺に新しい更新情報があります</div>
+        </div>
+        <div class="home-stats">
+          <div class="home-stat">
+            <div class="num">28<small>枚</small></div>
+            <div class="lbl">総登録</div>
+          </div>
+          <div class="home-stat">
+            <div class="num">5<small>枚</small></div>
+            <div class="lbl">今週追加</div>
+          </div>
+          <div class="home-stat highlight">
+            <div class="num">3<small>件</small></div>
+            <div class="lbl">更新あり</div>
+          </div>
+        </div>
+        <div class="list-section">
+          <div class="section-head">
+            <div class="title">最近の名刺</div>
+            <div class="more">すべて表示 ›</div>
+          </div>
+
+          <div class="contact-item has-update" data-contact="1">
+            <div class="contact-avatar purple">N</div>
+            <div class="contact-info">
+              <div class="contact-name">佐藤 健一</div>
+              <div class="contact-company">株式会社 NovaTech Works</div>
+              <div class="contact-update"><i class="fas fa-bolt"></i> シリーズB 15億円調達</div>
+            </div>
+            <div class="contact-meta">
+              <div class="contact-date">今日</div>
+              <div class="contact-badge new">NEW</div>
+            </div>
+          </div>
+
+          <div class="contact-item has-update" data-contact="2">
+            <div class="contact-avatar green">G</div>
+            <div class="contact-info">
+              <div class="contact-name">田中 美咲</div>
+              <div class="contact-company">GreenLogic 株式会社</div>
+              <div class="contact-update"><i class="fas fa-bolt"></i> 新工場が稼働開始</div>
+            </div>
+            <div class="contact-meta">
+              <div class="contact-date">昨日</div>
+            </div>
+          </div>
+
+          <div class="contact-item" data-contact="3">
+            <div class="contact-avatar blue">F</div>
+            <div class="contact-info">
+              <div class="contact-name">山田 大輔</div>
+              <div class="contact-company">株式会社 FinPilot</div>
+            </div>
+            <div class="contact-meta">
+              <div class="contact-date">3日前</div>
+            </div>
+          </div>
+
+          <div class="contact-item has-update" data-contact="4">
+            <div class="contact-avatar pink">H</div>
+            <div class="contact-info">
+              <div class="contact-name">鈴木 結衣</div>
+              <div class="contact-company">HealTech Innovations</div>
+              <div class="contact-update"><i class="fas fa-bolt"></i> AI創薬で特許取得</div>
+            </div>
+            <div class="contact-meta">
+              <div class="contact-date">1週間前</div>
+            </div>
+          </div>
+
+          <div class="contact-item" data-contact="5">
+            <div class="contact-avatar orange">C</div>
+            <div class="contact-info">
+              <div class="contact-name">高橋 健太</div>
+              <div class="contact-company">株式会社 CloudOpsLab</div>
+            </div>
+            <div class="contact-meta">
+              <div class="contact-date">2週間前</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom-nav">
+          <div class="nav-item active" data-nav="0">
+            <i class="fas fa-house"></i>
+            ホーム
+          </div>
+          <div class="nav-item" data-nav="5">
+            <i class="fas fa-magnifying-glass"></i>
+            検索
+          </div>
+          <div class="nav-fab-spacer"></div>
+          <div class="nav-item" data-nav="6">
+            <i class="fas fa-chart-line"></i>
+            分析
+          </div>
+          <div class="nav-item" data-nav="7">
+            <i class="fas fa-user"></i>
+            設定
+          </div>
+        </div>
+        <div class="fab">
+          <i class="fas fa-camera"></i>
+        </div>
+      </div>
+
+      <!-- ====== SCREEN 1: Camera ====== -->
+      <div class="screen" id="screen1">
+        <div class="status-bar">
+          <span>9:41</span>
+          <span class="icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+          </span>
+        </div>
+        <div class="header">
+          <div class="header-spacer"></div>
+          <div class="header-title" style="color:white;">名刺をスキャン</div>
+          <div class="back-btn"><i class="fas fa-bolt"></i></div>
+        </div>
+
+        <div class="camera-view">
+          <div class="scan-frame">
+            <div class="corner tl"></div>
+            <div class="corner tr"></div>
+            <div class="corner bl"></div>
+            <div class="corner br"></div>
+            <div class="scan-line"></div>
+            <div class="card-preview">
+              <div class="left"></div>
+              <div class="content">
+                <div class="logo-line">NOVATECH WORKS</div>
+                <div class="name">佐藤 健一</div>
+                <div class="title-line">執行役員 / 事業開発部 部長</div>
+                <div class="contact">
+                  TEL: 03-1234-5678<br>
+                  k.sato@novatech.co.jp
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="scan-hint">
+            <div class="label"><i class="fas fa-magic" style="margin-right:4px;"></i>AI読み取り</div>
+            <div class="text">枠内に名刺を合わせて撮影</div>
+            <div class="sub">明るい場所だとより正確に読み取れます</div>
+          </div>
+        </div>
+
+        <div class="camera-controls">
+          <div class="ctrl-btn"><i class="fas fa-images"></i></div>
+          <div class="shutter" id="shutterBtn"></div>
+          <div class="ctrl-btn"><i class="fas fa-bolt-lightning"></i></div>
+        </div>
+
+        <div class="flash" id="cameraFlash"></div>
+
+        <div class="loading-overlay" id="cameraLoading">
+          <div class="loader-ring"></div>
+          <div class="text">読み取り中…</div>
+          <div class="sub">AIが名刺を解析しています</div>
+        </div>
+
+        <div class="home-indicator"></div>
+      </div>
+
+      <!-- ====== SCREEN 2: Extraction ====== -->
+      <div class="screen" id="screen2">
+        <div class="status-bar">
+          <span>9:41</span>
+          <span class="icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+          </span>
+        </div>
+        <div class="header">
+          <div class="back-btn" data-back="1"><i class="fas fa-arrow-left"></i></div>
+          <div class="header-title">読み取り結果</div>
+          <div class="header-spacer"></div>
+        </div>
+
+        <div class="extract-content">
+          <div class="extract-card-preview">
+            <div class="thumb"><i class="fas fa-id-card"></i></div>
+            <div class="info">
+              <div class="label"><i class="fas fa-check-circle"></i> 読み取り完了</div>
+              <div class="file">名刺_佐藤健一_NovaTech.jpg</div>
+              <div class="meta">2026.06.03 09:41 · 精度 99.2%</div>
+            </div>
+          </div>
+
+          <div class="extract-fields">
+            <div class="field-row">
+              <div class="field-icon"><i class="fas fa-user"></i></div>
+              <div class="field-body">
+                <div class="field-label">氏名</div>
+                <div class="field-value">佐藤 健一</div>
+              </div>
+              <div class="check"><i class="fas fa-check-circle"></i></div>
+            </div>
+            <div class="field-row">
+              <div class="field-icon"><i class="fas fa-building"></i></div>
+              <div class="field-body">
+                <div class="field-label">会社名</div>
+                <div class="field-value">株式会社 NovaTech Works</div>
+              </div>
+              <div class="check"><i class="fas fa-check-circle"></i></div>
+            </div>
+            <div class="field-row">
+              <div class="field-icon"><i class="fas fa-briefcase"></i></div>
+              <div class="field-body">
+                <div class="field-label">役職</div>
+                <div class="field-value">執行役員 / 事業開発部 部長</div>
+              </div>
+              <div class="check"><i class="fas fa-check-circle"></i></div>
+            </div>
+            <div class="field-row">
+              <div class="field-icon"><i class="fas fa-phone"></i></div>
+              <div class="field-body">
+                <div class="field-label">電話</div>
+                <div class="field-value">03-1234-5678</div>
+              </div>
+              <div class="check"><i class="fas fa-check-circle"></i></div>
+            </div>
+            <div class="field-row">
+              <div class="field-icon"><i class="fas fa-envelope"></i></div>
+              <div class="field-body">
+                <div class="field-label">メール</div>
+                <div class="field-value">k.sato@novatech.co.jp</div>
+              </div>
+              <div class="check"><i class="fas fa-check-circle"></i></div>
+            </div>
+          </div>
+
+          <div class="progress-section">
+            <div class="top">
+              <div class="label-text">
+                <span class="pulse-dot"></span>
+                <span id="progressLabel">会社情報を取得中…</span>
+              </div>
+              <div class="percent" id="progressPercent">0%</div>
+            </div>
+            <div class="progress-bar"><div class="fill" id="progressFill"></div></div>
+            <div class="stage" id="progressStage">Web · IR · プレスリリース · 求人情報を解析中</div>
+          </div>
+
+          <button class="extract-next-btn" id="nextBtn2">
+            <i class="fas fa-sparkles"></i>
+            会社インサイトを見る
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <div class="home-indicator"></div>
+      </div>
+
+      <!-- ====== SCREEN 3: Company Insight ====== -->
+      <div class="screen" id="screen3">
+        <div class="status-bar">
+          <span>9:41</span>
+          <span class="icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+          </span>
+        </div>
+        <div class="header">
+          <div class="back-btn" data-back="2"><i class="fas fa-arrow-left"></i></div>
+          <div class="header-title">会社インサイト</div>
+          <div class="back-btn"><i class="fas fa-bookmark"></i></div>
+        </div>
+
+        <div class="insight-scroll">
+          <div class="company-hero">
+            <div class="hero-top">
+              <div class="company-logo">N</div>
+              <div>
+                <div class="company-name">株式会社 NovaTech Works</div>
+                <div class="company-tag">
+                  <span class="tag-pill">急成長中</span>
+                  <span>SaaS · 物流DX</span>
+                </div>
+              </div>
+            </div>
+            <div class="hero-summary">
+              物流業界向けに「配送AI最適化プラットフォーム NovaRoute」を提供。<strong>2019年創業</strong>のスタートアップで、AIによる配送ルート最適化により、配送コストを<strong style="color:var(--accent);">平均23%削減</strong>。直近1年で導入企業数が3.8倍に拡大。
+            </div>
+          </div>
+
+          <div class="stats-row">
+            <div class="stat-card">
+              <div class="icon blue"><i class="fas fa-users"></i></div>
+              <div class="stat-value">128名</div>
+              <div class="stat-label">従業員数</div>
+            </div>
+            <div class="stat-card">
+              <div class="icon green"><i class="fas fa-calendar"></i></div>
+              <div class="stat-value">2019</div>
+              <div class="stat-label">設立年</div>
+            </div>
+            <div class="stat-card">
+              <div class="icon orange"><i class="fas fa-map-marker-alt"></i></div>
+              <div class="stat-value">3拠点</div>
+              <div class="stat-label">東京/大阪/福岡</div>
+            </div>
+          </div>
+
+          <div class="section-title">
+            <i class="fas fa-bolt" style="color:var(--accent);"></i>
+            最新トピック
+            <span class="badge">3 件</span>
+          </div>
+
+          <div class="topic-card funding">
+            <div class="topic-icon"><i class="fas fa-yen-sign"></i></div>
+            <div class="topic-body">
+              <div class="topic-meta">
+                <span class="source">PR TIMES</span>
+                <span>·</span>
+                <span>2週間前</span>
+              </div>
+              <div class="topic-title">シリーズBで15億円の資金調達を完了</div>
+              <div class="topic-desc">大手VC2社・事業会社3社が参加。調達資金は海外展開とエンジニア採用に充当予定。</div>
+            </div>
+          </div>
+
+          <div class="topic-card product">
+            <div class="topic-icon"><i class="fas fa-rocket"></i></div>
+            <div class="topic-body">
+              <div class="topic-meta">
+                <span class="source">公式ブログ</span>
+                <span>·</span>
+                <span>1ヶ月前</span>
+              </div>
+              <div class="topic-title">新サービス「NovaRoute AI 2.0」をリリース</div>
+              <div class="topic-desc">生成AIを活用した配車最適化機能を新搭載。ドライバー1人あたりの配送効率が最大40%向上。</div>
+            </div>
+          </div>
+
+          <div class="topic-card hiring">
+            <div class="topic-icon"><i class="fas fa-user-plus"></i></div>
+            <div class="topic-body">
+              <div class="topic-meta">
+                <span class="source">採用ページ</span>
+                <span>·</span>
+                <span>更新中</span>
+              </div>
+              <div class="topic-title">エンジニア20名を積極採用中</div>
+              <div class="topic-desc">特にAI/MLエンジニアとSREを募集。リモート可・ストックオプション付与あり。</div>
+            </div>
+          </div>
+
+          <div class="memo-section">
+            <div class="memo-section-title">
+              <i class="fas fa-pen-to-square"></i>
+              商談メモ
+              <span class="memo-count" id="memoCount">0 件</span>
+            </div>
+
+            <div class="memo-input-card">
+              <textarea class="memo-input" id="memoInput" rows="3" placeholder="気づいたこと、次のアクション、相手の好みなどを記録..."></textarea>
+              <div class="memo-tag-row">
+                <div class="memo-tag-chip" data-tag="ToDo">#ToDo</div>
+                <div class="memo-tag-chip" data-tag="フォローアップ">#フォローアップ</div>
+                <div class="memo-tag-chip" data-tag="提案">#提案</div>
+                <div class="memo-tag-chip" data-tag="重要">#重要</div>
+              </div>
+              <div class="memo-save-row">
+                <div class="memo-hint">
+                  <i class="fas fa-wand-magic-sparkles"></i>
+                  AIが要点を自動抽出
+                </div>
+                <button class="memo-save-btn" id="memoSaveBtn" disabled>
+                  <i class="fas fa-paper-plane"></i>
+                  保存
+                </button>
+              </div>
+            </div>
+
+            <div class="memo-list" id="memoList"></div>
+          </div>
+        </div>
+
+        <div class="insight-cta">
+          <button id="nextBtn3">
+            <i class="fas fa-comments"></i>
+            商談カンペを見る
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <div class="home-indicator"></div>
+      </div>
+
+      <!-- ====== SCREEN 4: Talk script ====== -->
+      <div class="screen" id="screen4">
+        <div class="status-bar">
+          <span>9:41</span>
+          <span class="icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+          </span>
+        </div>
+        <div class="header">
+          <div class="back-btn" data-back="3"><i class="fas fa-arrow-left"></i></div>
+          <div class="header-title">商談カンペ</div>
+          <div class="back-btn"><i class="fas fa-share-nodes"></i></div>
+        </div>
+
+        <div class="script-scroll">
+          <div class="ai-banner">
+            <div class="ai-row">
+              <div class="ai-icon-bg"><i class="fas fa-wand-magic-sparkles"></i></div>
+              <div>
+                <div class="ai-title">AI Assistant</div>
+                <div class="ai-sub">話のきっかけ 3 選</div>
+              </div>
+            </div>
+            <div class="ai-desc">
+              佐藤様との商談で使える、最新情報をもとにした話題を提案しました。
+            </div>
+          </div>
+
+          <div class="script-card">
+            <div class="num">1</div>
+            <div class="content">
+              <div class="tag"><i class="fas fa-yen-sign"></i> 資金調達</div>
+              <div class="quote">「先日のシリーズB調達、おめでとうございます！海外展開を進められると拝見しました。」</div>
+              <div class="reason"><strong>狙い:</strong> 直近のポジティブな話題から入ることで一気に距離が縮まる。海外展開という具体ワードで本気度を伝える。</div>
+            </div>
+          </div>
+
+          <div class="script-card">
+            <div class="num">2</div>
+            <div class="content">
+              <div class="tag"><i class="fas fa-rocket"></i> 新サービス</div>
+              <div class="quote">「NovaRoute AI 2.0、配送効率40%向上は業界でも話題ですね。生成AIの活用、どんな反響ですか？」</div>
+              <div class="reason"><strong>狙い:</strong> 相手の専門領域への深い関心を示し、自然に課題ヒアリングへ繋げる導線をつくる。</div>
+            </div>
+          </div>
+
+          <div class="script-card">
+            <div class="num">3</div>
+            <div class="content">
+              <div class="tag"><i class="fas fa-user-plus"></i> 採用</div>
+              <div class="quote">「AIエンジニア20名の採用、急成長フェーズですね。当社の人材ソリューションがお役に立てるかもしれません。」</div>
+              <div class="reason"><strong>狙い:</strong> 相手の課題(採用)に自社サービスをスムーズに接続。提案の入口として最適。</div>
+            </div>
+          </div>
+
+          <div class="action-row">
+            <button class="action-btn" id="memoBtn">
+              <div class="ico"><i class="fas fa-pen-to-square"></i></div>
+              メモを追加
+            </button>
+            <button class="action-btn bell" id="notifyBtn">
+              <div class="ico"><i class="fas fa-bell"></i></div>
+              商談前に通知
+            </button>
+          </div>
+        </div>
+
+        <div class="toast" id="toast">
+          <i class="fas fa-check-circle"></i>
+          <span id="toastText">保存しました</span>
+        </div>
+
+        <div class="home-indicator"></div>
+      </div>
+
+      <!-- ====== SCREEN 5: Search ====== -->
+      <div class="screen" id="screen5">
+        <div class="status-bar">
+          <span>9:41</span>
+          <span class="icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+          </span>
+        </div>
+        <div class="tab-header">
+          <div class="tab-header-title">検索</div>
+          <div class="tab-header-action">
+            <div class="icon-btn"><i class="fas fa-sliders"></i></div>
+          </div>
+        </div>
+
+        <div class="search-bar-wrap">
+          <div class="search-input">
+            <i class="fas fa-magnifying-glass icon"></i>
+            <div class="text">DX<span class="search-cursor"></span></div>
+            <div class="clear"><i class="fas fa-xmark"></i></div>
+          </div>
+        </div>
+
+        <div class="chip-row">
+          <div class="chip active">すべて</div>
+          <div class="chip">更新あり</div>
+          <div class="chip">今月接触</div>
+          <div class="chip">未連絡</div>
+          <div class="chip">タグ</div>
+          <div class="chip">業種</div>
+        </div>
+
+        <div class="search-content">
+          <div class="search-section-head">
+            <div class="title">最近の検索</div>
+          </div>
+          <div class="recent-tags">
+            <div class="recent-tag"><i class="fas fa-clock-rotate-left"></i>SaaS</div>
+            <div class="recent-tag"><i class="fas fa-clock-rotate-left"></i>シリーズB</div>
+            <div class="recent-tag"><i class="fas fa-clock-rotate-left"></i>物流</div>
+            <div class="recent-tag"><i class="fas fa-clock-rotate-left"></i>採用</div>
+            <div class="recent-tag"><i class="fas fa-clock-rotate-left"></i>BtoB</div>
+          </div>
+
+          <div class="search-section-head">
+            <div class="title">トレンドキーワード</div>
+          </div>
+          <div class="chip-row" style="padding: 0 0 18px;">
+            <div class="chip trend"><i class="fas fa-arrow-up"></i>#資金調達</div>
+            <div class="chip trend"><i class="fas fa-arrow-up"></i>#AI活用</div>
+            <div class="chip trend"><i class="fas fa-arrow-up"></i>#上場準備</div>
+            <div class="chip trend"><i class="fas fa-arrow-up"></i>#海外展開</div>
+          </div>
+
+          <div class="search-section-head">
+            <div class="title">検索結果</div>
+            <div class="count">3 件</div>
+          </div>
+
+          <div class="result-item" data-contact="1">
+            <div class="contact-avatar purple">N</div>
+            <div class="result-info">
+              <div class="result-name">株式会社 NovaTech Works</div>
+              <div class="result-company">佐藤 健一 / 執行役員</div>
+              <div class="result-tags">
+                <div class="result-tag match">DX 一致</div>
+                <div class="result-tag">SaaS</div>
+                <div class="result-tag">物流</div>
+                <div class="result-tag">急成長</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="result-item" data-contact="2">
+            <div class="contact-avatar green">G</div>
+            <div class="result-info">
+              <div class="result-name">GreenLogic 株式会社</div>
+              <div class="result-company">田中 美咲 / マネージャー</div>
+              <div class="result-tags">
+                <div class="result-tag match">DX 一致</div>
+                <div class="result-tag">GreenTech</div>
+                <div class="result-tag">製造業</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="result-item" data-contact="3">
+            <div class="contact-avatar blue">F</div>
+            <div class="result-info">
+              <div class="result-name">株式会社 FinPilot</div>
+              <div class="result-company">山田 大輔 / CTO</div>
+              <div class="result-tags">
+                <div class="result-tag match">DX 一致</div>
+                <div class="result-tag">FinTech</div>
+                <div class="result-tag">BtoB</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom-nav">
+          <div class="nav-item" data-nav="0"><i class="fas fa-house"></i>ホーム</div>
+          <div class="nav-item active" data-nav="5"><i class="fas fa-magnifying-glass"></i>検索</div>
+          <div class="nav-fab-spacer"></div>
+          <div class="nav-item" data-nav="6"><i class="fas fa-chart-line"></i>分析</div>
+          <div class="nav-item" data-nav="7"><i class="fas fa-user"></i>設定</div>
+        </div>
+        <div class="fab"><i class="fas fa-camera"></i></div>
+      </div>
+
+      <!-- ====== SCREEN 6: Analytics ====== -->
+      <div class="screen" id="screen6">
+        <div class="status-bar">
+          <span>9:41</span>
+          <span class="icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+          </span>
+        </div>
+        <div class="tab-header">
+          <div class="tab-header-title">分析</div>
+          <div class="tab-header-action">
+            <div class="period-pill">
+              <i class="fas fa-calendar"></i>今月<i class="fas fa-chevron-down"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="analytics-content">
+          <div class="hero-stat-card">
+            <div class="label">今月の新規名刺</div>
+            <div class="big">28<small>枚</small></div>
+            <div class="delta"><i class="fas fa-arrow-up"></i> +5枚 (前月比 +14%)</div>
+          </div>
+
+          <div class="mini-stats">
+            <div class="mini-stat">
+              <div class="lbl">商談化率</div>
+              <div class="val">32%</div>
+              <div class="sub"><i class="fas fa-arrow-up"></i> +5pt</div>
+            </div>
+            <div class="mini-stat">
+              <div class="lbl">返信率</div>
+              <div class="val">76%</div>
+              <div class="sub"><i class="fas fa-arrow-up"></i> +2pt</div>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-title">
+              月別の新規追加
+              <div class="legend"><span class="dot"></span>今月</div>
+            </div>
+            <div class="bar-chart">
+              <div class="bar-col">
+                <div class="bar-track"><div class="bar" data-h="36"><div class="bar-value">4</div></div></div>
+                <div class="bar-label">1月</div>
+              </div>
+              <div class="bar-col">
+                <div class="bar-track"><div class="bar" data-h="55"><div class="bar-value">6</div></div></div>
+                <div class="bar-label">2月</div>
+              </div>
+              <div class="bar-col">
+                <div class="bar-track"><div class="bar" data-h="45"><div class="bar-value">5</div></div></div>
+                <div class="bar-label">3月</div>
+              </div>
+              <div class="bar-col">
+                <div class="bar-track"><div class="bar" data-h="73"><div class="bar-value">8</div></div></div>
+                <div class="bar-label">4月</div>
+              </div>
+              <div class="bar-col">
+                <div class="bar-track"><div class="bar" data-h="100"><div class="bar-value">11</div></div></div>
+                <div class="bar-label">5月</div>
+              </div>
+              <div class="bar-col">
+                <div class="bar-track"><div class="bar current" data-h="45"><div class="bar-value">5</div></div></div>
+                <div class="bar-label">6月</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-title">業種別の構成</div>
+            <div class="industry-row">
+              <div class="industry-label">SaaS</div>
+              <div class="industry-bar-wrap"><div class="industry-bar-fill" data-w="100" style="background: linear-gradient(90deg, #6366f1, #8b5cf6);"></div></div>
+              <div class="industry-value">12</div>
+            </div>
+            <div class="industry-row">
+              <div class="industry-label">FinTech</div>
+              <div class="industry-bar-wrap"><div class="industry-bar-fill" data-w="50" style="background: linear-gradient(90deg, #3b82f6, #06b6d4);"></div></div>
+              <div class="industry-value">6</div>
+            </div>
+            <div class="industry-row">
+              <div class="industry-label">GreenTech</div>
+              <div class="industry-bar-wrap"><div class="industry-bar-fill" data-w="33" style="background: linear-gradient(90deg, #10b981, #34d399);"></div></div>
+              <div class="industry-value">4</div>
+            </div>
+            <div class="industry-row">
+              <div class="industry-label">HealthTech</div>
+              <div class="industry-bar-wrap"><div class="industry-bar-fill" data-w="25" style="background: linear-gradient(90deg, #ec4899, #f43f5e);"></div></div>
+              <div class="industry-value">3</div>
+            </div>
+            <div class="industry-row">
+              <div class="industry-label">Cloud</div>
+              <div class="industry-bar-wrap"><div class="industry-bar-fill" data-w="25" style="background: linear-gradient(90deg, #f59e0b, #f97316);"></div></div>
+              <div class="industry-value">3</div>
+            </div>
+          </div>
+
+          <div class="ai-insight-card">
+            <div class="icon"><i class="fas fa-lightbulb"></i></div>
+            <div>
+              <div class="head">AI WEEKLY INSIGHT</div>
+              <div class="body">今月は<strong>物流業界</strong>との接触が3倍に増加。シリーズB調達企業の<strong>NovaTech Works</strong>は関係深耕の絶好機です。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom-nav">
+          <div class="nav-item" data-nav="0"><i class="fas fa-house"></i>ホーム</div>
+          <div class="nav-item" data-nav="5"><i class="fas fa-magnifying-glass"></i>検索</div>
+          <div class="nav-fab-spacer"></div>
+          <div class="nav-item active" data-nav="6"><i class="fas fa-chart-line"></i>分析</div>
+          <div class="nav-item" data-nav="7"><i class="fas fa-user"></i>設定</div>
+        </div>
+        <div class="fab"><i class="fas fa-camera"></i></div>
+      </div>
+
+      <!-- ====== SCREEN 7: Settings ====== -->
+      <div class="screen" id="screen7">
+        <div class="status-bar">
+          <span>9:41</span>
+          <span class="icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+          </span>
+        </div>
+        <div class="tab-header">
+          <div class="tab-header-title">設定</div>
+        </div>
+
+        <div class="settings-content">
+          <div class="profile-card">
+            <div class="profile-avatar">翔</div>
+            <div class="profile-info">
+              <div class="profile-name">鈴木 翔太</div>
+              <div class="profile-company">鈴木商事株式会社 / 営業企画部</div>
+              <div class="profile-plan"><i class="fas fa-crown"></i>PRO PLAN</div>
+            </div>
+            <div class="profile-edit"><i class="fas fa-chevron-right"></i></div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-title">アカウント</div>
+            <div class="settings-group">
+              <div class="settings-row">
+                <div class="settings-icon purple"><i class="fas fa-user"></i></div>
+                <div class="settings-body">
+                  <div class="settings-label">プロフィール編集</div>
+                </div>
+                <i class="fas fa-chevron-right settings-chevron"></i>
+              </div>
+              <div class="settings-row">
+                <div class="settings-icon orange"><i class="fas fa-crown"></i></div>
+                <div class="settings-body">
+                  <div class="settings-label">プラン管理</div>
+                  <div class="settings-sub">次回更新: 2026年7月3日</div>
+                </div>
+                <div class="settings-pill">PRO</div>
+              </div>
+              <div class="settings-row">
+                <div class="settings-icon blue"><i class="fas fa-link"></i></div>
+                <div class="settings-body">
+                  <div class="settings-label">連携サービス</div>
+                  <div class="settings-sub">Salesforce, Slack, Google</div>
+                </div>
+                <div class="settings-meta">3 接続中</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-title">通知</div>
+            <div class="settings-group">
+              <div class="settings-row">
+                <div class="settings-icon green"><i class="fas fa-bell"></i></div>
+                <div class="settings-body">
+                  <div class="settings-label">プッシュ通知</div>
+                </div>
+                <div class="toggle on"></div>
+              </div>
+              <div class="settings-row">
+                <div class="settings-icon orange"><i class="fas fa-clock"></i></div>
+                <div class="settings-body">
+                  <div class="settings-label">商談リマインド</div>
+                  <div class="settings-sub">開始 10 分前に通知</div>
+                </div>
+                <div class="toggle on"></div>
+              </div>
+              <div class="settings-row">
+                <div class="settings-icon purple"><i class="fas fa-bolt"></i></div>
+                <div class="settings-body">
+                  <div class="settings-label">会社の更新情報</div>
+                  <div class="settings-sub">プレスリリースを自動通知</div>
+                </div>
+                <div class="toggle on"></div>
+              </div>
+              <div class="settings-row">
+                <div class="settings-icon pink"><i class="fas fa-envelope"></i></div>
+                <div class="settings-body">
+                  <div class="settings-label">週次レポート</div>
+                  <div class="settings-sub">毎週月曜の朝にメール</div>
+                </div>
+                <div class="toggle"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-title">データと AI</div>
+            <div class="settings-group">
+              <div class="settings-row">
+                <div class="settings-icon gray"><i class="fas fa-download"></i></div>
+                <div class="settings-body">
+                  <div class="settings-label">名刺データをエクスポート</div>
+                  <div class="settings-sub">CSV / vCard 形式</div>
+                </div>
+                <i class="fas fa-chevron-right settings-chevron"></i>
+              </div>
+              <div class="settings-row">
+                <div class="settings-icon blue"><i class="fas fa-cloud"></i></div>
+                <div class="settings-body">
+                  <div class="settings-label">自動バックアップ</div>
+                  <div class="settings-sub">iCloud に毎日 22:00</div>
+                </div>
+                <div class="toggle on"></div>
+              </div>
+              <div class="settings-row">
+                <div class="settings-icon purple"><i class="fas fa-wand-magic-sparkles"></i></div>
+                <div class="settings-body">
+                  <div class="settings-label">AI 解析の精度</div>
+                  <div class="settings-sub">高精度モード (推奨)</div>
+                </div>
+                <div class="settings-pill alt">高</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-title">サポート</div>
+            <div class="settings-group">
+              <div class="settings-row">
+                <div class="settings-icon gray"><i class="fas fa-circle-question"></i></div>
+                <div class="settings-body">
+                  <div class="settings-label">ヘルプセンター</div>
+                </div>
+                <i class="fas fa-chevron-right settings-chevron"></i>
+              </div>
+              <div class="settings-row">
+                <div class="settings-icon gray"><i class="fas fa-message"></i></div>
+                <div class="settings-body">
+                  <div class="settings-label">お問い合わせ</div>
+                </div>
+                <i class="fas fa-chevron-right settings-chevron"></i>
+              </div>
+              <div class="settings-row">
+                <div class="settings-icon gray"><i class="fas fa-shield-halved"></i></div>
+                <div class="settings-body">
+                  <div class="settings-label">利用規約 / プライバシー</div>
+                </div>
+                <i class="fas fa-chevron-right settings-chevron"></i>
+              </div>
+            </div>
+          </div>
+
+          <button class="logout-btn">ログアウト</button>
+          <div class="app-version">MeishiAI v2.6.0 (Build 1842)</div>
+        </div>
+
+        <div class="bottom-nav">
+          <div class="nav-item" data-nav="0"><i class="fas fa-house"></i>ホーム</div>
+          <div class="nav-item" data-nav="5"><i class="fas fa-magnifying-glass"></i>検索</div>
+          <div class="nav-fab-spacer"></div>
+          <div class="nav-item" data-nav="6"><i class="fas fa-chart-line"></i>分析</div>
+          <div class="nav-item active" data-nav="7"><i class="fas fa-user"></i>設定</div>
+        </div>
+        <div class="fab"><i class="fas fa-camera"></i></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Responsive scaling: fit phone frame into viewport on desktop / tablet
+  const phoneEl = document.querySelector('.phone');
+  function updatePhoneScale() {
+    if (window.innerWidth <= 480) {
+      phoneEl.style.transform = '';
+      return;
+    }
+    const sH = (window.innerHeight - 40) / 812;
+    const sW = (window.innerWidth - 40) / 375;
+    const scale = Math.min(1, sH, sW);
+    phoneEl.style.transform = `scale(${scale})`;
+  }
+  updatePhoneScale();
+  window.addEventListener('resize', updatePhoneScale);
+  window.addEventListener('orientationchange', updatePhoneScale);
+
+  let currentScreen = 8;  // start at lock screen
+  const history = [0];     // lock isn't part of nav history; first real screen is home
+  const TAB_SCREENS = new Set([0, 5, 6, 7]);
+  let currentContactId = '1';
+
+  // Global toast
+  const globalToast = document.getElementById('globalToast');
+  const globalToastText = document.getElementById('globalToastText');
+  let toastTimer = null;
+  function showGlobalToast(msg, icon = 'check-circle') {
+    globalToastText.textContent = msg;
+    globalToast.querySelector('i').className = `fas fa-${icon}`;
+    globalToast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => globalToast.classList.remove('show'), 1800);
+  }
+
+  function goTo(num, opts = {}) {
+    if (num === currentScreen) return;
+    const current = document.getElementById('screen' + currentScreen);
+    const next = document.getElementById('screen' + num);
+    if (!next || current === next) return;
+
+    current.classList.add('leaving');
+    current.classList.remove('active');
+    setTimeout(() => current.classList.remove('leaving'), 500);
+
+    next.classList.add('active');
+    currentScreen = num;
+
+    if (opts.tab) {
+      history.length = 0;
+      history.push(num);
+    } else if (!opts.viaBack) {
+      history.push(num);
+    }
+
+    if (num === 2) startExtraction();
+    if (num === 6) setTimeout(animateCharts, 120);
+    if (num === 3) {
+      if (opts.contactId !== undefined) currentContactId = String(opts.contactId);
+      setupMemos();
+    }
+  }
+
+  function goBack() {
+    if (history.length <= 1) return;
+    history.pop();
+    const prev = history[history.length - 1];
+    goTo(prev, { viaBack: true });
+  }
+
+  document.querySelectorAll('[data-back]').forEach(btn => {
+    btn.addEventListener('click', goBack);
+  });
+
+  // All FABs across tab screens → camera
+  document.querySelectorAll('.fab').forEach(fab => {
+    fab.addEventListener('click', () => goTo(1));
+  });
+
+  // Tab nav items
+  document.querySelectorAll('[data-nav]').forEach(item => {
+    item.addEventListener('click', () => {
+      goTo(parseInt(item.dataset.nav), { tab: true });
+    });
+  });
+
+  // Contact items → insight (skip scan flow); carries contact ID for memos
+  document.querySelectorAll('.contact-item, .result-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const id = item.dataset.contact || '1';
+      goTo(3, { contactId: id });
+    });
+  });
+
+  // Chart animation when entering screen 6
+  function animateCharts() {
+    const bars = document.querySelectorAll('#screen6 .bar');
+    const fills = document.querySelectorAll('#screen6 .industry-bar-fill');
+    bars.forEach(b => { b.style.height = '0'; });
+    fills.forEach(b => { b.style.width = '0'; });
+    // Force reflow so the browser commits height:0 before the next change
+    void document.getElementById('screen6').offsetHeight;
+    bars.forEach(b => { b.style.height = b.dataset.h + '%'; });
+    fills.forEach(b => { b.style.width = b.dataset.w + '%'; });
+  }
+
+  // Settings toggles
+  document.querySelectorAll('#screen7 .toggle').forEach(t => {
+    t.addEventListener('click', e => {
+      e.stopPropagation();
+      t.classList.toggle('on');
+    });
+  });
+
+  // ===== Per-contact memos =====
+  const MEMO_STORAGE_KEY = 'meishi-memos-v1';
+  const initialMemos = {
+    '1': [
+      { id: 'm1a', text: 'シリーズB調達おめでとうの一言から商談スタート。海外展開（特に東南アジア）に強い興味あり。次回は現地パートナー候補のリストを持参する。', tags: ['フォローアップ', '海外'], date: '2026/05/28 15:42' },
+      { id: 'm1b', text: '物流業界の課題について熱く語ってくれた。ドライバー不足とコスト最適化が最重要テーマ。我々のソリューションがピッタリはまりそう。', tags: ['提案', 'ToDo'], date: '2026/05/15 11:20' },
+    ],
+    '2': [
+      { id: 'm2a', text: '新工場の稼働の話で大いに盛り上がる。製造業向けDXの事例集を求められた。来週までに送付する。', tags: ['ToDo'], date: '2026/05/30 14:00' },
+    ],
+    '4': [
+      { id: 'm4a', text: 'AI創薬の特許取得の話を伺う。共同研究の可能性について前向きな反応。法務確認が必要。', tags: ['重要', 'ToDo'], date: '2026/04/22 16:30' },
+    ],
+  };
+  let allMemos = (() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(MEMO_STORAGE_KEY));
+      if (stored && typeof stored === 'object') return stored;
+    } catch {}
+    return JSON.parse(JSON.stringify(initialMemos));
+  })();
+  function persistMemos() {
+    try { localStorage.setItem(MEMO_STORAGE_KEY, JSON.stringify(allMemos)); } catch {}
+  }
+
+  const memoInput = document.getElementById('memoInput');
+  const memoSaveBtn = document.getElementById('memoSaveBtn');
+  const memoList = document.getElementById('memoList');
+  const memoCount = document.getElementById('memoCount');
+  const memoTagChips = document.querySelectorAll('.memo-tag-chip');
+  const selectedTags = new Set();
+
+  function escHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function formatNow() {
+    const d = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+  function renderMemos() {
+    const memos = allMemos[currentContactId] || [];
+    memoCount.textContent = `${memos.length} 件`;
+    memoList.innerHTML = '';
+    if (memos.length === 0) {
+      memoList.innerHTML = '<div class="memo-empty"><i class="far fa-note-sticky"></i>まだメモはありません<br>気づいたことを書き留めましょう</div>';
+      return;
+    }
+    memos.forEach(m => {
+      const card = document.createElement('div');
+      card.className = 'memo-card';
+      const tagsHtml = (m.tags && m.tags.length)
+        ? `<div class="memo-tags">${m.tags.map(t => `<span class="memo-tag">#${escHtml(t)}</span>`).join('')}</div>`
+        : '';
+      card.innerHTML = `
+        <div class="memo-card-head">
+          <div class="memo-date"><i class="far fa-clock"></i> ${escHtml(m.date)}</div>
+          <div class="memo-actions">
+            <button class="memo-action delete" data-delete="${escHtml(m.id)}" aria-label="削除"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+        <div class="memo-text">${escHtml(m.text)}</div>
+        ${tagsHtml}
+      `;
+      memoList.appendChild(card);
+    });
+    memoList.querySelectorAll('[data-delete]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.delete;
+        allMemos[currentContactId] = (allMemos[currentContactId] || []).filter(m => m.id !== id);
+        persistMemos();
+        renderMemos();
+        showGlobalToast('メモを削除しました', 'trash');
+      });
+    });
+  }
+  function setupMemos() {
+    memoInput.value = '';
+    selectedTags.clear();
+    memoTagChips.forEach(c => c.classList.remove('selected'));
+    memoSaveBtn.disabled = true;
+    renderMemos();
+  }
+  memoInput.addEventListener('input', () => {
+    memoSaveBtn.disabled = memoInput.value.trim().length === 0;
+  });
+  memoTagChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      const tag = chip.dataset.tag;
+      if (selectedTags.has(tag)) {
+        selectedTags.delete(tag);
+        chip.classList.remove('selected');
+      } else {
+        selectedTags.add(tag);
+        chip.classList.add('selected');
+      }
+    });
+  });
+  memoSaveBtn.addEventListener('click', () => {
+    const text = memoInput.value.trim();
+    if (!text) return;
+    const newMemo = {
+      id: 'm' + Date.now(),
+      text,
+      tags: [...selectedTags],
+      date: formatNow(),
+    };
+    if (!allMemos[currentContactId]) allMemos[currentContactId] = [];
+    allMemos[currentContactId].unshift(newMemo);
+    persistMemos();
+    setupMemos();
+    showGlobalToast('メモを保存しました');
+  });
+
+  // ===== Lock screen / authentication =====
+  const faceMode = document.getElementById('lockFaceMode');
+  const pinMode = document.getElementById('lockPinMode');
+  const faceidTrigger = document.getElementById('faceidTrigger');
+  const faceidBtn = document.getElementById('faceidBtn');
+  const faceidCircle = document.getElementById('faceidCircle');
+  const lockFaceTitle = document.getElementById('lockFaceTitle');
+  const lockFaceSub = document.getElementById('lockFaceSub');
+  const pinDots = document.getElementById('pinDots');
+  const lockPinSub = document.getElementById('lockPinSub');
+  let authBusy = false;
+
+  function switchAuthMode(toPin) {
+    faceMode.style.display = toPin ? 'none' : 'flex';
+    pinMode.style.display = toPin ? 'flex' : 'none';
+    resetPin();
+  }
+  document.getElementById('switchToPinBtn').addEventListener('click', () => switchAuthMode(true));
+  document.getElementById('switchToFaceBtn').addEventListener('click', () => switchAuthMode(false));
+
+  function startFaceAuth() {
+    if (authBusy) return;
+    authBusy = true;
+    faceidCircle.classList.add('scanning');
+    lockFaceTitle.textContent = '認証中…';
+    lockFaceSub.textContent = '顔を画面に向けてください';
+
+    setTimeout(() => {
+      faceidCircle.classList.remove('scanning');
+      faceidCircle.classList.add('success');
+      lockFaceTitle.textContent = '認証成功';
+      lockFaceSub.textContent = 'おかえりなさい';
+
+      setTimeout(() => {
+        goTo(0, { tab: true });
+        // Reset for next time
+        setTimeout(() => {
+          faceidCircle.classList.remove('success');
+          lockFaceTitle.textContent = 'Face ID で認証';
+          lockFaceSub.textContent = '情報を守るため、認証してロックを解除してください';
+          authBusy = false;
+        }, 600);
+      }, 700);
+    }, 1400);
+  }
+  faceidTrigger.addEventListener('click', startFaceAuth);
+  faceidBtn.addEventListener('click', startFaceAuth);
+
+  // PIN entry
+  let pin = '';
+  const pinDotEls = pinDots.querySelectorAll('.pin-dot');
+  function updatePinDots() {
+    pinDotEls.forEach((d, i) => d.classList.toggle('filled', i < pin.length));
+  }
+  function resetPin() {
+    pin = '';
+    updatePinDots();
+    lockPinSub.textContent = '6 桁のパスコードを入力してください';
+    pinDots.classList.remove('error');
+  }
+  document.querySelectorAll('.pin-key[data-digit]').forEach(key => {
+    key.addEventListener('click', () => {
+      if (authBusy || pin.length >= 6) return;
+      pin += key.dataset.digit;
+      updatePinDots();
+      if (pin.length === 6) {
+        authBusy = true;
+        lockPinSub.textContent = '認証中…';
+        setTimeout(() => {
+          lockPinSub.innerHTML = '<i class="fas fa-check-circle" style="color:var(--success);margin-right:4px;"></i> 認証成功';
+          setTimeout(() => {
+            goTo(0, { tab: true });
+            setTimeout(() => {
+              resetPin();
+              authBusy = false;
+            }, 600);
+          }, 500);
+        }, 800);
+      }
+    });
+  });
+  document.getElementById('pinDeleteBtn').addEventListener('click', () => {
+    if (authBusy) return;
+    pin = pin.slice(0, -1);
+    updatePinDots();
+  });
+
+  // Screen 1: shutter
+  const shutter = document.getElementById('shutterBtn');
+  const flash = document.getElementById('cameraFlash');
+  const loading = document.getElementById('cameraLoading');
+
+  shutter.addEventListener('click', () => {
+    flash.classList.add('show');
+    setTimeout(() => flash.classList.remove('show'), 400);
+
+    setTimeout(() => {
+      loading.classList.add('show');
+    }, 300);
+
+    setTimeout(() => {
+      loading.classList.remove('show');
+      goTo(2);
+    }, 1800);
+  });
+
+  // Screen 2: progress animation
+  let progressTimer = null;
+  function startExtraction() {
+    const fill = document.getElementById('progressFill');
+    const pct = document.getElementById('progressPercent');
+    const stage = document.getElementById('progressStage');
+    const label = document.getElementById('progressLabel');
+    const nextBtn = document.getElementById('nextBtn2');
+
+    fill.style.width = '0%';
+    pct.textContent = '0%';
+    nextBtn.classList.remove('show');
+    label.textContent = '会社情報を取得中…';
+
+    const stages = [
+      { at: 0, text: 'Webサイトを解析中…' },
+      { at: 25, text: 'プレスリリースを収集中…' },
+      { at: 55, text: 'IR情報・採用情報を解析中…' },
+      { at: 80, text: 'AIが要約を生成中…' },
+    ];
+
+    let p = 0;
+    if (progressTimer) clearInterval(progressTimer);
+    progressTimer = setInterval(() => {
+      p += 1.5;
+      if (p >= 100) {
+        p = 100;
+        clearInterval(progressTimer);
+        label.textContent = '取得完了';
+        stage.innerHTML = '<i class="fas fa-check-circle" style="color:var(--success);margin-right:4px;"></i> 12件のソースから情報を取得しました';
+        setTimeout(() => nextBtn.classList.add('show'), 200);
+      }
+      fill.style.width = p + '%';
+      pct.textContent = Math.floor(p) + '%';
+
+      for (let i = stages.length - 1; i >= 0; i--) {
+        if (p >= stages[i].at && p < 100) {
+          stage.textContent = stages[i].text;
+          break;
+        }
+      }
+    }, 30);
+  }
+
+  document.getElementById('nextBtn2').addEventListener('click', () => goTo(3, { contactId: '1' }));
+  document.getElementById('nextBtn3').addEventListener('click', () => goTo(4));
+
+  // Screen 4: action buttons + toast
+  const toast = document.getElementById('toast');
+  const toastText = document.getElementById('toastText');
+  function showToast(msg) {
+    toastText.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1800);
+  }
+  function flashButton(btn) {
+    btn.classList.add('flash');
+    setTimeout(() => btn.classList.remove('flash'), 600);
+  }
+
+  document.getElementById('memoBtn').addEventListener('click', (e) => {
+    flashButton(e.currentTarget);
+    showToast('メモを追加しました');
+  });
+  document.getElementById('notifyBtn').addEventListener('click', (e) => {
+    flashButton(e.currentTarget);
+    showToast('商談10分前に通知します');
+  });
+</script>
+</body>
+</html>
