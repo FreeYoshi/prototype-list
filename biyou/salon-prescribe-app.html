@@ -97,11 +97,11 @@ tailwind.config = { theme: { extend: {
       </div>
 
       <!-- prescription summary -->
-      <p class="text-[11px] tracking-widest text-umber uppercase mt-7 mb-2">あなたの処方箋</p>
+      <p class="text-[11px] tracking-widest text-umber uppercase mt-7 mb-2">あなたのヘアケアプラン</p>
       <button onclick="go('rx')" class="press w-full rounded-3xl bg-white border border-sand p-5 shadow-sm text-left flex items-center gap-4">
-        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-sand to-taupe/50 flex items-center justify-center font-serif text-ink text-xs shrink-0">RX</div>
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-sand to-taupe/50 flex items-center justify-center font-serif text-ink text-[10px] tracking-wider shrink-0">CARE</div>
         <div class="flex-1">
-          <p class="font-medium text-[15px]">高保水ケア処方箋</p>
+          <p class="font-medium text-[15px]">高保水ケアプラン</p>
           <p class="text-xs text-umber mt-1">髪質スコア 38 ・ おすすめ2品</p>
         </div>
         <span class="text-umber">›</span>
@@ -155,13 +155,13 @@ tailwind.config = { theme: { extend: {
   <!-- ============ PRESCRIPTION TAB (entry) ============ -->
   <section id="rx" class="tab">
     <header class="px-6 pt-9 pb-4 border-b border-sand">
-      <p class="font-serif text-taupe tracking-[.3em] text-[11px] uppercase">Prescription</p>
-      <h1 class="text-lg font-medium mt-1">ヘアケア処方箋</h1>
+      <p class="font-serif text-taupe tracking-[.3em] text-[11px] uppercase">Care Plan</p>
+      <h1 class="text-lg font-medium mt-1">ヘアケアプラン</h1>
     </header>
     <div class="scroll px-6 py-6 space-y-4">
       <button onclick="openRx('rxResult')" class="press w-full rounded-3xl bg-white border border-sand p-5 shadow-sm text-left flex items-center gap-4">
-        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-sand to-taupe/50 flex items-center justify-center font-serif text-xs shrink-0">RX</div>
-        <div class="flex-1"><p class="font-medium">最新の処方箋を見る</p><p class="text-xs text-umber mt-1">2025.06.18 発行</p></div>
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-sand to-taupe/50 flex items-center justify-center font-serif text-[10px] tracking-wider shrink-0">CARE</div>
+        <div class="flex-1"><p class="font-medium">最新のヘアケアプランを見る</p><p class="text-xs text-umber mt-1">2025.06.18 作成</p></div>
         <span class="text-umber">›</span>
       </button>
       <button onclick="openRx('rxInput')" class="press w-full rounded-3xl border border-dashed border-taupe p-5 text-left flex items-center gap-4">
@@ -232,7 +232,7 @@ tailwind.config = { theme: { extend: {
     </button>
     <button data-tab="rx" onclick="go('rx')" class="nav-btn flex-1 flex flex-col items-center justify-center gap-1 text-umber/50">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h9l7 7v9a0 0 0 0 1 0 0H4z"/><path d="M13 4v7h7"/></svg>
-      <span class="text-[10px]">処方箋</span>
+      <span class="text-[10px]">ケアプラン</span>
     </button>
     <button data-tab="member" onclick="go('member')" class="nav-btn flex-1 flex flex-col items-center justify-center gap-1 text-umber/50">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg>
@@ -267,7 +267,7 @@ tailwind.config = { theme: { extend: {
           <button class="chip sel border border-taupe rounded-2xl py-3 text-sm press">しっとり・まとまる</button></div></div>
     </div>
     <footer class="px-6 pb-8 pt-4 bg-cream border-t border-sand">
-      <button onclick="issue()" class="press w-full bg-ink text-cream rounded-full py-4 font-medium tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-ink/20">処方箋を発行する
+      <button onclick="issue()" class="press w-full bg-ink text-cream rounded-full py-4 font-medium tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-ink/20">ヘアケアプランを作成する
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
     </footer>
   </section>
@@ -285,7 +285,7 @@ tailwind.config = { theme: { extend: {
   <section id="rxResult" class="rx-screen">
     <header class="px-6 pt-9 pb-4 border-b border-sand bg-cream flex items-center gap-3">
       <button onclick="closeRx()" class="press text-xl text-umber">‹</button>
-      <div><p class="font-serif text-taupe tracking-[.3em] text-[11px] uppercase">Prescription</p><h1 class="text-base font-medium"><span id="name2">山田 花子</span> 様の処方箋</h1></div>
+      <div><p class="font-serif text-taupe tracking-[.3em] text-[11px] uppercase">Care Plan</p><h1 class="text-base font-medium"><span id="name2">山田 花子</span> 様のヘアケアプラン</h1></div>
     </header>
     <div class="scroll px-6 py-6 space-y-6">
       <!-- score + radar -->
