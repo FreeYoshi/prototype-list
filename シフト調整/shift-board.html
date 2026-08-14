@@ -1,0 +1,1063 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>シフトばん - MACHIKADO COFFEE</title>
+<style>
+:root{
+  --chrome:#232B3A;
+  --chrome-2:#333D50;
+  --ink:#1C222B;
+  --bg:#E6E9EC;
+  --board:#FAFBFC;
+  --accent:#0E9AAE;
+  --accent-d:#0A7A8A;
+  --m-early:#E8734A;
+  --m-mid:#3FA7D6;
+  --m-late:#6B5B95;
+  --warn:#D9762B;
+  --alert:#C33C3C;
+  --ok:#3E8B62;
+  --muted:#6E7783;
+  --r-hall:#4A6E8A;
+  --r-kitchen:#7A5C46;
+  --r-staff:#3E5C52;
+  --sat:#2F6FB0;
+  --sun:#C33C3C;
+  --ui:"Hiragino Sans","Yu Gothic UI","Yu Gothic","Noto Sans JP","Meiryo",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Hiragino Sans","Yu Gothic",monospace;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+
+html,body{height:100%}
+body{
+  font-family:var(--ui);
+  color:var(--ink);
+  background:radial-gradient(120% 90% at 50% 0%,#2A3444 0%,#151A22 55%,#0B0E13 100%);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+/* ---------- 端末フレーム ---------- */
+.stage{width:390px;height:844px;transform-origin:50% 50%}
+.phone{
+  position:relative;width:390px;height:844px;
+  background:#0B0E13;border-radius:54px;
+  padding:4px;
+  box-shadow:
+    0 0 0 2px #3A4252,
+    0 0 0 6px #171C25,
+    0 40px 90px rgba(0,0,0,.66),
+    0 8px 24px rgba(0,0,0,.5);
+}
+.phone::after{
+  content:"";position:absolute;left:0;right:0;top:0;bottom:0;
+  border-radius:54px;pointer-events:none;
+  background:linear-gradient(150deg,rgba(255,255,255,.10) 0%,rgba(255,255,255,0) 34%);
+}
+.screen{
+  position:relative;width:100%;height:100%;
+  background:var(--bg);border-radius:50px;overflow:hidden;
+  display:flex;flex-direction:column;
+}
+
+/* ---------- ステータスバー / ダイナミックアイランド ---------- */
+.statusbar{
+  position:relative;flex:0 0 auto;height:48px;
+  background:var(--chrome);color:#fff;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 24px 0;font-size:14px;font-weight:700;letter-spacing:.02em;
+}
+.statusbar .clock{font-family:var(--mono);font-size:15px}
+.statusbar .right{display:flex;align-items:center;gap:5px}
+.island{
+  position:absolute;top:8px;left:50%;transform:translateX(-50%);
+  width:118px;height:31px;background:#000;border-radius:18px;z-index:3;
+}
+.sig{display:block}
+.batt{
+  width:24px;height:12px;border:1.4px solid rgba(255,255,255,.75);
+  border-radius:3px;position:relative;
+}
+.batt::after{content:"";position:absolute;right:-3.5px;top:3px;width:2px;height:6px;background:rgba(255,255,255,.6);border-radius:0 1px 1px 0}
+.batt i{position:absolute;left:1.5px;top:1.5px;bottom:1.5px;width:66%;background:#fff;border-radius:1px;display:block}
+
+/* ---------- アプリヘッダー ---------- */
+.appbar{
+  flex:0 0 auto;background:var(--chrome);
+  border-bottom:3px solid var(--accent);
+  padding:6px 16px 12px;
+  display:flex;align-items:center;gap:10px;
+}
+.logo{
+  width:34px;height:34px;border-radius:9px;background:var(--accent);
+  display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35);
+}
+.appbar .title{flex:1 1 auto;min-width:0}
+.appbar .title b{display:block;color:#fff;font-size:19.5px;font-weight:800;letter-spacing:.03em}
+.appbar .title span{display:block;color:rgba(255,255,255,.5);font-size:10px;font-weight:700;letter-spacing:.13em;font-family:var(--mono);margin-top:2px}
+.who{
+  flex:0 0 auto;background:var(--chrome-2);color:#E8ECF2;
+  border-radius:8px;padding:7px 11px;font-size:12.5px;font-weight:700;
+  border:1px solid rgba(255,255,255,.10);
+}
+
+/* ---------- 集計カード ---------- */
+.stats{
+  flex:0 0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:7px;
+  padding:10px 12px 9px;background:var(--chrome);
+}
+.stat{
+  background:#2C3648;border:1px solid rgba(255,255,255,.09);
+  border-radius:9px;padding:7px 7px 8px;min-width:0;
+}
+.stat .k{font-size:11px;color:rgba(255,255,255,.55);font-weight:700;letter-spacing:.01em;white-space:nowrap}
+.stat .v{font-size:17.5px;color:#fff;font-weight:800;font-family:var(--mono);margin-top:2px;letter-spacing:-.02em;white-space:nowrap}
+.stat .v small{font-size:11px;font-weight:700;opacity:.62;margin-left:1px;font-family:var(--ui)}
+.stat.hot{background:#4A2A2C;border-color:rgba(224,120,120,.42)}
+.stat.hot .k{color:#F0B6B6}
+.stat.hot .v{color:#FF9E9E}
+
+/* ---------- コンテンツ ---------- */
+.content{
+  flex:1 1 auto;overflow-y:auto;overflow-x:hidden;
+  background:var(--bg);padding:12px 12px 132px;
+  -webkit-overflow-scrolling:touch;
+}
+.content::-webkit-scrollbar{width:0}
+
+.hint{
+  background:#fff;border:1px solid #D6DBE1;border-left:4px solid var(--accent);
+  border-radius:8px;padding:12px 13px;margin-bottom:11px;
+  font-size:13px;line-height:1.74;color:#3C4553;
+}
+.hint b{display:block;color:var(--ink);font-size:14px;margin-bottom:4px;font-weight:800}
+
+/* ---------- 日別カード ---------- */
+.day{
+  background:var(--board);border:1px solid #D8DDE3;border-radius:10px;
+  margin-bottom:9px;overflow:hidden;
+  box-shadow:0 1px 2px rgba(28,34,43,.05);
+}
+.day.we{background:#F3F1EC;border-color:#DFDAD1}
+.dhead{
+  display:flex;align-items:baseline;gap:7px;
+  padding:8px 11px 7px;border-bottom:1px solid #E4E8ED;
+}
+.day.we .dhead{border-bottom-color:#E3DED5}
+.dhead .date{font-family:var(--mono);font-size:17.5px;font-weight:800;letter-spacing:-.02em}
+.dhead .dow{font-size:13.5px;font-weight:800;color:var(--muted)}
+.dhead .dow.sat{color:var(--sat)}
+.dhead .dow.sun{color:var(--sun)}
+.dhead .fill{
+  margin-left:auto;font-family:var(--mono);font-size:13px;font-weight:800;
+  color:var(--ok);
+}
+.dhead .fill.short{color:var(--alert)}
+.dhead .fill.zero{color:var(--muted)}
+
+.rows{padding:6px 9px 8px}
+.row{display:flex;align-items:flex-start;gap:8px;padding:4px 0}
+.row+.row{border-top:1px dashed #E6EAEF}
+.day.we .row+.row{border-top-color:#E5E0D7}
+.ttag{
+  flex:0 0 auto;width:86px;border-left:4px solid var(--m-early);
+  padding:2px 0 2px 8px;
+}
+.ttag.mid{border-left-color:var(--m-mid)}
+.ttag.late{border-left-color:var(--m-late)}
+.ttag b{display:block;font-size:13px;font-weight:800;color:#39424F}
+.ttag span{display:block;font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;letter-spacing:-.03em}
+
+.mags{flex:1 1 auto;display:flex;flex-wrap:wrap;gap:6px;min-height:30px;align-content:center;padding:2px 0}
+
+/* ---------- マグネット（このアプリの顔） ---------- */
+.mag{
+  position:relative;display:inline-flex;align-items:center;gap:5px;
+  border-radius:3px;padding:6px 8px 6px 9px;
+  background:var(--r-hall);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.38),
+    inset 0 -1px 0 rgba(0,0,0,.18),
+    0 2px 3px rgba(24,29,37,.32);
+  overflow:hidden;
+  transform-origin:50% 50%;
+}
+.mag.kitchen{background:var(--r-kitchen)}
+.mag.staff{background:var(--r-staff)}
+.mag::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:38%;
+  background:linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.05));
+  pointer-events:none;
+}
+.mag i{
+  position:relative;font-style:normal;color:#fff;font-size:13.5px;font-weight:800;
+  letter-spacing:.02em;text-shadow:0 1px 1px rgba(0,0,0,.28);
+}
+.mag em{
+  position:relative;font-style:normal;font-size:9.5px;font-weight:700;
+  color:rgba(255,255,255,.58);letter-spacing:.04em;
+}
+
+.snap{animation:snap .34s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes snap{
+  0%{transform:scale(1.55) rotate(-7deg);opacity:0}
+  45%{opacity:1}
+  72%{transform:scale(.94) rotate(1deg);opacity:1}
+  100%{transform:scale(1) rotate(0deg);opacity:1}
+}
+
+.pend{
+  display:inline-flex;align-items:center;border-radius:3px;
+  padding:6px 10px;border:1.5px dashed var(--alert);
+  color:var(--alert);font-size:12.5px;font-weight:800;letter-spacing:.02em;
+  background:rgba(195,60,60,.045);
+}
+
+/* ---------- FAB ---------- */
+.fab{
+  position:absolute;right:16px;bottom:82px;z-index:6;
+  width:68px;height:68px;border-radius:50%;border:0;cursor:pointer;
+  background:linear-gradient(180deg,#12ADC2,var(--accent-d));
+  color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  box-shadow:0 6px 16px rgba(10,122,138,.5),inset 0 1px 0 rgba(255,255,255,.4);
+  transition:bottom .3s ease,transform .12s ease;
+  font-family:var(--ui);
+}
+.fab:active{transform:scale(.94)}
+.fab b{font-size:10.5px;font-weight:800;letter-spacing:.01em}
+.fab.up{bottom:168px}
+.fab.hide{display:none}
+
+/* ---------- 確定バー ---------- */
+.confirmbar{
+  position:absolute;left:0;right:0;bottom:66px;z-index:5;
+  padding:10px 14px 12px;
+  background:linear-gradient(180deg,rgba(230,233,236,0),rgba(230,233,236,.97) 26%);
+  transform:translateY(120%);transition:transform .38s cubic-bezier(.2,1,.3,1);
+}
+.confirmbar.on{transform:translateY(0)}
+.confirmbar button{
+  width:100%;border:0;cursor:pointer;border-radius:10px;padding:15px;
+  background:linear-gradient(180deg,#12ADC2,var(--accent-d));color:#fff;
+  font-family:var(--ui);font-size:16.5px;font-weight:800;letter-spacing:.02em;
+  box-shadow:0 4px 12px rgba(10,122,138,.4),inset 0 1px 0 rgba(255,255,255,.35);
+}
+.confirmbar button:active{transform:translateY(1px)}
+.confirmbar p{text-align:center;font-size:11.5px;color:var(--muted);margin-top:7px;font-weight:700}
+
+/* ---------- タブバー ---------- */
+.tabbar{
+  flex:0 0 auto;height:66px;background:var(--chrome);
+  display:grid;grid-template-columns:repeat(3,1fr);
+  border-top:1px solid rgba(255,255,255,.08);z-index:7;
+}
+.tab{
+  position:relative;background:none;border:0;cursor:pointer;
+  color:rgba(255,255,255,.45);font-family:var(--ui);font-size:12.5px;font-weight:800;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  padding-bottom:8px;
+}
+.tab .tind{
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:44px;height:3px;border-radius:0 0 2px 2px;background:transparent;
+}
+.tab[aria-selected="true"]{color:#fff}
+.tab[aria-selected="true"] .tind{background:var(--accent)}
+.tab .badge{
+  position:absolute;top:9px;right:50%;margin-right:-30px;
+  min-width:18px;height:18px;border-radius:9px;background:var(--accent);
+  color:#fff;font-size:11px;font-weight:800;font-family:var(--mono);
+  display:flex;align-items:center;justify-content:center;padding:0 4px;
+}
+.tab .badge.off{display:none}
+.homebar{
+  position:absolute;left:50%;bottom:7px;transform:translateX(-50%);
+  width:134px;height:5px;border-radius:3px;background:rgba(255,255,255,.32);z-index:8;
+}
+
+/* ---------- オーバーレイ（取り込み） ---------- */
+.ov{
+  position:absolute;inset:0;z-index:20;background:#12161D;
+  display:none;flex-direction:column;
+}
+.ov.on{display:flex}
+.ov .ovhead{
+  padding:62px 20px 12px;border-bottom:1px solid rgba(255,255,255,.08);
+  background:#171C25;
+}
+.ov .ovhead .eyebrow{
+  font-size:10px;font-weight:800;letter-spacing:.15em;color:var(--accent);
+  font-family:var(--mono);margin-bottom:6px;
+}
+.ov .ovhead h2{color:#fff;font-size:17.5px;font-weight:800;letter-spacing:.01em;line-height:1.4}
+.ov .ovhead .prog{
+  margin-top:11px;height:3px;border-radius:2px;background:rgba(255,255,255,.12);overflow:hidden;
+}
+.ov .ovhead .prog i{display:block;height:100%;width:0;background:var(--accent);border-radius:2px;transition:width .45s linear}
+
+.ovbody{flex:1 1 auto;overflow-y:auto;padding:14px 16px 90px;scroll-behavior:smooth}
+.ovbody::-webkit-scrollbar{width:0}
+
+.bub{
+  max-width:88%;margin-bottom:11px;
+  animation:rise .34s ease both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.bub .meta{font-size:11.5px;color:rgba(255,255,255,.5);font-weight:700;margin-bottom:5px;padding-left:2px}
+.bub .meta b{color:rgba(255,255,255,.86);font-size:13.5px;font-weight:800;margin-right:7px}
+.bub .meta span{font-family:var(--mono)}
+.bub .body{
+  background:#DCF0D8;color:#1F2A22;border-radius:2px 14px 14px 14px;
+  padding:10px 12px;font-size:14px;line-height:1.64;font-weight:600;
+  box-shadow:0 1px 2px rgba(0,0,0,.28);
+}
+.bub .read{
+  display:inline-block;margin-top:7px;margin-left:2px;
+  background:rgba(14,154,174,.16);border:1px solid rgba(14,154,174,.5);
+  color:#5FD6E6;border-radius:3px;padding:4px 8px;font-size:11.5px;font-weight:800;letter-spacing:.02em;
+}
+
+.ovcount{
+  position:absolute;right:16px;bottom:22px;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);
+  border-radius:8px;padding:8px 12px;text-align:right;
+}
+.ovcount b{display:block;font-family:var(--mono);font-size:25px;font-weight:800;color:#fff;line-height:1}
+.ovcount span{display:block;font-size:10.5px;color:rgba(255,255,255,.5);font-weight:700;margin-top:4px;letter-spacing:.05em}
+
+/* ---------- トースト ---------- */
+.toast{
+  position:absolute;left:16px;right:16px;bottom:246px;z-index:30;
+  background:#1B2430;color:#fff;border:1px solid rgba(255,255,255,.14);
+  border-left:4px solid var(--accent);
+  border-radius:9px;padding:13px 14px;font-size:13.5px;font-weight:700;line-height:1.56;
+  box-shadow:0 10px 28px rgba(0,0,0,.45);
+  opacity:0;transform:translateY(14px);pointer-events:none;
+  transition:opacity .26s ease,transform .26s ease;
+}
+.toast.on{opacity:1;transform:translateY(0)}
+
+/* ---------- 希望タブ ---------- */
+.req{
+  background:#fff;border:1px solid #D8DDE3;border-left:4px solid var(--accent);
+  border-radius:9px;padding:10px 11px 11px;margin-bottom:9px;
+  box-shadow:0 1px 2px rgba(28,34,43,.05);
+}
+.req .rhead{display:flex;align-items:baseline;gap:6px;margin-bottom:7px}
+.req .rhead b{font-size:15.5px;font-weight:800}
+.req .rhead .role{
+  font-size:10.5px;font-weight:800;color:#fff;border-radius:3px;padding:3px 6px;
+  background:var(--r-hall);
+}
+.req .rhead .role.kitchen{background:var(--r-kitchen)}
+.req .rhead .role.staff{background:var(--r-staff)}
+.req .rhead .at{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--muted);font-weight:700}
+.req .said{
+  background:#DCF0D8;border-radius:2px 13px 13px 13px;padding:10px 12px;
+  font-size:13.5px;line-height:1.68;color:#1F2A22;font-weight:600;
+}
+.req .picked{margin-top:10px;padding-top:10px;border-top:1px dashed #D2D8DF}
+.req .picked .lbl{font-size:10.5px;font-weight:800;color:var(--muted);letter-spacing:.05em;margin-bottom:7px}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{
+  background:rgba(14,154,174,.09);border:1px solid rgba(14,154,174,.42);
+  color:var(--accent-d);border-radius:12px;padding:4px 10px;
+  font-size:11.5px;font-weight:800;letter-spacing:.01em;
+}
+.pill.no{background:rgba(195,60,60,.07);border-color:rgba(195,60,60,.38);color:var(--alert)}
+.waiting{
+  display:inline-flex;align-items:center;border-radius:12px;padding:4px 11px;
+  border:1.5px dashed #BFC6CE;background:#F1F3F5;color:var(--muted);
+  font-size:11.5px;font-weight:800;letter-spacing:.02em;
+}
+
+.note{
+  background:#DFE4E9;border:1px solid #CBD2DA;border-radius:8px;
+  padding:12px 13px;font-size:12.5px;line-height:1.74;color:#4A5462;font-weight:600;
+}
+.note b{display:block;color:var(--ink);font-size:13.5px;font-weight:800;margin-bottom:4px}
+
+/* ---------- 人件費タブ ---------- */
+.big{
+  background:#fff;border:1px solid #D8DDE3;border-radius:10px;padding:14px 13px;margin-bottom:11px;
+  box-shadow:0 1px 2px rgba(28,34,43,.05);
+}
+.big .k{font-size:11.5px;font-weight:800;color:var(--muted);letter-spacing:.03em}
+.big .amount{font-family:var(--mono);font-size:38px;font-weight:800;letter-spacing:-.035em;margin-top:3px;line-height:1.1}
+.big .amount small{font-size:17px;font-weight:800;margin-left:2px}
+.big .sub{font-size:12.5px;color:var(--muted);font-weight:700;margin-top:3px}
+.bar{height:12px;border-radius:6px;background:#E1E6EB;overflow:hidden;margin-top:11px;border:1px solid #D3D9E0}
+.bar i{display:block;height:100%;background:linear-gradient(180deg,#4FA378,var(--ok));border-radius:6px 0 0 6px;transition:width .7s cubic-bezier(.2,1,.3,1)}
+.bar.over i{background:linear-gradient(180deg,#D96E6E,var(--alert))}
+.barfoot{display:flex;justify-content:space-between;gap:6px;margin-top:7px;font-size:11.5px;font-weight:800;color:var(--muted)}
+.barfoot .pc{color:var(--ok)}
+.barfoot .pc.over{color:var(--alert)}
+
+.sect{font-size:12.5px;font-weight:800;color:#49525F;letter-spacing:.05em;margin:16px 2px 9px}
+
+.delta{
+  margin-top:11px;border-radius:7px;padding:8px 10px;
+  background:rgba(62,139,98,.1);border:1px solid rgba(62,139,98,.42);color:#2C6647;
+  font-size:12.5px;font-weight:800;line-height:1.55;
+}
+.delta.up{background:rgba(195,60,60,.08);border-color:rgba(195,60,60,.4);color:var(--alert)}
+
+.warn{
+  background:#fff;border:1px solid #D8DDE3;border-radius:9px;padding:11px 12px;margin-bottom:8px;
+  border-left:4px solid var(--warn);box-shadow:0 1px 2px rgba(28,34,43,.05);
+}
+.warn.red{border-left-color:var(--alert)}
+.warn .wh{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.warn .wh .chip{
+  font-size:10.5px;font-weight:800;letter-spacing:.03em;border-radius:3px;padding:3px 7px;
+  background:rgba(217,118,43,.12);color:#A85717;border:1px solid rgba(217,118,43,.35);
+}
+.warn.red .wh .chip{background:rgba(195,60,60,.1);color:var(--alert);border-color:rgba(195,60,60,.35)}
+.warn .wh b{font-size:14px;font-weight:800}
+.warn p{font-size:13px;line-height:1.76;color:#414A57;font-weight:600}
+
+.hrow{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.hrow .n{width:44px;font-size:13px;font-weight:800;flex:0 0 auto}
+.hrow .t{position:relative;flex:1 1 auto;height:18px;background:#E1E6EB;border-radius:3px;overflow:hidden;border:1px solid #D3D9E0}
+.hrow .t i{display:block;height:100%;background:var(--r-hall);border-radius:2px 0 0 2px}
+.hrow .t b.mark{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:#39424F;opacity:.55;border-radius:1px}
+.hrow .t i.kitchen{background:var(--r-kitchen)}
+.hrow .t i.staff{background:var(--r-staff)}
+.hrow .h{width:64px;text-align:right;font-family:var(--mono);font-size:12.5px;font-weight:800;color:#49525F;flex:0 0 auto}
+
+.empty{
+  background:#fff;border:1px dashed #C6CDD5;border-radius:9px;padding:26px 14px;
+  text-align:center;font-size:13px;line-height:1.74;color:var(--muted);font-weight:700;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms !important;
+    animation-delay:0ms !important;
+    transition-duration:.001ms !important;
+    scroll-behavior:auto !important;
+  }
+}
+</style>
+
+<div class="stage" id="stage">
+  <div class="phone">
+    <div class="screen">
+
+      <div class="island"></div>
+      <div class="statusbar">
+        <span class="clock">21:08</span>
+        <span class="right">
+          <svg class="sig" width="18" height="12" viewBox="0 0 18 12" aria-hidden="true"><rect x="0" y="8" width="3" height="4" rx="1" fill="#fff"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#fff"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#fff"/><rect x="15" y="0" width="3" height="12" rx="1" fill="rgba(255,255,255,.45)"/></svg>
+          <span style="font-size:12px;font-weight:800">5G</span>
+          <span class="batt"><i></i></span>
+        </span>
+      </div>
+
+      <header class="appbar">
+        <span class="logo" aria-hidden="true">
+          <svg width="19" height="19" viewBox="0 0 20 20"><rect x="2" y="3.5" width="16" height="14" rx="2.5" fill="none" stroke="#fff" stroke-width="1.8"/><path d="M2 8h16" stroke="#fff" stroke-width="1.8"/><path d="M6.5 2v3M13.5 2v3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><rect x="5" y="10.5" width="3.2" height="3" rx=".8" fill="#fff"/><rect x="11" y="10.5" width="3.2" height="3" rx=".8" fill="rgba(255,255,255,.55)"/></svg>
+        </span>
+        <span class="title">
+          <b>シフトばん</b>
+          <span>MACHIKADO COFFEE</span>
+        </span>
+        <span class="who">店長</span>
+      </header>
+
+      <div class="stats" id="stats"></div>
+
+      <main class="content" id="content"></main>
+
+      <div class="confirmbar" id="confirmbar">
+        <button type="button" id="confirmBtn">全員に確定を配信する</button>
+        <p>LINEのグループと個別トークの両方に届きます</p>
+      </div>
+
+      <button class="fab" id="fab" type="button" aria-label="LINEの希望を取り込む">
+        <svg width="23" height="23" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.6c-4.7 0-8.5 3-8.5 6.7 0 2.1 1.2 4 3.2 5.2l-.7 3.3 3.5-1.9c.8.2 1.6.3 2.5.3 4.7 0 8.5-3 8.5-6.9S16.7 3.6 12 3.6z" fill="none" stroke="#fff" stroke-width="1.9" stroke-linejoin="round"/><circle cx="8.8" cy="10.3" r="1.05" fill="#fff"/><circle cx="12" cy="10.3" r="1.05" fill="#fff"/><circle cx="15.2" cy="10.3" r="1.05" fill="#fff"/></svg>
+        <b>取り込む</b>
+      </button>
+
+      <nav class="tabbar" role="tablist">
+        <button class="tab" type="button" role="tab" data-tab="board" aria-selected="true">
+          <span class="tind"></span>
+          <svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M3.5 9.5h17" stroke="currentColor" stroke-width="1.9"/><rect x="6.5" y="12" width="4" height="3" rx=".8" fill="currentColor"/><rect x="13.5" y="12" width="4" height="3" rx=".8" fill="currentColor" opacity=".5"/></svg>
+          シフト表
+        </button>
+        <button class="tab" type="button" role="tab" data-tab="req" aria-selected="false">
+          <span class="tind"></span>
+          <span class="badge off" id="reqBadge">0</span>
+          <svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c-4.5 0-8 2.8-8 6.4 0 2 1.1 3.8 3 5l-.7 3.2 3.4-1.8c.7.1 1.5.2 2.3.2 4.5 0 8-2.8 8-6.6S16.5 4 12 4z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg>
+          希望
+        </button>
+        <button class="tab" type="button" role="tab" data-tab="cost" aria-selected="false">
+          <span class="tind"></span>
+          <svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18.5V11M9.3 18.5V6.5M14.7 18.5V13.5M20 18.5V8.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+          人件費
+        </button>
+      </nav>
+
+      <div class="homebar"></div>
+
+      <div class="ov" id="ov">
+        <div class="ovhead">
+          <div class="eyebrow">MACHIKADO COFFEE / STAFF</div>
+          <h2 id="ovTitle">グループのやり取りを読み込んでいます</h2>
+          <div class="prog"><i id="ovProg"></i></div>
+        </div>
+        <div class="ovbody" id="ovBody"></div>
+        <div class="ovcount"><b id="ovCount">0名分</b><span>読み取り済み</span></div>
+      </div>
+
+      <div class="toast" id="toast"></div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* =========================================================
+   データ
+   ========================================================= */
+
+var STAFF = {
+  tanaka:    {name:"田中", role:"ホール",   cls:"hall",    tag:"ホル", wage:1120},
+  sato:      {name:"佐藤", role:"ホール",   cls:"hall",    tag:"ホル", wage:1150},
+  suzuki:    {name:"鈴木", role:"キッチン", cls:"kitchen", tag:"厨房", wage:1250},
+  takahashi: {name:"高橋", role:"ホール",   cls:"hall",    tag:"ホル", wage:1080},
+  ito:       {name:"伊藤", role:"キッチン", cls:"kitchen", tag:"厨房", wage:1200},
+  watanabe:  {name:"渡辺", role:"社員",     cls:"staff",   tag:"社員", wage:1600},
+  nakamura:  {name:"中村", role:"ホール",   cls:"hall",    tag:"ホル", wage:1100}
+};
+
+var SLOTS = [
+  {key:"early", label:"早番", time:"7:00-13:00",  hours:6, cls:""},
+  {key:"mid",   label:"中番", time:"11:00-17:00", hours:6, cls:"mid"},
+  {key:"late",  label:"遅番", time:"16:00-22:00", hours:6, cls:"late"}
+];
+
+/* LINEの文面（話し言葉のまま。整えない） */
+var MSGS = [
+  {id:"tanaka",    at:"20:14", text:"来週なんですけど、火曜と木曜以外なら大丈夫です！あと土曜は夕方から入れます",
+   picked:[{t:"火・木 NG",no:true},{t:"土 夕方から"},{t:"他は終日可"}]},
+  {id:"sato",      at:"20:31", text:"すみません、19日は病院なので休みでお願いします。他はできれば早番希望です",
+   picked:[{t:"8/19 休み",no:true},{t:"早番を希望"},{t:"日数の指定なし"}]},
+  {id:"suzuki",    at:"20:48", text:"週3くらいで、できれば遅番多めがいいです",
+   picked:[{t:"週3日"},{t:"遅番を優先"}]},
+  {id:"takahashi", at:"21:02", text:"テストなので前半きついです。後半は毎日いけます",
+   picked:[{t:"8/18-8/20 NG",no:true},{t:"8/21以降 終日可"}]},
+  {id:"ito",       at:"21:05", text:"土日はフルで入れます！平日は無理です",
+   picked:[{t:"土日 終日可"},{t:"平日 NG",no:true}]},
+  {id:"watanabe",  at:"21:06", text:"いつも通りで大丈夫です",
+   picked:[{t:"前回と同じ条件を適用"},{t:"週5日"}]},
+  {id:"nakamura",  at:"21:07", text:"20日だけ早退したいです。あとは何時でも",
+   picked:[{t:"8/20 17時まで"},{t:"他は終日可"}]}
+];
+
+/* 必要人数
+   平日 : 早番2 / 中番1 / 遅番1
+   土日 : 早番2 / 中番1 / 遅番2
+   組み上がりは上のLINEの条件と1つも矛盾しないように配置している。 */
+var WD = {early:2, mid:1, late:1};
+var WE = {early:2, mid:1, late:2};
+
+var DAYS = [
+  {date:"8/18", dow:"月", we:false, need:WD,
+   plan:{early:["watanabe","sato"],    mid:["nakamura"],  late:["tanaka"]}},
+  {date:"8/19", dow:"火", we:false, need:WD,
+   plan:{early:["watanabe","nakamura"],mid:[],            late:["suzuki"]}},
+  {date:"8/20", dow:"水", we:false, need:WD,
+   plan:{early:["watanabe","sato"],    mid:["nakamura"],  late:["tanaka"]}},
+  {date:"8/21", dow:"木", we:false, need:WD,
+   plan:{early:["watanabe","sato"],    mid:["nakamura"],  late:["takahashi"]}},
+  {date:"8/22", dow:"金", we:false, need:WD,
+   plan:{early:["watanabe","takahashi"],mid:["nakamura"], late:["tanaka"]}},
+  {date:"8/23", dow:"土", we:true,  need:WE,
+   plan:{early:["sato","ito"],         mid:["takahashi"], late:["tanaka","suzuki"]}},
+  {date:"8/24", dow:"日", we:true,  need:WE,
+   plan:{early:["sato","takahashi"],   mid:["tanaka"],    late:["suzuki","ito"]}}
+];
+
+var BUDGET = 240000;      /* 1週間の人件費の予算（円） */
+var CHECKS = 3;           /* 「組んだ時点で気づいたこと」の件数 */
+
+/* 先週の実績（比較用）。のべ時間は来週と同じ174時間だが、
+   社員の渡辺さんが42時間ぶん埋めていたため金額は高い。 */
+var LAST_WEEK = {
+  span:"8/11 - 8/17",
+  hours:{tanaka:30, sato:24, suzuki:18, takahashi:12, ito:12, watanabe:42, nakamura:36}
+};
+
+/* =========================================================
+   計算（数値は必ずここから出す。直書きしない）
+   ========================================================= */
+
+function planned(){
+  var per = {}, total = {hours:0, cost:0, slots:0};
+  Object.keys(STAFF).forEach(function(id){ per[id] = {hours:0, cost:0, days:0}; });
+  DAYS.forEach(function(d){
+    SLOTS.forEach(function(s){
+      (d.plan[s.key] || []).forEach(function(id){
+        per[id].hours += s.hours;
+        per[id].cost  += s.hours * STAFF[id].wage;
+        per[id].days  += 1;
+        total.hours   += s.hours;
+        total.cost    += s.hours * STAFF[id].wage;
+        total.slots   += 1;
+      });
+    });
+  });
+  return {per:per, total:total};
+}
+
+function dayFill(d){
+  var got = 0, need = 0;
+  SLOTS.forEach(function(s){
+    got  += (d.plan[s.key] || []).length;
+    need += d.need[s.key];
+  });
+  return {got:got, need:need};
+}
+
+function shortages(){
+  var out = [];
+  DAYS.forEach(function(d){
+    SLOTS.forEach(function(s){
+      var miss = d.need[s.key] - (d.plan[s.key] || []).length;
+      if(miss > 0) out.push({date:d.date, dow:d.dow, slot:s.label, miss:miss});
+    });
+  });
+  return out;
+}
+
+function lastWeek(){
+  var cost = 0, hours = 0;
+  Object.keys(LAST_WEEK.hours).forEach(function(id){
+    hours += LAST_WEEK.hours[id];
+    cost  += LAST_WEEK.hours[id] * STAFF[id].wage;
+  });
+  return {cost:cost, hours:hours};
+}
+
+var CALC = planned();
+var LAST = lastWeek();
+
+/* =========================================================
+   ユーティリティ
+   ========================================================= */
+
+function esc(s){
+  return String(s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+function yen(n){ return Math.round(n).toLocaleString("ja-JP"); }
+function $(id){ return document.getElementById(id); }
+
+/* =========================================================
+   状態
+   ========================================================= */
+
+var state = {tab:"board", filled:false, importing:false, imported:false};
+var timers = [];
+function later(ms, fn){ timers.push(setTimeout(fn, ms)); }
+
+/* =========================================================
+   端末の自動スケール
+   ========================================================= */
+
+function fit(){
+  var s = Math.min(1, (window.innerHeight - 36) / 844, (window.innerWidth - 36) / 390);
+  $("stage").style.transform = "scale(" + s.toFixed(4) + ")";
+}
+window.addEventListener("resize", fit);
+
+/* =========================================================
+   描画：集計カード
+   ========================================================= */
+
+function renderStats(){
+  var f = state.filled;
+  var checks = f ? CHECKS : 0;
+  var h = "";
+  h += '<div class="stat"><div class="k">読み取り済み</div><div class="v">'
+     + (f ? "7" : "0") + '<small> / 7名</small></div></div>';
+  h += '<div class="stat"><div class="k">来週の人件費</div><div class="v">'
+     + (f ? esc(yen(CALC.total.cost)) + '<small>円</small>' : '&#8212;') + '</div></div>';
+  h += '<div class="stat' + (checks > 0 ? " hot" : "") + '"><div class="k">要チェック</div><div class="v">'
+     + checks + '<small> 件</small></div></div>';
+  $("stats").innerHTML = h;
+
+  /* LINEには最初から7件届いている。バッジは届いた件数を表す */
+  var b = $("reqBadge");
+  b.textContent = String(MSGS.length);
+  b.className = "badge";
+}
+
+/* =========================================================
+   描画：シフト表
+   ========================================================= */
+
+function renderBoard(){
+  var h = "";
+
+  if(!state.filled){
+    h += '<div class="hint"><b>スタッフはいつも通りLINEで希望を送るだけ。</b>'
+       + '取り込むボタンを押すと、文面を読み取ってシフト表を組み立てます。</div>';
+  }else{
+    var sh = shortages();
+    if(sh.length){
+      var s0 = sh[0];
+      h += '<div class="hint" style="border-left-color:var(--alert)"><b>'
+         + esc(s0.date) + '(' + esc(s0.dow) + ')の' + esc(s0.slot) + 'だけ、まだ ' + s0.miss + '名 空いています。</b>'
+         + 'この日は4名が休み希望のため、条件に合う人がいませんでした。時間を短くするか、応援を呼ぶかを決めてください。</div>';
+    }
+  }
+
+  var idx = 0;
+  DAYS.forEach(function(d){
+    var f = dayFill(d);
+    var got = state.filled ? f.got : 0;
+    var cls = !state.filled ? "zero" : (got < f.need ? "short" : "");
+    var dowCls = d.dow === "土" ? " sat" : (d.dow === "日" ? " sun" : "");
+
+    h += '<section class="day' + (d.we ? " we" : "") + '">';
+    h += '<div class="dhead"><span class="date">' + esc(d.date) + '</span>'
+       + '<span class="dow' + dowCls + '">' + esc(d.dow) + '</span>'
+       + '<span class="fill ' + cls + '">' + got + ' / ' + f.need + '名</span></div>';
+    h += '<div class="rows">';
+
+    SLOTS.forEach(function(s){
+      h += '<div class="row">';
+      h += '<span class="ttag ' + s.cls + '"><b>' + esc(s.label) + '</b><span>' + esc(s.time) + '</span></span>';
+      h += '<div class="mags">';
+
+      var list = state.filled ? (d.plan[s.key] || []) : [];
+      list.forEach(function(id){
+        var p = STAFF[id];
+        var delay = (idx * 0.045).toFixed(3);
+        idx++;
+        h += '<span class="mag ' + p.cls + (state.importing ? " snap" : "")
+           + '" style="animation-delay:' + delay + 's">'
+           + '<i>' + esc(p.name) + '</i><em>' + esc(p.tag) + '</em></span>';
+      });
+
+      var miss = d.need[s.key] - list.length;
+      if(miss > 0) h += '<span class="pend">' + miss + '名 未定</span>';
+
+      h += '</div></div>';
+    });
+
+    h += '</div></section>';
+  });
+
+  return h;
+}
+
+/* =========================================================
+   描画：希望タブ
+   ========================================================= */
+
+function renderReq(){
+  var h = "";
+
+  if(!state.filled){
+    h += '<div class="hint"><b>LINEには、7名ぶんもう届いています。</b>'
+       + 'まだ読み取っていないので、条件の欄は空のままです。'
+       + '取り込むボタンを押すと、この文面から条件を拾い出します。</div>';
+  }else{
+    h += '<div class="hint"><b>7名ぶん、すべて読み取りました。</b>'
+       + '元の文面はそのまま残してあります。読み取りが違っていたら、'
+       + '条件を押してその場で直せます。</div>';
+  }
+
+  MSGS.forEach(function(m){
+    var p = STAFF[m.id];
+    h += '<div class="req">';
+    h += '<div class="rhead"><b>' + esc(p.name) + '</b>'
+       + '<span class="role ' + p.cls + '">' + esc(p.role) + '</span>'
+       + '<span class="at">' + esc(m.at) + ' 受信</span></div>';
+    h += '<div class="said">' + esc(m.text) + '</div>';
+    h += '<div class="picked"><div class="lbl">読み取った条件</div><div class="pills">';
+    if(state.filled){
+      m.picked.forEach(function(x){
+        h += '<span class="pill' + (x.no ? " no" : "") + '">' + esc(x.t) + '</span>';
+      });
+    }else{
+      h += '<span class="waiting">読み取り待ち</span>';
+    }
+    h += '</div></div></div>';
+  });
+  h += '<div class="note"><b>催促も自動です</b>'
+     + '締切の前日と当日に、まだ出していない人にだけ個別で声をかけます。'
+     + 'グループ全体に何度も呼びかける必要はありません。</div>';
+  return h;
+}
+
+/* =========================================================
+   描画：人件費タブ
+   ========================================================= */
+
+/* 金額カード（予算バー付き） */
+function moneyCard(label, cost, sub, extra){
+  var pc = cost / BUDGET * 100;
+  var over = cost > BUDGET;
+  var diff = Math.abs(BUDGET - cost);
+  var h = '<div class="big">';
+  h += '<div class="k">' + label + '</div>';
+  h += '<div class="amount">' + esc(yen(cost)) + '<small>円</small></div>';
+  h += '<div class="sub">' + sub + '</div>';
+  h += '<div class="bar' + (over ? " over" : "") + '"><i style="width:' + Math.min(100, pc).toFixed(1) + '%"></i></div>';
+  h += '<div class="barfoot"><span>週の予算 ' + esc(yen(BUDGET)) + '円</span>'
+     + '<span class="pc' + (over ? " over" : "") + '">' + pc.toFixed(1) + '%'
+     + (over ? '（' + esc(yen(diff)) + '円 超過）' : '（残り ' + esc(yen(diff)) + '円）') + '</span></div>';
+  h += (extra || "") + '</div>';
+  return h;
+}
+
+/* 勤務時間の横棒グラフ。markHours を渡すと細い線で比較対象を重ねる */
+function hoursChart(getHours, markHours, foot){
+  var rows = Object.keys(STAFF).map(function(id){
+    return {id:id, h:getHours(id)};
+  }).sort(function(a, b){ return b.h - a.h; });
+
+  var max = rows[0].h || 1;
+  if(markHours){
+    Object.keys(STAFF).forEach(function(id){ max = Math.max(max, markHours(id)); });
+  }
+
+  var h = '<div class="big" style="padding:13px 12px 8px">';
+  rows.forEach(function(r){
+    var p = STAFF[r.id];
+    h += '<div class="hrow"><span class="n">' + esc(p.name) + '</span>'
+       + '<span class="t"><i class="' + p.cls + '" style="width:' + (r.h / max * 100).toFixed(1) + '%"></i>'
+       + (markHours ? '<b class="mark" style="left:'
+           + Math.min(99.4, markHours(r.id) / max * 100).toFixed(1) + '%"></b>' : "")
+       + '</span>'
+       + '<span class="h">' + r.h + '時間</span></div>';
+  });
+  h += '<div class="barfoot" style="margin:8px 0 6px">' + foot + '</div>';
+  h += '</div>';
+  return h;
+}
+
+function renderCost(){
+  var h = "";
+
+  /* ---- 取り込み前：先週の実績を出す ---- */
+  if(!state.filled){
+    h += moneyCard(
+      '先週の人件費（' + esc(LAST_WEEK.span) + '）実績',
+      LAST.cost,
+      'のべ ' + esc(LAST.hours) + '時間 / 7名'
+    );
+    h += '<div class="note"><b>来週の見込みは、シフトを組むと出ます</b>'
+       + '希望を取り込んでシフトが組み上がった時点で、来週の人件費と'
+       + '先週との差、それに気づいたことがこの画面に並びます。</div>';
+    h += '<div class="sect">先週の1人あたりの勤務時間（多い順）</div>';
+    h += hoursChart(
+      function(id){ return LAST_WEEK.hours[id]; },
+      null,
+      '<span>合計 ' + esc(LAST.hours) + '時間</span><span>7名</span>'
+    );
+    return h;
+  }
+
+  /* ---- 取り込み後：来週の見込み ---- */
+  var cost = CALC.total.cost;
+  var dCost = LAST.cost - cost;
+  var dHours = CALC.total.hours - LAST.hours;
+  var hoursTxt = dHours === 0
+    ? 'のべ時間は先週と同じ ' + CALC.total.hours + '時間'
+    : (dHours > 0 ? 'のべ時間は ' + dHours + '時間 多い' : 'のべ時間は ' + (-dHours) + '時間 少ない');
+
+  var delta = '<div class="delta' + (dCost < 0 ? " up" : "") + '">'
+    + (dCost >= 0
+        ? '先週の実績より ' + esc(yen(dCost)) + '円 少ない見込みです'
+        : '先週の実績より ' + esc(yen(-dCost)) + '円 多い見込みです')
+    + '（' + esc(hoursTxt) + '）</div>';
+
+  h += moneyCard(
+    '来週の人件費（8/18 - 8/24）見込み',
+    cost,
+    esc(CALC.total.slots) + 'コマ / のべ ' + esc(CALC.total.hours) + '時間',
+    delta
+  );
+
+  /* --- 気づいたこと --- */
+  var nakamura = STAFF.nakamura.name;
+  var takahashi = STAFF.takahashi.name;
+  var suzuki = STAFF.suzuki.name;
+  var watanabe = STAFF.watanabe.name;
+  var saving = (STAFF.watanabe.wage - STAFF.takahashi.wage) * 6 * 2;
+  var wataEarly = DAYS.filter(function(d){ return (d.plan.early || []).indexOf("watanabe") >= 0; }).length;
+
+  h += '<div class="sect">組んだ時点で気づいたこと</div>';
+
+  h += '<div class="warn red"><div class="wh"><span class="chip">法令チェック</span><b>連勤</b></div>'
+     + '<p>' + esc(nakamura) + 'さんが月曜から6連勤になる組み方でした。'
+     + '土曜の中番を' + esc(takahashi) + 'さんに振り替えて、5連勤に収めています。</p></div>';
+
+  h += '<div class="warn"><div class="wh"><span class="chip">配置バランス</span><b>土曜の遅番</b></div>'
+     + '<p>土曜の遅番はキッチンが' + esc(suzuki) + 'さん1名です。'
+     + 'ピーク時の食事オーダーが集中すると滞る恐れがあります。</p></div>';
+
+  h += '<div class="warn"><div class="wh"><span class="chip">コスト</span><b>社員の早番</b></div>'
+     + '<p>' + esc(watanabe) + 'さん（社員・時給' + esc(yen(STAFF.watanabe.wage)) + '円）の早番が今週'
+     + wataEarly + '日入っています。うち2日を' + esc(takahashi) + 'さん（時給'
+     + esc(yen(STAFF.takahashi.wage)) + '円）に置き換えると、人件費がおよそ' + esc(yen(saving)) + '円下がります。</p></div>';
+
+  /* --- 未定枠 --- */
+  var sh = shortages();
+  if(sh.length){
+    h += '<div class="sect">まだ埋まっていない枠</div>';
+    sh.forEach(function(x){
+      h += '<div class="warn red"><div class="wh"><span class="chip">人員不足</span><b>'
+         + esc(x.date) + '(' + esc(x.dow) + ') ' + esc(x.slot) + '</b></div>'
+         + '<p>あと' + x.miss + '名です。この日に出られる人は3名しかいないため、'
+         + '無理に入れずに空けています。営業時間を1時間縮めるか、応援を呼ぶかを選んでください。</p></div>';
+    });
+  }
+
+  /* --- 1人あたりの勤務時間（細い線は先週の実績） --- */
+  h += '<div class="sect">1人あたりの勤務時間（多い順）</div>';
+  h += hoursChart(
+    function(id){ return CALC.per[id].hours; },
+    function(id){ return LAST_WEEK.hours[id]; },
+    '<span>合計 ' + esc(CALC.total.hours) + '時間 / ' + esc(CALC.total.slots) + 'コマ</span>'
+      + '<span>細い線は先週</span>'
+  );
+
+  return h;
+}
+
+/* =========================================================
+   描画：全体
+   ========================================================= */
+
+function render(){
+  var c = $("content");
+  if(state.tab === "board")      c.innerHTML = renderBoard();
+  else if(state.tab === "req")   c.innerHTML = renderReq();
+  else                           c.innerHTML = renderCost();
+
+  /* はまるアニメーションは組み上がった直後の1回だけ */
+  state.importing = false;
+
+  renderStats();
+
+  $("fab").className = "fab"
+    + (state.tab === "board" ? "" : " hide")
+    + (state.filled ? " up" : "");
+  $("confirmbar").className = "confirmbar" + (state.filled && state.tab === "board" ? " on" : "");
+}
+
+function setTab(t){
+  state.tab = t;
+  var tabs = document.querySelectorAll(".tab");
+  for(var i = 0; i < tabs.length; i++){
+    tabs[i].setAttribute("aria-selected", tabs[i].getAttribute("data-tab") === t ? "true" : "false");
+  }
+  render();
+  $("content").scrollTop = 0;
+}
+
+/* =========================================================
+   トースト
+   ========================================================= */
+
+var toastTimer = null;
+function toast(msg){
+  var t = $("toast");
+  t.textContent = msg;
+  t.className = "toast on";
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.className = "toast"; }, 3400);
+}
+
+/* =========================================================
+   取り込み → 自動編成（動画の見せ場）
+   ========================================================= */
+
+function addBubble(m, n){
+  var p = STAFF[m.id];
+  var b = document.createElement("div");
+  b.className = "bub";
+  b.innerHTML =
+      '<div class="meta"><b>' + esc(p.name) + '</b><span>' + esc(m.at) + '</span></div>'
+    + '<div class="body">' + esc(m.text) + '</div>'
+    + '<span class="read">' + esc(m.picked[0].t) + '</span>';
+  var body = $("ovBody");
+  body.appendChild(b);
+  if(n >= 4) body.scrollTop = body.scrollHeight;
+
+  $("ovCount").textContent = n + "名分";
+  $("ovProg").style.width = Math.round(n / MSGS.length * 62) + "%";
+}
+
+function runImport(){
+  if(state.imported){
+    toast("このデモで組めるシフトは1回までです");
+    return;
+  }
+  state.imported = true;
+
+  var ov = $("ov");
+  $("ovBody").innerHTML = "";
+  $("ovCount").textContent = "0名分";
+  $("ovProg").style.width = "0%";
+  $("ovTitle").textContent = "グループのやり取りを読み込んでいます";
+  ov.className = "ov on";
+
+  MSGS.forEach(function(m, i){
+    later(300 + i * 480, function(){ addBubble(m, i + 1); });
+  });
+
+  later(3900, function(){
+    $("ovTitle").textContent = "必要人数と希望を突き合わせています";
+    $("ovProg").style.width = "78%";
+  });
+
+  later(5200, function(){
+    $("ovTitle").textContent = "連勤と人件費を確認しています";
+    $("ovProg").style.width = "94%";
+  });
+
+  later(6400, function(){
+    $("ovProg").style.width = "100%";
+    ov.className = "ov";
+    state.filled = true;
+    state.importing = true;
+    setTab("board");
+    later(500, function(){
+      toast("7日分のシフトを組みました（所要 11秒）");
+    });
+  });
+}
+
+/* =========================================================
+   起動
+   ========================================================= */
+
+$("fab").addEventListener("click", runImport);
+
+$("confirmBtn").addEventListener("click", function(){
+  toast("7名に配信しました。既読と「行けます」の返事はこの画面に集まります。");
+});
+
+var tabEls = document.querySelectorAll(".tab");
+for(var i = 0; i < tabEls.length; i++){
+  tabEls[i].addEventListener("click", function(){
+    setTab(this.getAttribute("data-tab"));
+  });
+}
+
+fit();
+render();
+</script>
