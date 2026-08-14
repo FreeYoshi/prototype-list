@@ -1,0 +1,895 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>貸出ボード</title>
+<style>
+:root{
+  --steel:#22303A;
+  --steel-2:#33454F;
+  --ink:#131B21;
+  --paper:#F1F3F0;
+  --kraft:#EDE4D2;
+  --kraft-2:#DCCFB4;
+  --indigo:#1E3A4C;
+  --indigo-2:#152936;
+  --brass:#B4893C;
+  --brass-lt:#DCBB79;
+  --alert:#B93E2A;
+  --alert-lt:#E9836C;
+  --disp:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP","MS PMincho",serif;
+  --ui:"Hiragino Sans","Yu Gothic UI","Yu Gothic","Noto Sans JP","Meiryo",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Hiragino Sans","Yu Gothic",monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{
+  background:radial-gradient(120% 90% at 50% 0%,#2c3b46 0%,#151d24 45%,#0a0e12 100%);
+  font-family:var(--ui);color:var(--ink);overflow:hidden;
+}
+.stage{height:100%;display:flex;align-items:center;justify-content:center}
+
+/* ---------- 端末フレーム ---------- */
+.phone{
+  position:relative;width:390px;height:844px;flex:0 0 auto;
+  background:var(--paper);border-radius:54px;
+  transform-origin:center center;
+  box-shadow:
+    0 0 0 12px #0d1418,
+    0 0 0 14px #2a343b,
+    0 40px 90px rgba(0,0,0,.65),
+    0 6px 20px rgba(0,0,0,.5);
+  overflow:hidden;display:flex;flex-direction:column;
+}
+.island{
+  position:absolute;top:11px;left:50%;transform:translateX(-50%);
+  width:120px;height:34px;background:#05080a;border-radius:19px;z-index:60;
+}
+.statusbar{
+  height:54px;flex:0 0 auto;background:#05080a;color:#fff;
+  display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 26px 8px;font-size:15px;font-family:var(--mono);letter-spacing:.02em;
+}
+.sb-right{display:flex;align-items:center;gap:6px}
+.sig{display:flex;align-items:flex-end;gap:2px;height:11px}
+.sig i{display:block;width:3px;background:#fff;border-radius:1px}
+.sig i:nth-child(1){height:4px}
+.sig i:nth-child(2){height:6px}
+.sig i:nth-child(3){height:8px}
+.sig i:nth-child(4){height:11px}
+.net{font-size:12.5px;letter-spacing:.04em}
+.batt{width:24px;height:12px;border:1.4px solid rgba(255,255,255,.75);border-radius:3px;position:relative;padding:1.5px}
+.batt::after{content:"";position:absolute;right:-3.5px;top:3.5px;width:2px;height:5px;background:rgba(255,255,255,.75);border-radius:0 1px 1px 0}
+.batt b{display:block;height:100%;width:76%;background:#fff;border-radius:1px}
+
+.app{flex:1;min-height:0;display:flex;flex-direction:column;position:relative;background:var(--paper)}
+
+/* ---------- ヘッダー ---------- */
+header.hd{
+  flex:0 0 auto;background:linear-gradient(180deg,var(--steel-2) 0%,var(--steel) 70%);
+  border-bottom:3px solid var(--brass);padding:10px 16px 11px;color:#fff;
+  box-shadow:0 6px 16px rgba(0,0,0,.28);z-index:20;
+}
+.hd-top{display:flex;align-items:center;gap:10px}
+.logo{
+  width:40px;height:40px;flex:0 0 auto;background:linear-gradient(160deg,var(--brass-lt),var(--brass));
+  border-radius:7px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--disp);font-weight:700;font-size:23px;color:#2b1f0c;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 2px 5px rgba(0,0,0,.35);
+}
+.hd-ttl{flex:1;min-width:0}
+.hd-ttl h1{
+  margin:0;font-family:var(--disp);font-weight:700;font-size:25px;letter-spacing:.14em;line-height:1.15;
+}
+.hd-ttl p{margin:3px 0 0;font-size:11px;letter-spacing:.22em;color:var(--brass-lt);font-family:var(--mono)}
+.me{
+  width:38px;height:38px;border-radius:50%;flex:0 0 auto;
+  background:rgba(255,255,255,.1);border:1.5px solid var(--brass-lt);
+  display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--brass-lt);
+}
+.stats{display:flex;gap:7px;margin-top:9px}
+.stat{
+  flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
+  border-radius:5px;padding:6px 9px 7px;
+}
+.stat span{display:block;font-size:12px;color:rgba(255,255,255,.62);letter-spacing:.06em}
+.stat b{display:block;font-family:var(--mono);font-size:30px;font-weight:600;line-height:1.15;margin-top:1px}
+.stat.hot{background:var(--alert);border-color:var(--alert-lt)}
+.stat.hot span{color:rgba(255,255,255,.85)}
+
+/* ---------- チップ ---------- */
+.cats{
+  flex:0 0 auto;display:flex;gap:7px;padding:10px 16px;overflow-x:auto;
+  background:var(--paper);border-bottom:1px solid rgba(19,27,33,.08);scrollbar-width:none;
+}
+.cats::-webkit-scrollbar{display:none}
+.chip{
+  flex:0 0 auto;border:1px solid rgba(34,48,58,.28);background:#fff;color:var(--steel);
+  border-radius:999px;padding:7px 15px;font-size:15px;font-family:var(--ui);cursor:pointer;
+  letter-spacing:.04em;transition:background .16s,color .16s,border-color .16s;
+}
+.chip.on{background:var(--steel);border-color:var(--steel);color:var(--kraft)}
+
+/* ---------- スクロール領域 ---------- */
+.scroll{flex:1;min-height:0;overflow-y:auto;padding:13px 16px 100px;-webkit-overflow-scrolling:touch}
+
+/* ---------- レール ---------- */
+.rail{
+  border-top:4px solid var(--steel);
+  box-shadow:0 7px 9px -7px rgba(19,27,33,.55);
+  padding:7px 2px 0;margin:0 0 14px;
+  display:flex;align-items:baseline;gap:8px;
+}
+.rail+.grid{margin-top:-2px}
+.rail h2{
+  margin:0;font-family:var(--disp);font-weight:700;font-size:17.5px;letter-spacing:.16em;color:var(--steel);
+}
+.rail .cnt{font-family:var(--mono);font-size:13px;color:rgba(19,27,33,.5)}
+.rail-sec{margin-bottom:22px}
+
+/* ---------- 札 ---------- */
+.grid{display:flex;flex-wrap:wrap;gap:10px}
+.slot{
+  width:calc(50% - 5px);display:flex;flex-direction:column;align-items:center;
+  perspective:1000px;
+}
+.ring{
+  width:22px;height:22px;border-radius:50%;
+  border:3.5px solid var(--brass);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 1px 3px rgba(0,0,0,.3);
+  margin-bottom:-11px;z-index:3;position:relative;
+  background:linear-gradient(180deg,var(--brass-lt),transparent 70%);
+}
+.slot.late .ring{border-color:var(--alert);background:linear-gradient(180deg,var(--alert-lt),transparent 70%)}
+.tag{
+  position:relative;width:100%;height:182px;cursor:pointer;
+  transform-style:preserve-3d;transition:transform .6s cubic-bezier(.5,.02,.3,1);
+  border:0;padding:0;background:none;display:block;font:inherit;text-align:left;
+}
+.tag.flipped{transform:rotateY(180deg)}
+.face{
+  position:absolute;inset:0;border-radius:3px;overflow:hidden;
+  backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  padding:24px 12px 11px;display:flex;flex-direction:column;
+  box-shadow:0 4px 10px rgba(19,27,33,.26),inset 0 1px 0 rgba(255,255,255,.5);
+}
+.front{
+  background:linear-gradient(150deg,var(--kraft) 0%,var(--kraft) 55%,var(--kraft-2) 100%);
+  color:var(--ink);
+}
+.back{
+  transform:rotateY(180deg);
+  background:linear-gradient(150deg,var(--indigo) 0%,var(--indigo-2) 100%);
+  color:var(--kraft);
+}
+.hole{
+  position:absolute;top:8px;left:50%;transform:translateX(-50%);
+  width:13px;height:13px;border-radius:50%;background:var(--paper);
+  box-shadow:inset 0 1.5px 2px rgba(19,27,33,.55);
+}
+.t-cat{font-size:11.5px;letter-spacing:.16em;color:rgba(19,27,33,.5);font-family:var(--mono)}
+.back .t-cat{color:rgba(237,228,210,.5)}
+.t-name{
+  font-family:var(--disp);font-weight:700;font-size:20px;line-height:1.3;margin-top:4px;letter-spacing:.01em;
+}
+.t-sub{font-size:12.5px;margin-top:4px;color:rgba(19,27,33,.6);line-height:1.4}
+.back .t-sub{color:rgba(237,228,210,.66)}
+.t-foot{margin-top:auto;display:flex;align-items:flex-end;justify-content:space-between;gap:6px}
+.t-id{font-family:var(--mono);font-size:11px;color:rgba(19,27,33,.45);letter-spacing:.04em}
+.back .t-id{color:rgba(237,228,210,.5)}
+.t-ok{
+  font-size:11px;letter-spacing:.1em;color:#3f6b46;border:1px solid rgba(63,107,70,.4);
+  border-radius:2px;padding:2px 6px;background:rgba(63,107,70,.08);
+}
+.t-due{font-family:var(--mono);font-size:13px;color:var(--brass-lt);letter-spacing:.02em}
+.slot.late .t-due{color:var(--alert-lt)}
+.t-who{
+  display:flex;align-items:center;gap:6px;margin-top:7px;font-size:14px;color:rgba(237,228,210,.9);
+}
+.t-who i{
+  width:21px;height:21px;border-radius:50%;background:rgba(237,228,210,.16);
+  display:flex;align-items:center;justify-content:center;font-style:normal;font-size:12px;
+}
+.stamp{
+  position:absolute;right:8px;bottom:40px;
+  border:2px solid var(--alert-lt);color:var(--alert-lt);border-radius:2px;
+  font-family:var(--disp);font-weight:700;font-size:17px;letter-spacing:.22em;
+  padding:2px 6px 2px 11px;transform:rotate(-9deg);opacity:.92;
+}
+
+/* ---------- 履歴 / 通知 ---------- */
+.row{
+  display:flex;gap:10px;align-items:center;background:#fff;border-radius:4px;
+  padding:11px 12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(19,27,33,.1);
+}
+.badge{
+  flex:0 0 auto;width:46px;text-align:center;border-radius:3px;padding:5px 0;
+  font-size:12.5px;letter-spacing:.08em;font-family:var(--ui);
+}
+.badge.out{background:var(--indigo);color:var(--kraft)}
+.badge.ret{background:var(--kraft);color:var(--ink)}
+.row .body{flex:1;min-width:0}
+.row .body b{display:block;font-family:var(--disp);font-size:16.5px;font-weight:700;letter-spacing:.03em}
+.row .body span{display:block;font-size:13px;color:rgba(19,27,33,.6);margin-top:3px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .at{flex:0 0 auto;font-family:var(--mono);font-size:12.5px;color:rgba(19,27,33,.5);text-align:right;line-height:1.5}
+.note{
+  background:#fff;border-left:4px solid var(--brass);border-radius:4px;padding:12px 14px;margin-bottom:9px;
+  box-shadow:0 1px 3px rgba(19,27,33,.1);
+}
+.note.bad{border-left-color:var(--alert)}
+.note b{display:block;font-family:var(--disp);font-size:17px;letter-spacing:.04em}
+.note p{margin:6px 0 0;font-size:14px;line-height:1.65;color:rgba(19,27,33,.72)}
+.note .tagline{font-size:11.5px;letter-spacing:.12em;font-family:var(--mono);color:var(--brass)}
+.note.bad .tagline{color:var(--alert)}
+.empty{
+  text-align:center;padding:52px 24px;color:rgba(19,27,33,.55);font-size:15.5px;line-height:1.9;
+  font-family:var(--disp);letter-spacing:.06em;
+}
+.wide{
+  width:100%;margin-top:14px;padding:14px;border-radius:4px;border:1px solid rgba(34,48,58,.3);
+  background:#fff;color:var(--steel);font-family:var(--ui);font-size:15px;letter-spacing:.08em;cursor:pointer;
+}
+.sec-ttl{
+  font-family:var(--disp);font-weight:700;font-size:16px;letter-spacing:.16em;color:var(--steel);
+  border-top:4px solid var(--steel);box-shadow:0 7px 9px -7px rgba(19,27,33,.55);
+  padding-top:7px;margin:0 0 12px;
+}
+
+/* ---------- FAB / タブ ---------- */
+.fab{
+  position:absolute;right:18px;bottom:86px;width:68px;height:68px;border-radius:50%;
+  background:linear-gradient(160deg,var(--brass-lt),var(--brass));border:none;cursor:pointer;
+  color:#2b1f0c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  box-shadow:0 8px 18px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.55);z-index:30;
+}
+.fab b{font-size:11px;letter-spacing:.14em;font-family:var(--mono)}
+nav.tabs{
+  flex:0 0 auto;height:72px;background:#fff;border-top:1px solid rgba(19,27,33,.1);
+  display:flex;z-index:40;box-shadow:0 -3px 12px rgba(19,27,33,.07);
+}
+.tab{
+  flex:1;border:none;background:none;cursor:pointer;position:relative;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  font-family:var(--ui);font-size:14px;letter-spacing:.1em;color:rgba(19,27,33,.45);padding-bottom:6px;
+}
+.tab.on{color:var(--steel);font-weight:700}
+.tab.on::before{content:"";position:absolute;top:0;left:22%;right:22%;height:3px;background:var(--brass)}
+.tab .dot{
+  position:absolute;top:10px;left:calc(50% + 11px);min-width:19px;height:19px;border-radius:10px;
+  background:var(--alert);color:#fff;font-family:var(--mono);font-size:12px;
+  display:flex;align-items:center;justify-content:center;padding:0 5px;
+}
+
+/* ---------- ボトムシート ---------- */
+.scrim{
+  position:absolute;inset:0;background:rgba(10,14,17,.5);opacity:0;pointer-events:none;
+  transition:opacity .3s;z-index:70;
+}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{
+  position:absolute;left:0;right:0;bottom:0;z-index:80;background:var(--paper);
+  border-radius:16px 16px 0 0;transform:translateY(102%);transition:transform .36s cubic-bezier(.22,.9,.28,1);
+  max-height:86%;display:flex;flex-direction:column;box-shadow:0 -12px 34px rgba(0,0,0,.35);
+}
+.sheet.on{transform:translateY(0)}
+.grab{width:38px;height:4px;border-radius:2px;background:rgba(19,27,33,.22);margin:9px auto 0;flex:0 0 auto}
+.sheet-body{overflow-y:auto;padding:14px 20px 4px}
+.sh-name{font-family:var(--disp);font-weight:700;font-size:27px;letter-spacing:.05em;margin:0}
+.sh-meta{font-family:var(--mono);font-size:13px;color:rgba(19,27,33,.55);margin:6px 0 0;letter-spacing:.04em}
+.lbl{font-size:13.5px;letter-spacing:.1em;color:var(--steel);margin:18px 0 8px;font-weight:700}
+.lbl em{font-style:normal;color:var(--alert);margin-left:4px}
+.people{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.people::-webkit-scrollbar{display:none}
+.person{
+  flex:0 0 auto;display:flex;align-items:center;gap:7px;border:1px solid rgba(34,48,58,.25);
+  background:#fff;border-radius:999px;padding:6px 16px 6px 6px;cursor:pointer;font-family:var(--ui);
+  transition:background .16s,border-color .16s,color .16s;
+}
+.person i{
+  width:32px;height:32px;border-radius:50%;background:var(--kraft);color:var(--ink);
+  display:flex;align-items:center;justify-content:center;font-style:normal;font-size:15px;font-weight:700;
+}
+.person .nm{display:block;font-size:15px;line-height:1.25;white-space:nowrap}
+.person .dp{display:block;font-size:11.5px;line-height:1.25;color:rgba(19,27,33,.5);letter-spacing:.04em;white-space:nowrap}
+.person.on{background:var(--steel);border-color:var(--steel);color:var(--kraft)}
+.person.on i{background:var(--brass);color:#2b1f0c}
+.person.on .dp{color:rgba(237,228,210,.65)}
+input.txt{
+  width:100%;border:1px solid rgba(34,48,58,.25);border-radius:4px;background:#fff;
+  padding:13px;font-family:var(--ui);font-size:16.5px;color:var(--ink);
+}
+input.txt::placeholder{color:rgba(19,27,33,.35)}
+.whens{display:flex;gap:7px}
+.when{
+  flex:1;border:1px solid rgba(34,48,58,.25);background:#fff;border-radius:4px;padding:12px 3px;
+  cursor:pointer;font-family:var(--ui);font-size:14px;color:var(--steel);letter-spacing:.02em;
+  transition:background .16s,border-color .16s,color .16s;
+}
+.when.on{background:var(--steel);border-color:var(--steel);color:var(--kraft)}
+.hint{font-size:13px;line-height:1.75;color:rgba(19,27,33,.6);margin:14px 0 0}
+.hint.warn{color:var(--alert)}
+.ledger{width:100%;border-collapse:collapse;margin-top:16px}
+.ledger th{
+  width:86px;text-align:left;font-size:13px;font-weight:400;letter-spacing:.1em;
+  color:rgba(19,27,33,.5);padding:10px 0;vertical-align:top;
+  border-bottom:1px solid rgba(19,27,33,.1);
+}
+.ledger td{
+  font-size:16px;padding:10px 0;border-bottom:1px solid rgba(19,27,33,.1);font-family:var(--ui);
+}
+.ledger td.mono{font-family:var(--mono);font-size:15px;letter-spacing:.02em}
+.ledger td.late{color:var(--alert);font-weight:700}
+.sheet-foot{flex:0 0 auto;padding:14px 20px calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:9px}
+.btn{
+  border:none;border-radius:5px;padding:17px;font-family:var(--ui);font-size:17px;letter-spacing:.08em;
+  cursor:pointer;font-weight:700;
+}
+.btn.main{background:linear-gradient(170deg,var(--brass-lt),var(--brass));color:#2b1f0c;
+  box-shadow:0 5px 14px rgba(180,137,60,.35),inset 0 1px 0 rgba(255,255,255,.5)}
+.btn.sub{background:none;color:rgba(19,27,33,.55);font-weight:400;font-size:15px;padding:7px}
+
+/* ---------- スキャン ---------- */
+.scan{
+  position:absolute;inset:0;z-index:90;background:rgba(8,12,15,.95);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.scan.on{opacity:1;pointer-events:auto}
+.frame{position:relative;width:220px;height:220px}
+.frame i{position:absolute;width:38px;height:38px;border:3px solid var(--brass-lt)}
+.frame i:nth-child(1){top:0;left:0;border-right:0;border-bottom:0}
+.frame i:nth-child(2){top:0;right:0;border-left:0;border-bottom:0}
+.frame i:nth-child(3){bottom:0;left:0;border-right:0;border-top:0}
+.frame i:nth-child(4){bottom:0;right:0;border-left:0;border-top:0}
+.laser{
+  position:absolute;left:6px;right:6px;top:6px;height:2px;
+  background:linear-gradient(90deg,transparent,var(--brass-lt),transparent);
+  box-shadow:0 0 12px var(--brass);animation:sweep 1.6s ease-in-out infinite alternate;
+}
+@keyframes sweep{from{transform:translateY(0)}to{transform:translateY(202px)}}
+.scan p{color:var(--kraft);font-size:16px;letter-spacing:.1em;margin:0;font-family:var(--ui)}
+
+/* ---------- トースト ---------- */
+.toast{
+  position:absolute;left:22px;right:22px;bottom:94px;z-index:95;
+  background:rgba(19,27,33,.94);color:var(--kraft);border-left:4px solid var(--brass);
+  border-radius:4px;padding:15px 17px;font-size:15px;letter-spacing:.04em;line-height:1.5;
+  opacity:0;transform:translateY(10px);pointer-events:none;transition:opacity .25s,transform .25s;
+}
+.toast.on{opacity:1;transform:translateY(0)}
+
+:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important}
+}
+</style>
+
+<div class="stage">
+<div class="phone" id="phone">
+  <div class="island"></div>
+  <div class="statusbar">
+    <span id="clock">9:41</span>
+    <span class="sb-right">
+      <span class="sig"><i></i><i></i><i></i><i></i></span>
+      <span class="net">5G</span>
+      <span class="batt"><b></b></span>
+    </span>
+  </div>
+
+  <div class="app">
+    <header class="hd">
+      <div class="hd-top">
+        <div class="logo">札</div>
+        <div class="hd-ttl">
+          <h1>貸出ボード</h1>
+          <p>SHINAGAWA OFFICE</p>
+        </div>
+        <div class="me">佐</div>
+      </div>
+      <div class="stats" id="stats"></div>
+    </header>
+
+    <div class="cats" id="cats"></div>
+    <div class="scroll" id="screen"></div>
+
+    <button class="fab" id="fab" aria-label="QRコードを読み取る">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+        <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+        <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+        <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+        <path d="M14 14h3v3h-3zM20 14v3M14 20h6"></path>
+      </svg>
+      <b>QR</b>
+    </button>
+
+    <nav class="tabs" id="tabs"></nav>
+  </div>
+
+  <div class="scrim" id="scrim"></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true">
+    <div class="grab"></div>
+    <div class="sheet-body" id="sheetBody"></div>
+    <div class="sheet-foot" id="sheetFoot"></div>
+  </div>
+
+  <div class="scan" id="scan">
+    <div class="frame">
+      <i></i><i></i><i></i><i></i>
+      <div class="laser"></div>
+    </div>
+    <p>備品のQRコードを読み取ってください</p>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+</div>
+
+<script>
+"use strict";
+var H = 3600000;
+var now = Date.now();
+
+/* ---------- データ ---------- */
+var staff = [
+  {id:"p1", name:"田中 陽介", dept:"営業1課"},
+  {id:"p2", name:"佐藤 美咲", dept:"総務部"},
+  {id:"p3", name:"鈴木 健太", dept:"工事部"},
+  {id:"p4", name:"高橋 直樹", dept:"営業2課"},
+  {id:"p5", name:"伊藤 さくら", dept:"設計部"},
+  {id:"p6", name:"渡辺 剛",   dept:"工事部"},
+  {id:"p7", name:"中村 恵子", dept:"経理部"}
+];
+
+var cats = ["すべて","車両","IT機器","工具","鍵・カード"];
+
+var items = [
+  {id:"V-01", cat:"車両",     name:"社用車A",       model:"ハイエース", sub:"品川300あ12-34",
+   status:"out", by:"鈴木 健太", purpose:"川崎現場 資材搬入", outAt:now-3*H,   dueAt:now+2*H},
+  {id:"V-02", cat:"車両",     name:"社用車B",       model:"プリウス",   sub:"品川500さ88-01", status:"in"},
+  {id:"V-03", cat:"車両",     name:"軽トラック",     model:"キャリイ",   sub:"品川480か21-60",
+   status:"out", by:"渡辺 剛",   purpose:"大田区 残土運搬",   outAt:now-9*H,   dueAt:now-3*H},
+  {id:"IT-01", cat:"IT機器",  name:"ノートPC 01",   model:"ThinkPad X1", sub:"社内貸出用", status:"in"},
+  {id:"IT-02", cat:"IT機器",  name:"ノートPC 02",   model:"ThinkPad X1", sub:"社内貸出用",
+   status:"out", by:"伊藤 さくら", purpose:"客先常駐",        outAt:now-5*H,   dueAt:now+5*H},
+  {id:"IT-03", cat:"IT機器",  name:"プロジェクター", model:"EB-W52",     sub:"会議室B 備付", status:"in"},
+  {id:"IT-04", cat:"IT機器",  name:"モバイルWi-Fi",  model:"NA01",       sub:"回線 A契約",
+   status:"out", by:"高橋 直樹", purpose:"横浜出張",          outAt:now-7*H,   dueAt:now-1.5*H},
+  {id:"TL-01", cat:"工具",    name:"充電インパクト", model:"18V",        sub:"バッテリ2本", status:"in"},
+  {id:"TL-02", cat:"工具",    name:"レーザー距離計", model:"GLM50",      sub:"三脚あり",    status:"in"},
+  {id:"TL-03", cat:"工具",    name:"高圧洗浄機",     model:"K3",         sub:"ホース10m",   status:"in"},
+  {id:"KY-01", cat:"鍵・カード", name:"第二倉庫 鍵",  model:"KEY-B2",     sub:"予備なし",
+   status:"out", by:"田中 陽介", purpose:"棚卸し立会い",      outAt:now-2*H,   dueAt:now+1*H},
+  {id:"KY-02", cat:"鍵・カード", name:"法人カード",   model:"CORP-01",    sub:"限度額 30万", status:"in"},
+  {id:"KY-03", cat:"鍵・カード", name:"ETCカード",    model:"ETC-02",     sub:"車両共用",    status:"in"}
+];
+
+var logs = [];
+items.forEach(function(it){
+  if(it.status === "out"){
+    logs.push({kind:"out", name:it.name, by:it.by, purpose:it.purpose, at:it.outAt});
+  }
+});
+logs.push({kind:"ret", name:"プロジェクター", by:"中村 恵子", purpose:"月次会議", at:now-4*H});
+logs.push({kind:"out", name:"プロジェクター", by:"中村 恵子", purpose:"月次会議", at:now-6*H});
+logs.push({kind:"ret", name:"社用車B",       by:"佐藤 美咲", purpose:"銀行 手続き", at:now-8*H});
+logs.push({kind:"out", name:"社用車B",       by:"佐藤 美咲", purpose:"銀行 手続き", at:now-11*H});
+
+/* ---------- ユーティリティ ---------- */
+function esc(s){
+  return String(s == null ? "" : s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+function pad(n){ return n < 10 ? "0" + n : "" + n; }
+function fmtTime(t){ var d = new Date(t); return pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+function fmtFull(t){
+  var d = new Date(t);
+  return (d.getMonth()+1) + "/" + d.getDate() + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+}
+function span(ms){
+  ms = Math.max(0, ms);
+  var h = Math.floor(ms / H), m = Math.floor((ms % H) / 60000);
+  return h > 0 ? h + "時間" + m + "分" : m + "分";
+}
+function roundSpan(ms){
+  var h = Math.max(0, ms) / H;
+  return (h >= 1 ? Math.round(h * 10) / 10 + "時間" : Math.round(Math.max(0,ms)/60000) + "分");
+}
+function isLate(it){ return it.status === "out" && it.dueAt < Date.now(); }
+function initial(name){ return String(name).charAt(0); }
+function byId(id){
+  for(var i=0;i<items.length;i++){ if(items[i].id === id) return items[i]; }
+  return null;
+}
+
+/* ---------- 状態 ---------- */
+var view = "board";
+var cat = "すべて";
+var sheetState = null;
+var scanTimer = null;
+var toastTimer = null;
+
+var screenEl = document.getElementById("screen");
+var statsEl  = document.getElementById("stats");
+var catsEl   = document.getElementById("cats");
+var tabsEl   = document.getElementById("tabs");
+var sheetEl  = document.getElementById("sheet");
+var bodyEl   = document.getElementById("sheetBody");
+var footEl   = document.getElementById("sheetFoot");
+var scrimEl  = document.getElementById("scrim");
+var scanEl   = document.getElementById("scan");
+var toastEl  = document.getElementById("toast");
+var fabEl    = document.getElementById("fab");
+
+/* ---------- トースト ---------- */
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ toastEl.classList.remove("on"); }, 2600);
+}
+
+/* ---------- 描画 ---------- */
+function counts(){
+  var c = {in:0, out:0, late:0};
+  items.forEach(function(it){
+    if(it.status === "in") c.in++;
+    else { c.out++; if(isLate(it)) c.late++; }
+  });
+  return c;
+}
+
+function renderStats(){
+  var c = counts();
+  statsEl.innerHTML =
+    '<div class="stat"><span>持ち出し可</span><b>' + c.in + '</b></div>' +
+    '<div class="stat"><span>貸出中</span><b>' + c.out + '</b></div>' +
+    '<div class="stat' + (c.late > 0 ? ' hot' : '') + '"><span>期限超過</span><b>' + c.late + '</b></div>';
+}
+
+function renderCats(){
+  catsEl.innerHTML = cats.map(function(c){
+    return '<button class="chip' + (c === cat ? ' on' : '') + '" data-cat="' + esc(c) + '">' + esc(c) + '</button>';
+  }).join("");
+}
+
+function renderTabs(){
+  var late = counts().late;
+  var defs = [
+    {k:"board",   t:"ボード"},
+    {k:"history", t:"履歴"},
+    {k:"alerts",  t:"通知"}
+  ];
+  tabsEl.innerHTML = defs.map(function(d){
+    var dot = (d.k === "alerts" && late > 0) ? '<span class="dot">' + late + '</span>' : '';
+    return '<button class="tab' + (view === d.k ? ' on' : '') + '" data-view="' + d.k + '">' +
+           dot + '<span>' + d.t + '</span></button>';
+  }).join("");
+}
+
+function faces(it){
+  var late = isLate(it);
+  var front =
+    '<div class="face front">' +
+      '<div class="hole"></div>' +
+      '<div class="t-cat">' + esc(it.cat) + '</div>' +
+      '<div class="t-name">' + esc(it.name) + '</div>' +
+      '<div class="t-sub">' + esc(it.model) + '<br>' + esc(it.sub) + '</div>' +
+      '<div class="t-foot"><span class="t-id">' + esc(it.id) + '</span>' +
+      '<span class="t-ok">持ち出し可</span></div>' +
+    '</div>';
+  var back =
+    '<div class="face back">' +
+      '<div class="hole"></div>' +
+      '<div class="t-cat">' + esc(it.cat) + '</div>' +
+      '<div class="t-name">' + esc(it.name) + '</div>' +
+      '<div class="t-who"><i>' + esc(initial(it.by || "")) + '</i>' + esc(it.by || "") + '</div>' +
+      '<div class="t-foot"><span class="t-id">' + esc(it.id) + '</span>' +
+      '<span class="t-due">' + (it.dueAt ? esc(fmtTime(it.dueAt)) + " まで" : "") + '</span></div>' +
+      (late ? '<div class="stamp">延滞</div>' : '') +
+    '</div>';
+  return front + back;
+}
+
+function slotHTML(it){
+  var late = isLate(it);
+  return '<div class="slot' + (late ? ' late' : '') + '" data-slot="' + esc(it.id) + '">' +
+           '<div class="ring"></div>' +
+           '<button class="tag' + (it.status === "out" ? ' flipped' : '') + '" data-id="' + esc(it.id) + '">' +
+             faces(it) +
+           '</button>' +
+         '</div>';
+}
+
+function pass(it){ return cat === "すべて" || it.cat === cat; }
+
+function renderBoard(){
+  var avail = items.filter(function(it){ return it.status === "in" && pass(it); });
+  var out   = items.filter(function(it){ return it.status === "out" && pass(it); });
+
+  function sec(title, list, emptyMsg){
+    return '<section class="rail-sec">' +
+      '<div class="rail"><h2>' + title + '</h2><span class="cnt">' + list.length + ' 件</span></div>' +
+      (list.length
+        ? '<div class="grid">' + list.map(slotHTML).join("") + '</div>'
+        : '<div class="empty">' + emptyMsg + '</div>') +
+      '</section>';
+  }
+
+  screenEl.innerHTML =
+    sec("持ち出し可", avail, "この分類はすべて貸出中です。<br>返却されると札が表に戻ります。") +
+    sec("貸出中",   out,   "いま持ち出されている備品はありません。<br>札をタップして貸し出せます。");
+}
+
+function renderHistory(){
+  var list = logs.slice().sort(function(a,b){ return b.at - a.at; });
+  if(!list.length){
+    screenEl.innerHTML = '<div class="empty">まだ記録がありません。<br>札をタップして貸し出してみてください。</div>';
+    return;
+  }
+  screenEl.innerHTML =
+    '<h2 class="sec-ttl">貸出履歴</h2>' +
+    list.map(function(h){
+      return '<div class="row">' +
+        '<span class="badge ' + (h.kind === "out" ? "out" : "ret") + '">' + (h.kind === "out" ? "貸出" : "返却") + '</span>' +
+        '<span class="body"><b>' + esc(h.name) + '</b>' +
+          '<span>' + esc(h.by) + (h.purpose ? " / " + esc(h.purpose) : "") + '</span></span>' +
+        '<span class="at">' + esc(fmtFull(h.at)) + '</span>' +
+      '</div>';
+    }).join("") +
+    '<button class="wide" id="report">月次レポートを書き出す</button>';
+}
+
+function renderAlerts(){
+  var t = Date.now();
+  var late = items.filter(isLate);
+  var soon = items.filter(function(it){
+    return it.status === "out" && it.dueAt >= t && (it.dueAt - t) < 3 * H;
+  });
+  if(!late.length && !soon.length){
+    screenEl.innerHTML = '<div class="empty">未対応の通知はありません。<br>期限が近づくとここに出ます。</div>';
+    return;
+  }
+  var html = '<h2 class="sec-ttl">通知</h2>';
+  html += late.map(function(it){
+    return '<div class="note bad">' +
+      '<span class="tagline">期限超過</span>' +
+      '<b>' + esc(it.name) + '</b>' +
+      '<p>' + esc(it.by) + 'が返却期限を ' + esc(roundSpan(t - it.dueAt)) + ' 過ぎています。本人へ督促を送信しました。</p>' +
+    '</div>';
+  }).join("");
+  html += soon.map(function(it){
+    return '<div class="note">' +
+      '<span class="tagline">まもなく返却時刻</span>' +
+      '<b>' + esc(it.name) + '</b>' +
+      '<p>' + esc(it.by) + 'の返却予定は ' + esc(fmtTime(it.dueAt)) + '（あと ' + esc(roundSpan(it.dueAt - t)) + '）です。</p>' +
+    '</div>';
+  }).join("");
+  screenEl.innerHTML = html;
+}
+
+function render(){
+  renderStats();
+  renderTabs();
+  renderCats();
+  catsEl.style.display = (view === "board") ? "flex" : "none";
+  fabEl.style.display  = (view === "board") ? "flex" : "none";
+  if(view === "board") renderBoard();
+  else if(view === "history") renderHistory();
+  else renderAlerts();
+}
+
+/* ---------- ボトムシート ---------- */
+function openSheet(){ scrimEl.classList.add("on"); sheetEl.classList.add("on"); }
+function closeSheet(){ scrimEl.classList.remove("on"); sheetEl.classList.remove("on"); sheetState = null; }
+
+function dueChoices(){
+  var d1 = new Date(); d1.setHours(18,0,0,0);
+  var d2 = new Date(); d2.setDate(d2.getDate()+1); d2.setHours(12,0,0,0);
+  var d3 = new Date(); d3.setDate(d3.getDate()+3); d3.setHours(18,0,0,0);
+  return [
+    {t:"本日 18:00", v:d1.getTime()},
+    {t:"明日 12:00", v:d2.getTime()},
+    {t:"3日後 18:00", v:d3.getTime()}
+  ];
+}
+
+function openBorrow(it){
+  sheetState = {mode:"borrow", id:it.id, person:null, due:1, choices:dueChoices()};
+  bodyEl.innerHTML =
+    '<h3 class="sh-name">' + esc(it.name) + '</h3>' +
+    '<p class="sh-meta">' + esc(it.id) + '  /  ' + esc(it.model) + '  /  ' + esc(it.sub) + '</p>' +
+    '<div class="lbl">借りる人<em>必須</em></div>' +
+    '<div class="people" id="people">' +
+      staff.map(function(p){
+        return '<button class="person" data-person="' + esc(p.id) + '">' +
+          '<i>' + esc(initial(p.name)) + '</i>' +
+          '<span><span class="nm">' + esc(p.name) + '</span>' +
+          '<span class="dp">' + esc(p.dept) + '</span></span></button>';
+      }).join("") +
+    '</div>' +
+    '<div class="lbl">用途・行き先</div>' +
+    '<input class="txt" id="purpose" type="text" placeholder="例）横浜現場 打合せ" maxlength="40">' +
+    '<div class="lbl">返却予定</div>' +
+    '<div class="whens" id="whens">' +
+      sheetState.choices.map(function(c, i){
+        return '<button class="when' + (i === 1 ? ' on' : '') + '" data-due="' + i + '">' + esc(c.t) + '</button>';
+      }).join("") +
+    '</div>' +
+    '<p class="hint">返却予定の1時間前に、借りた本人へ通知が届きます。期限を過ぎた場合は総務部にも同時に通知されます。</p>';
+  footEl.innerHTML =
+    '<button class="btn main" id="doBorrow">この人に貸し出す</button>' +
+    '<button class="btn sub" id="cancel">やめる</button>';
+  openSheet();
+}
+
+function openReturn(it){
+  sheetState = {mode:"return", id:it.id};
+  var t = Date.now();
+  var late = isLate(it);
+  bodyEl.innerHTML =
+    '<h3 class="sh-name">' + esc(it.name) + '</h3>' +
+    '<p class="sh-meta">' + esc(it.id) + '  /  ' + esc(it.model) + '  /  ' + esc(it.sub) + '</p>' +
+    '<table class="ledger">' +
+      '<tr><th>借用者</th><td>' + esc(it.by) + '</td></tr>' +
+      '<tr><th>用途</th><td>' + esc(it.purpose || "記入なし") + '</td></tr>' +
+      '<tr><th>持ち出し</th><td class="mono">' + esc(fmtFull(it.outAt)) + '</td></tr>' +
+      '<tr><th>返却予定</th><td class="mono' + (late ? ' late' : '') + '">' + esc(fmtFull(it.dueAt)) + '</td></tr>' +
+      '<tr><th>経過</th><td class="mono">' + esc(span(t - it.outAt)) + '</td></tr>' +
+      (late ? '<tr><th>状態</th><td class="late">期限超過 ' + esc(span(t - it.dueAt)) + '</td></tr>' : '') +
+    '</table>' +
+    (late
+      ? '<p class="hint warn">' + esc(it.by) + 'さんへ督促を送信済みです（本日2回目）。</p>'
+      : '<p class="hint">返却を記録すると、この札は「持ち出し可」に戻ります。</p>');
+  footEl.innerHTML =
+    '<button class="btn main" id="doReturn">返却を記録する</button>' +
+    '<button class="btn sub" id="cancel">やめる</button>';
+  openSheet();
+}
+
+/* ---------- 札の反転 ---------- */
+function flipAndRerender(id, toFlipped){
+  var it = byId(id);
+  var el = screenEl.querySelector('.tag[data-id="' + id + '"]');
+  if(!el){ render(); return; }
+  var slot = el.parentNode;
+  el.innerHTML = faces(it);
+  if(isLate(it)) slot.classList.add("late"); else slot.classList.remove("late");
+  void el.offsetWidth;
+  if(toFlipped) el.classList.add("flipped"); else el.classList.remove("flipped");
+  setTimeout(function(){ render(); }, 640);
+}
+
+function doBorrow(){
+  var it = byId(sheetState.id);
+  if(!sheetState.person){ toast("借りる人を選んでください"); return; }
+  var person = null;
+  for(var i=0;i<staff.length;i++){ if(staff[i].id === sheetState.person) person = staff[i]; }
+  var purposeEl = document.getElementById("purpose");
+  var purpose = purposeEl ? purposeEl.value.trim() : "";
+  var due = sheetState.choices[sheetState.due].v;
+  var id = it.id;
+
+  it.status  = "out";
+  it.by      = person.name;
+  it.purpose = purpose || "記入なし";
+  it.outAt   = Date.now();
+  it.dueAt   = due;
+  logs.push({kind:"out", name:it.name, by:it.by, purpose:it.purpose, at:it.outAt});
+
+  closeSheet();
+  renderStats(); renderTabs();
+  setTimeout(function(){
+    flipAndRerender(id, true);
+    toast(person.name + "さんに貸し出しました");
+  }, 260);
+}
+
+function doReturn(){
+  var it = byId(sheetState.id);
+  var id = it.id, who = it.by;
+  logs.push({kind:"ret", name:it.name, by:it.by, purpose:it.purpose, at:Date.now()});
+  it.status = "in";
+  delete it.by; delete it.purpose; delete it.outAt; delete it.dueAt;
+
+  closeSheet();
+  renderStats(); renderTabs();
+  setTimeout(function(){
+    flipAndRerender(id, false);
+    toast(who + "さんからの返却を記録しました");
+  }, 260);
+}
+
+/* ---------- QRスキャン ---------- */
+function startScan(){
+  scanEl.classList.add("on");
+  clearTimeout(scanTimer);
+  scanTimer = setTimeout(function(){
+    scanEl.classList.remove("on");
+    var avail = items.filter(function(it){ return it.status === "in"; });
+    if(!avail.length){ toast("読み取れる備品がありません"); return; }
+    var pick = avail[Math.floor(Math.random() * avail.length)];
+    if(view !== "board"){ view = "board"; render(); }
+    openBorrow(pick);
+  }, 1900);
+}
+
+/* ---------- イベント ---------- */
+screenEl.addEventListener("click", function(e){
+  var tag = e.target.closest ? e.target.closest(".tag") : null;
+  if(tag){
+    var it = byId(tag.getAttribute("data-id"));
+    if(!it) return;
+    if(it.status === "in") openBorrow(it); else openReturn(it);
+    return;
+  }
+  if(e.target.id === "report"){ toast("今月分の貸出記録を書き出しました"); }
+});
+
+catsEl.addEventListener("click", function(e){
+  var c = e.target.closest ? e.target.closest(".chip") : null;
+  if(!c) return;
+  cat = c.getAttribute("data-cat");
+  render();
+});
+
+tabsEl.addEventListener("click", function(e){
+  var t = e.target.closest ? e.target.closest(".tab") : null;
+  if(!t) return;
+  view = t.getAttribute("data-view");
+  closeSheet();
+  render();
+  screenEl.scrollTop = 0;
+});
+
+bodyEl.addEventListener("click", function(e){
+  var p = e.target.closest ? e.target.closest(".person") : null;
+  if(p && sheetState){
+    sheetState.person = p.getAttribute("data-person");
+    var all = bodyEl.querySelectorAll(".person");
+    for(var i=0;i<all.length;i++) all[i].classList.remove("on");
+    p.classList.add("on");
+    return;
+  }
+  var w = e.target.closest ? e.target.closest(".when") : null;
+  if(w && sheetState){
+    sheetState.due = parseInt(w.getAttribute("data-due"), 10);
+    var ws = bodyEl.querySelectorAll(".when");
+    for(var j=0;j<ws.length;j++) ws[j].classList.remove("on");
+    w.classList.add("on");
+  }
+});
+
+footEl.addEventListener("click", function(e){
+  var id = e.target.id;
+  if(id === "cancel") closeSheet();
+  else if(id === "doBorrow") doBorrow();
+  else if(id === "doReturn") doReturn();
+});
+
+scrimEl.addEventListener("click", closeSheet);
+fabEl.addEventListener("click", startScan);
+scanEl.addEventListener("click", function(){
+  clearTimeout(scanTimer);
+  scanEl.classList.remove("on");
+});
+
+/* ---------- 時計 / スケール ---------- */
+function tick(){
+  var d = new Date();
+  document.getElementById("clock").textContent = d.getHours() + ":" + pad(d.getMinutes());
+}
+function fit(){
+  var s = Math.min(1, (window.innerHeight - 26) / 844, (window.innerWidth - 26) / 390);
+  document.getElementById("phone").style.transform = "scale(" + s + ")";
+}
+window.addEventListener("resize", fit);
+
+tick();
+setInterval(tick, 20000);
+setInterval(function(){
+  if(view === "board" && !sheetState) renderStats();
+  renderTabs();
+}, 60000);
+fit();
+render();
+</script>
