@@ -1,0 +1,2271 @@
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>送迎きろく</title>
+<style>
+:root{
+  --ink:#22262B;
+  --bg:#F1EFE9;
+  --panel:#FFFFFF;
+  --nav:#34302C;
+  --nav-2:#464039;
+  --am:#DE8A28;
+  --am-bg:#FBF1E2;
+  --pm:#54639C;
+  --pm-bg:#EDEFF7;
+  --ok:#3B7F5B;
+  --ok-bg:#E9F2ED;
+  --warn:#B94A32;
+  --warn-bg:#FAEEEB;
+  --muted:#6F6A65;
+  --line:#DBD6CD;
+  --line-2:#EBE7E0;
+  --ui:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Yu Gothic","Noto Sans JP","Meiryo",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Roboto Mono","Hiragino Sans","Yu Gothic",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--ui);
+  font-size:15px;
+  line-height:1.65;
+  color:var(--ink);
+  background:var(--bg);
+  -webkit-text-size-adjust:100%;
+}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--am);outline-offset:2px}
+.mono{font-family:var(--mono)}
+
+/* ---------- 骨組み ---------- */
+.app{display:flex;align-items:flex-start;min-height:100vh}
+.side{
+  width:222px;flex:0 0 222px;
+  background:var(--nav);color:#EDE8E1;
+  position:sticky;top:0;height:100vh;
+  display:flex;flex-direction:column;
+}
+.brand{padding:18px 16px 12px;display:flex;gap:10px;align-items:center}
+.logo{
+  width:36px;height:36px;flex:0 0 36px;border-radius:10px;background:var(--am);
+  display:flex;align-items:center;justify-content:center;
+}
+.brand-t{font-weight:700;font-size:16px;letter-spacing:.04em;line-height:1.3;color:#fff}
+.brand-sub{padding:0 16px 14px;font-size:12.5px;color:#A79E93;border-bottom:1px solid #45403A}
+.nav{flex:1;min-height:0;overflow-y:auto;padding:12px 10px}
+.nav-item{
+  display:flex;align-items:center;gap:10px;width:100%;
+  padding:10px 12px;margin-bottom:3px;border:0;border-radius:9px;
+  background:transparent;color:#CFC7BC;font-size:14.5px;text-align:left;cursor:pointer;
+}
+.nav-item:hover{background:var(--nav-2);color:#fff}
+.nav-item.active{background:var(--nav-2);color:#fff;font-weight:700}
+.nav-item svg{flex:0 0 18px}
+.side-foot{padding:12px 16px 16px;border-top:1px solid #45403A;font-size:12.5px;color:#A79E93}
+.side-foot b{display:block;color:#EDE8E1;font-size:13.5px;font-weight:600}
+
+.main{flex:1;min-width:0}
+.head{
+  background:var(--panel);border-bottom:1px solid var(--line);
+  padding:16px 22px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;
+}
+.head h1{margin:0;font-size:19px;letter-spacing:.02em}
+.head p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.head-act{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.content{padding:20px 22px 70px;max-width:1260px}
+
+/* ---------- 部品 ---------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:18px;overflow:hidden}
+.card-h{padding:13px 16px;border-bottom:1px solid var(--line-2);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.card-h h2{margin:0;font-size:15.5px}
+.card-h .sub{font-size:12.5px;color:var(--muted)}
+.card-h .act{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.card-b{padding:16px}
+
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 14px;border-radius:9px;border:1px solid var(--line);
+  background:var(--panel);color:var(--ink);font-size:14px;cursor:pointer;white-space:nowrap;
+}
+.btn:hover{background:#F7F4EF}
+.btn-sm{padding:5px 10px;font-size:13px;border-radius:8px}
+.btn-dark{background:var(--nav);border-color:var(--nav);color:#fff}
+.btn-dark:hover{background:var(--nav-2)}
+.btn-am{background:var(--am);border-color:var(--am);color:#fff;font-weight:700}
+.btn-am:hover{background:#C87A1E}
+.btn-pm{background:var(--pm);border-color:var(--pm);color:#fff;font-weight:700}
+.btn-pm:hover{background:#48568B}
+.btn-ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn-ok:hover{background:#336F4F}
+.btn-danger{background:var(--panel);border-color:#D9AFA4;color:var(--warn)}
+.btn-danger:hover{background:var(--warn-bg)}
+.btn-line{width:100%;justify-content:center;padding:11px 14px;color:#4A453F}
+.btn-link{border:0;background:transparent;color:var(--pm);font-size:13px;padding:6px 2px;cursor:pointer;text-decoration:underline}
+.btn-link:hover{color:#3C4874}
+.btn:disabled{opacity:.42;cursor:not-allowed}
+.btn:disabled:hover{background:var(--panel)}
+.btn-am:disabled:hover{background:var(--am)}
+.btn-pm:disabled:hover{background:var(--pm)}
+
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 10px;border-radius:999px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.pill-am{background:var(--am);color:#fff}
+.pill-pm{background:var(--pm);color:#fff}
+.pill-ok{background:var(--ok-bg);color:var(--ok);border:1px solid #BFDDCD}
+.pill-idle{background:#EDE9E2;color:var(--muted);border:1px solid var(--line)}
+.tag{display:inline-block;padding:1px 8px;border-radius:6px;background:#F0ECE4;border:1px solid var(--line);font-size:12px;color:#5A544E;white-space:nowrap}
+.tag-move{background:var(--am-bg);border-color:#EBD6B4;color:#8A5B14}
+
+.note{padding:10px 13px;border-radius:9px;font-size:13.5px;border-left:4px solid var(--line);background:#F7F5F1;color:#4A453F}
+.note-ok{background:var(--ok-bg);border-left-color:var(--ok);color:#2E6448}
+.note-warn{background:var(--warn-bg);border-left-color:var(--warn);color:#8E3A27}
+.empty{padding:26px 16px;text-align:center;color:var(--muted);font-size:14px}
+
+/* ---------- 大ボタン ---------- */
+.bigrow{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.big{
+  display:flex;gap:14px;align-items:center;text-align:left;
+  padding:18px;border-radius:12px;border:1px solid var(--line);cursor:pointer;
+}
+.big-am{background:var(--am-bg);border-color:#EAD6B2}
+.big-am:hover{background:#F7E9D2}
+.big-pm{background:var(--pm-bg);border-color:#CFD5EA}
+.big-pm:hover{background:#E2E6F3}
+.big i{width:46px;height:46px;flex:0 0 46px;border-radius:999px;display:flex;align-items:center;justify-content:center}
+.big-am i{background:var(--am)}
+.big-pm i{background:var(--pm)}
+.big b{display:block;font-size:16.5px}
+.big span{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+
+/* ---------- 便カード ---------- */
+.trips{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.trip{border:1px solid var(--line);border-radius:11px;overflow:hidden;background:var(--panel)}
+.trip-h{padding:11px 13px;display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--line-2)}
+.trip-h .nm{font-weight:700}
+.trip-h .no{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.trip-h .pill{margin-left:auto}
+.trip-meta{display:flex;flex-wrap:wrap;gap:4px 14px;padding:9px 13px;background:#FAF8F4;border-bottom:1px solid var(--line-2);font-size:12.5px;color:var(--muted)}
+.trip-meta b{color:var(--ink);font-weight:600}
+.trip-meta .mono{color:var(--ink)}
+.rider{display:flex;gap:8px;align-items:center;padding:8px 13px;border-bottom:1px solid var(--line-2);font-size:14px}
+.rider:last-child{border-bottom:0}
+.rider .rn{font-weight:600}
+.rider .rt{margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--ok);font-weight:700}
+.rider .rt.non{color:#A9A29A;font-weight:400}
+.trip-f{padding:11px 13px;border-top:1px solid var(--line-2);display:flex;gap:8px;flex-wrap:wrap;background:#FAF8F4}
+.vinfo{padding:11px 13px;font-size:13px;color:var(--muted)}
+.vinfo .mono{color:var(--ink)}
+
+/* ---------- 表 ---------- */
+.tw{overflow:auto;max-height:560px;border:1px solid var(--line-2);border-radius:10px}
+table.grid{border-collapse:separate;border-spacing:0;width:100%;min-width:760px;font-size:13.5px;background:var(--panel)}
+table.grid th,table.grid td{padding:8px 10px;border-bottom:1px solid var(--line-2);text-align:left;white-space:nowrap}
+table.grid thead th{
+  position:sticky;top:0;z-index:3;background:#F3F0EA;border-bottom:1px solid var(--line);
+  font-size:12.5px;font-weight:700;color:#4A453F;
+}
+table.grid thead th.am{background:#F4E3C8}
+table.grid thead th.pm{background:#DCE1F0}
+table.grid td.am{background:#FCF6EC}
+table.grid td.pm{background:#F4F6FC}
+table.grid td.stick,table.grid th.stick{
+  position:sticky;left:0;z-index:2;background:var(--panel);
+  border-right:2px solid var(--line);font-weight:600;
+}
+table.grid thead th.stick{z-index:4;background:#F3F0EA}
+table.grid tbody tr:hover td{background:#F8F6F2}
+table.grid tbody tr:hover td.am{background:#F8EEDD}
+table.grid tbody tr:hover td.pm{background:#EAEDF7}
+table.grid tbody tr:hover td.stick{background:#F8F6F2}
+table.grid td.off{background:#F2F0EC;color:var(--muted)}
+table.grid tbody tr:hover td.off{background:#EDEAE4}
+table.grid tr.absent td.stick{background:#F5F3EF}
+table.grid tbody tr.absent:hover td.stick{background:#F1EEE8}
+.dash{color:#B6B0A8}
+.wrapcell{white-space:normal;min-width:190px;color:var(--muted);font-size:12.5px}
+.rowlink{cursor:pointer}
+.rowlink.on td{background:#F1EEE7}
+.actcell{display:flex;gap:6px}
+
+/* ---------- 検索フォーム ---------- */
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.fld label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:4px}
+.fld input,.fld select,.fld textarea{
+  width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);
+}
+.fld textarea{min-height:74px;resize:vertical}
+.fld input:disabled,.fld select:disabled{background:#F4F1EC;color:#A9A29A}
+.formact{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+
+/* ---------- 詳細 ---------- */
+.detail{border:1px solid var(--line);border-radius:12px;background:var(--panel);margin-top:16px;overflow:hidden}
+.detail-h{padding:13px 16px;border-bottom:1px solid var(--line-2);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.detail-h h3{margin:0;font-size:16px}
+.dcols{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:16px}
+.dcard{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.dcard-h{padding:9px 13px;font-weight:700;font-size:14px}
+.dcard-h.am{background:var(--am-bg);color:#8A5B14;border-bottom:1px solid #EBD6B4}
+.dcard-h.pm{background:var(--pm-bg);color:#3C4874;border-bottom:1px solid #CFD5EA}
+.dcard.abs{grid-column:1 / -1;border-left:3px solid var(--muted)}
+.dcard-h.abs{background:var(--line-2);color:#4A453F;border-bottom:1px solid var(--line)}
+dl.kv{margin:0;padding:12px 13px;display:grid;grid-template-columns:96px 1fr;gap:6px 10px;font-size:13.5px}
+dl.kv dt{color:var(--muted);font-size:12.5px;padding-top:1px}
+dl.kv dd{margin:0}
+
+/* ---------- モーダル ---------- */
+.mask{position:fixed;inset:0;background:rgba(30,26,22,.44);z-index:60;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:var(--panel);border-radius:14px;width:100%;max-width:720px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.28)}
+.modal-h{padding:15px 18px;border-bottom:1px solid var(--line-2);display:flex;gap:10px;align-items:center}
+.modal-h h2{margin:0;font-size:17px}
+.modal-h .date{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.modal-h .x{margin-left:auto;border:0;background:transparent;font-size:22px;line-height:1;color:var(--muted);cursor:pointer;padding:2px 6px;border-radius:8px}
+.modal-h .x:hover{background:#F2EFE9}
+.modal-b{padding:18px;overflow-y:auto}
+.modal-f{padding:14px 18px;border-top:1px solid var(--line-2);display:flex;gap:8px;justify-content:flex-end;background:#FAF8F4}
+.step{margin-bottom:20px}
+.step-h{display:flex;gap:9px;align-items:center;margin-bottom:9px}
+.step-n{width:23px;height:23px;flex:0 0 23px;border-radius:999px;background:var(--nav);color:#fff;font-family:var(--mono);font-size:13px;display:flex;align-items:center;justify-content:center}
+.step-h b{font-size:14.5px}
+.step-h .cnt{margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--muted)}
+.step p.hint{margin:0 0 9px 32px;font-size:12.5px;color:var(--muted)}
+.step-b{margin-left:32px}
+.chips{display:flex;gap:9px;flex-wrap:wrap}
+.chip{
+  border:1px solid var(--line);border-radius:10px;background:var(--panel);
+  padding:9px 13px;text-align:left;cursor:pointer;min-width:150px;
+}
+.chip:hover{background:#F7F4EF}
+.chip b{display:block;font-size:14.5px}
+.chip span{display:block;font-size:11.5px;color:var(--muted)}
+.chip.on{border-color:var(--nav);background:#F3F0EA;box-shadow:inset 0 0 0 1px var(--nav)}
+.chip:disabled{opacity:.45;cursor:not-allowed}
+.chip:disabled:hover{background:var(--panel)}
+.picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px}
+.pick{display:flex;gap:9px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer;background:var(--panel)}
+.pick:hover{background:#F7F4EF}
+.pick.on{border-color:var(--nav);background:#F3F0EA}
+.pick.course{border-left:3px solid var(--ok)}
+.pick.dim{background:#FAF8F4}
+.pick.dis{opacity:.55;cursor:not-allowed}
+.pick input{margin-top:4px;width:16px;height:16px;flex:0 0 16px}
+.pick b{display:block;font-size:14px}
+.pick span{display:block;font-size:11.5px;color:var(--muted)}
+.pick .tag{display:none;margin-top:3px}
+.pick.on .tag,.pick.dis .tag{display:inline-block}
+.abs-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:11px 13px;border-bottom:1px solid var(--line-2);font-size:14px}
+.abs-row:last-child{border-bottom:0}
+.abs-row .nm{font-weight:600;min-width:110px}
+.abs-row .at{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+.abs-row .rest{margin-left:auto}
+.abs-row .memo{flex:1 0 100%;font-size:12.5px;color:var(--muted)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal.wide{max-width:1000px}
+.sheetwrap{overflow-x:auto;background:#EDEAE4;padding:14px;border-radius:10px}
+.sheet{background:#fff;color:#000;min-width:880px;padding:22px 24px;border:1px solid var(--line)}
+.sheet h1{text-align:center;font-size:17px;margin:0 0 12px;letter-spacing:.14em;font-weight:700}
+.sheet .pmeta{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:8px}
+.sheet table{border-collapse:collapse;width:100%}
+.sheet th,.sheet td{border:1px solid #000;padding:4px 6px;text-align:left;font-size:11.5px;white-space:nowrap}
+.sheet th{background:#EEE;text-align:center}
+.sheet tr.absent td{background:#D6D3CE}
+.sheet .absnote{margin-top:10px;font-size:12px}
+.sheet .seals{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+.sheet .seal{width:92px;border:1px solid #000}
+.sheet .seal .st{border-bottom:1px solid #000;text-align:center;font-size:11px;padding:2px}
+.sheet .seal .sb{height:58px}
+
+/* ---------- トースト ---------- */
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:90;
+  background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--am);
+  border-radius:10px;padding:12px 18px;font-size:14px;max-width:92vw;
+  box-shadow:0 10px 30px rgba(0,0,0,.18);
+}
+
+/* ---------- 印刷 ---------- */
+#printRoot{display:none}
+@page{size:A4 landscape;margin:12mm}
+@media print{
+  html,body{background:#fff}
+  .app,.mask,.toast{display:none !important}
+  #printRoot{display:block;color:#000;font-size:11px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #printRoot tr.absent td{background:#D6D3CE}
+  #printRoot .absnote{margin-top:10px;font-size:11px}
+  #printRoot h1{text-align:center;font-size:16px;margin:0 0 10px;letter-spacing:.14em}
+  #printRoot .pmeta{display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:6px}
+  #printRoot table{border-collapse:collapse;width:100%}
+  #printRoot th,#printRoot td{border:1px solid #000;padding:3px 5px;text-align:left;font-size:10.5px}
+  #printRoot th{background:#EEE;text-align:center}
+  #printRoot .seals{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+  #printRoot .seal{width:78px;border:1px solid #000}
+  #printRoot .seal .st{border-bottom:1px solid #000;text-align:center;font-size:10px;padding:2px}
+  #printRoot .seal .sb{height:52px}
+}
+
+/* ---------- レスポンシブ ---------- */
+@media (max-width:899px){
+  .app{display:block}
+  .side{
+    width:auto;flex:none;height:auto;position:sticky;top:0;z-index:50;
+    flex-direction:row;align-items:center;gap:6px;padding:8px 10px;
+  }
+  .brand{padding:0 4px 0 0;flex:0 0 auto}
+  .brand-t{font-size:14px;white-space:nowrap}
+  .brand-sub,.side-foot{display:none}
+  .nav{display:flex;gap:6px;padding:0;overflow-x:auto;overflow-y:hidden;flex:1;min-width:0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .nav::-webkit-scrollbar{display:none}
+  .nav-item{width:auto;flex:0 0 auto;margin:0;padding:8px 11px;font-size:13.5px}
+  .nav-item .nav-label{display:none}
+  .nav-item.active .nav-label{display:inline}
+  .head{padding:14px 16px}
+  .content{padding:16px 16px 60px}
+  .dcols{grid-template-columns:1fr}
+}
+@media (max-width:639px){
+  .bigrow{grid-template-columns:1fr}
+  .two{grid-template-columns:1fr}
+  .mask{padding:0;align-items:flex-end}
+  .modal{max-width:none;max-height:92vh;border-radius:14px 14px 0 0}
+  .modal-b{padding:16px 14px}
+  .step-b,.step p.hint{margin-left:0}
+  .head-act{margin-left:0;width:100%}
+}
+</style>
+
+<div id="app" class="app"></div>
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+<div id="printRoot"></div>
+
+<script>
+/* =========================================================================
+   事業所の情報。ここを差し替えれば別の事業所用になります
+   ========================================================================= */
+var OFFICE = {
+  name:'コモン広瀬',
+  corp:'株式会社コモンズ',
+  openTime:'9:00',
+  closeTime:'16:00'
+};
+
+var VEHICLES = [
+  {id:'v1', name:'1号車', number:'宮崎 580 あ 12-34', model:'ハイエース',   cap:10, lift:true },
+  {id:'v2', name:'2号車', number:'宮崎 480 い 56-78', model:'セレナ',       cap:7,  lift:false},
+  {id:'v3', name:'3号車', number:'宮崎 580 う 90-12', model:'タウンエース', cap:8,  lift:true }
+];
+
+var STAFF = [
+  {id:'s1', name:'田中 誠',     role:'管理者',         tel:'0985-73-0001'},
+  {id:'s2', name:'黒岩 由美',   role:'生活相談員',     tel:'0985-73-0002'},
+  {id:'s3', name:'川越 健太',   role:'介護職員',       tel:'090-1200-3311'},
+  {id:'s4', name:'増田 明日香', role:'介護職員',       tel:'090-1200-3312'},
+  {id:'s5', name:'柏田 隆',     role:'ドライバー',     tel:'090-1200-3313'}
+];
+
+var ROLES = ['管理者','生活相談員','介護職員','看護職員','機能訓練指導員','ドライバー'];
+var MOVES = ['自立','杖','歩行器','車いす'];
+
+/* days は利用する曜日。月曜=1 〜 土曜=6（日曜は休業日のため使わない） */
+var USERS = [
+  {id:'u1',  name:'日高 ハルヱ', kana:'ひだか はるゑ',   age:82, area:'佐土原町上田島', tel:'0985-74-1102', move:'車いす', days:[1,3,5],       note:'玄関前に段差あり。介助が必要'},
+  {id:'u2',  name:'黒木 政雄',   kana:'くろぎ まさお',   age:78, area:'佐土原町下田島', tel:'0985-74-2214', move:'自立',   days:[1,3,5],       note:''},
+  {id:'u3',  name:'河野 スミ子', kana:'こうの すみこ',   age:85, area:'新名爪',         tel:'0985-39-3320', move:'歩行器', days:[2,4],         note:'耳が遠いため玄関で声かけ'},
+  {id:'u4',  name:'甲斐 春男',   kana:'かい はるお',     age:74, area:'広瀬',           tel:'0985-39-4471', move:'自立',   days:[1,2,3,4,5],   note:''},
+  {id:'u5',  name:'長友 ミツ',   kana:'ながとも みつ',   age:88, area:'那珂',           tel:'0985-74-5508', move:'車いす', days:[1,3,5],       note:'リフト付き車両を使用'},
+  {id:'u6',  name:'米良 富子',   kana:'めら とみこ',     age:80, area:'佐土原町石崎',   tel:'0985-74-6693', move:'自立',   days:[2,4,6],       note:''},
+  {id:'u7',  name:'押川 忠雄',   kana:'おしかわ ただお', age:76, area:'久峰',           tel:'0985-74-7745', move:'杖',     days:[1,2,3,4,5],   note:''},
+  {id:'u8',  name:'図師 キヨ',   kana:'ずし きよ',       age:91, area:'島之内',         tel:'0985-39-8802', move:'歩行器', days:[2,4],         note:'ご家族への引き渡しが必要'},
+  {id:'u9',  name:'外山 昭一',   kana:'とやま しょういち',age:73, area:'佐土原町上田島', tel:'0985-74-9917', move:'自立',   days:[1,3,5],       note:''},
+  {id:'u10', name:'井上 サダ',   kana:'いのうえ さだ',   age:84, area:'下那珂',         tel:'0985-74-1063', move:'杖',     days:[2,4,6],       note:''},
+  {id:'u11', name:'谷口 幸雄',   kana:'たにぐち ゆきお', age:79, area:'新名爪',         tel:'0985-39-2286', move:'自立',   days:[1,3,5],       note:''},
+  {id:'u12', name:'内田 ヨシ子', kana:'うちだ よしこ',   age:86, area:'広瀬',           tel:'0985-39-3390', move:'車いす', days:[2,4,6],       note:'ベッドから車いすへの移乗介助あり'}
+];
+
+/* いつものコース（車ごとの担当職員と、いつも乗せている利用者） */
+var COURSES = {
+  v1:{staffId:'s5', users:['u1','u2','u3','u4']},
+  v2:{staffId:'s3', users:['u5','u6','u7','u8']},
+  v3:{staffId:'s4', users:['u9','u10','u11','u12']}
+};
+
+/* 当日欠席。{id, date, userId, slot, reason, note, at}
+   slot は day（終日欠席）/ am（朝のみ来ない）/ pm（夕のみ帰らない） */
+var ABSENCES = [];
+var REASONS = ['体調不良','受診','家族都合','入院','その他'];
+
+var ME = {name:'田中 誠', role:'管理者'};
+
+/* =========================================================================
+   小さな道具
+   ========================================================================= */
+function esc(s){
+  if(s===null||s===undefined) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function pad2(n){ return (n<10?'0':'')+n; }
+function toMin(hm){
+  if(!hm) return 0;
+  var p = String(hm).split(':');
+  return parseInt(p[0],10)*60 + parseInt(p[1],10);
+}
+function fromMin(m){
+  var x = ((m % 1440) + 1440) % 1440;      /* 24時間をまたいでも破綻しない */
+  return pad2(Math.floor(x/60)) + ':' + pad2(x%60);
+}
+function addMin(hm, n){ return fromMin(toMin(hm) + n); }
+function dkey(d){ return d.getFullYear() + '-' + pad2(d.getMonth()+1) + '-' + pad2(d.getDate()); }
+var WD = ['日','月','火','水','木','金','土'];
+function parseKey(k){
+  var p = k.split('-');
+  return new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10));
+}
+function fmtDate(k){
+  var d = parseKey(k);
+  return (d.getMonth()+1) + '月' + d.getDate() + '日（' + WD[d.getDay()] + '）';
+}
+function fmtDateShort(k){
+  var d = parseKey(k);
+  return (d.getMonth()+1) + '/' + d.getDate() + '（' + WD[d.getDay()] + '）';
+}
+function nowHM(){
+  var d = new Date();
+  return pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+}
+/* 曜日は日付文字列からDateを組み立てて判定する（日曜=0、月曜=1 … 土曜=6） */
+function dowOf(dateKey){ return parseKey(dateKey).getDay(); }
+function dowName(dateKey){ return WD[dowOf(dateKey)] + '曜'; }
+function usesDay(u, dateKey){
+  return !!u && !!u.days && u.days.indexOf(dowOf(dateKey)) >= 0;
+}
+function usersOfDay(dateKey){
+  return USERS.filter(function(u){ return usesDay(u, dateKey); });
+}
+function daysLabel(u){
+  if(!u.days || !u.days.length) return '';
+  return u.days.slice().sort(function(a,b){ return a-b; }).map(function(n){ return WD[n]; }).join('・');
+}
+function byId(list, id){
+  for(var i=0;i<list.length;i++){ if(list[i].id===id) return list[i]; }
+  return null;
+}
+function vName(id){ var v=byId(VEHICLES,id); return v?v.name:'-'; }
+function sName(id){ var s=byId(STAFF,id); return s?s.name:'-'; }
+function uName(id){ var u=byId(USERS,id); return u?u.name:'-'; }
+function slotLabel(slot){ return slot==='am' ? '朝の迎え' : '夕の送り'; }
+function slotShort(slot){ return slot==='am' ? '朝' : '夕'; }
+function rideWord(slot){ return slot==='am' ? '乗車' : '降車'; }
+function closest(el, sel){
+  while(el && el.nodeType===1){
+    if(el.matches ? el.matches(sel) : el.msMatchesSelector(sel)) return el;
+    el = el.parentNode;
+  }
+  return null;
+}
+
+/* =========================================================================
+   初期データ（すべて実行日からの相対で生成する）
+   ========================================================================= */
+/* 画面に出す「本日」。日曜は休業日で送迎がないため、
+   日曜に開いたときは翌営業日（月曜）を本日として表示する */
+function businessToday(){
+  var d = new Date();
+  while(d.getDay() === 0){ d.setDate(d.getDate() + 1); }
+  return dkey(d);
+}
+var TODAY = businessToday();
+var TRIPS = [];
+var seq = 1;
+var absSeq = 1;
+
+function makeTrip(dateKey, slot, vehicleId, depart, riderIds, status){
+  var v = byId(VEHICLES, vehicleId);
+  var t = {
+    id: 'T' + (seq++),
+    date: dateKey,
+    slot: slot,
+    vehicleId: vehicleId,
+    staffId: COURSES[vehicleId].staffId,
+    depart: depart,
+    arrive: null,
+    status: status,
+    riders: []
+  };
+  for(var i=0;i<riderIds.length;i++){
+    t.riders.push({userId: riderIds[i], time: null});
+  }
+  return t;
+}
+
+function fillTimes(t, gapStart){
+  var cur = addMin(t.depart, gapStart);
+  for(var i=0;i<t.riders.length;i++){
+    t.riders[i].time = cur;
+    cur = addMin(cur, (i % 2 === 0) ? 7 : 8);
+  }
+  var last = t.riders.length ? t.riders[t.riders.length-1].time : t.depart;
+  t.arrive = addMin(last, t.slot==='am' ? 12 : 10);
+}
+
+/* その日その区分で実際に乗せる人。曜日の利用予定と欠席で絞る */
+function ridersFor(vehicleId, dateKey, slot){
+  return COURSES[vehicleId].users.filter(function(id){
+    return usesDay(byId(USERS, id), dateKey) && !isAbsent(dateKey, id, slot);
+  });
+}
+
+function seedAbsence(){
+  var d = dowOf(TODAY);
+  var a = (d===2 || d===4 || d===6)
+    ? {userId:'u3', reason:'体調不良', note:'発熱のためご家族から連絡', at:'07:52'}
+    : {userId:'u1', reason:'受診',     note:'かかりつけ医の定期受診',   at:'08:10'};
+  /* その方が本日の利用予定でない曜日は、本日利用予定の方に振り替える */
+  if(!usesDay(byId(USERS, a.userId), TODAY)){
+    var today = usersOfDay(TODAY);
+    if(!today.length) return;                /* 休業日は欠席を作らない */
+    a.userId = today[0].id;
+  }
+  ABSENCES.push({
+    id:'A' + (absSeq++), date:TODAY, userId:a.userId, slot:'day',
+    reason:a.reason, note:a.note, at:a.at
+  });
+}
+
+function buildInitialData(){
+  /* 過去4営業日（日曜を除く） */
+  var days = [];
+  var d = parseKey(TODAY);
+  while(days.length < 4){
+    d.setDate(d.getDate() - 1);
+    if(d.getDay() !== 0) days.push(dkey(d));
+  }
+  days.reverse();
+
+  for(var di=0; di<days.length; di++){
+    for(var vi=0; vi<VEHICLES.length; vi++){
+      var vid = VEHICLES[vi].id;
+
+      /* 土曜のように利用者が少ない日は、乗る人がいなければ便を立てない */
+      var ar = ridersFor(vid, days[di], 'am');
+      if(ar.length){
+        var am = makeTrip(days[di], 'am', vid, addMin('08:05', (vi*3 + di*2) % 9), ar, 'done');
+        fillTimes(am, 7);
+        TRIPS.push(am);
+      }
+      var pr = ridersFor(vid, days[di], 'pm');
+      if(pr.length){
+        var pm = makeTrip(days[di], 'pm', vid, addMin('16:10', (vi*2 + di*3) % 8), pr, 'done');
+        fillTimes(pm, 7);
+        TRIPS.push(pm);
+      }
+    }
+  }
+
+  /* 本日の欠席を先に入れてから、その人を外して朝の便を作る */
+  seedAbsence();
+
+  /* 本日：朝の便は完了済み。夕はまだ未登録 */
+  for(var k=0; k<VEHICLES.length; k++){
+    var id = VEHICLES[k].id;
+    var rs = ridersFor(id, TODAY, 'am');
+    if(!rs.length) continue;
+    var t = makeTrip(TODAY, 'am', id, addMin('08:05', k*3), rs, 'done');
+    fillTimes(t, 7);
+    TRIPS.push(t);
+  }
+}
+buildInitialData();
+
+/* =========================================================================
+   参照系
+   ========================================================================= */
+function tripsOf(dateKey, slot){
+  return TRIPS.filter(function(t){
+    return t.date===dateKey && (!slot || t.slot===slot);
+  });
+}
+function todayTrips(){
+  return tripsOf(TODAY, null).sort(function(a,b){
+    if(a.slot !== b.slot) return a.slot==='am' ? -1 : 1;
+    return toMin(a.depart) - toMin(b.depart);
+  });
+}
+function runningTrips(){
+  return TRIPS.filter(function(t){ return t.status==='running'; });
+}
+function runningTripOf(vehicleId){
+  var r = TRIPS.filter(function(t){ return t.status==='running' && t.vehicleId===vehicleId; });
+  return r.length ? r[0] : null;
+}
+function tripFor(dateKey, slot, userId){
+  var list = tripsOf(dateKey, slot);
+  for(var i=0;i<list.length;i++){
+    for(var j=0;j<list[i].riders.length;j++){
+      if(list[i].riders[j].userId===userId) return {trip:list[i], rider:list[i].riders[j]};
+    }
+  }
+  return null;
+}
+function registeredUserIds(dateKey, slot){
+  var ids = [];
+  tripsOf(dateKey, slot).forEach(function(t){
+    t.riders.forEach(function(r){ ids.push(r.userId); });
+  });
+  return ids;
+}
+function lastArriveToday(vehicleId){
+  var list = TRIPS.filter(function(t){
+    return t.date===TODAY && t.vehicleId===vehicleId && t.status==='done' && t.arrive;
+  }).sort(function(a,b){ return toMin(b.arrive) - toMin(a.arrive); });
+  return list.length ? list[0].arrive : null;
+}
+function unrecordedCount(t){
+  return t.riders.filter(function(r){ return !r.time; }).length;
+}
+
+/* ---- 欠席 ---- */
+function absencesOf(dateKey){
+  return ABSENCES.filter(function(a){ return a.date===dateKey; });
+}
+function absenceOf(dateKey, userId){
+  var l = ABSENCES.filter(function(a){ return a.date===dateKey && a.userId===userId; });
+  return l.length ? l[0] : null;
+}
+function isAbsent(dateKey, userId, slot){
+  var a = absenceOf(dateKey, userId);
+  if(!a) return false;
+  return a.slot==='day' || a.slot===slot;
+}
+function rangeLabel(slot){
+  return slot==='day' ? '終日おやすみ' : (slot==='am' ? '朝だけ来られない' : '夕だけお迎えなし');
+}
+function rangeShort(slot){
+  return slot==='day' ? '終日欠席' : (slot==='am' ? '朝欠席' : '夕欠席');
+}
+/* 本日の送迎表に出す利用者。曜日の利用予定に加え、記録や欠席がある方も出す */
+function todayRows(){
+  return USERS.filter(function(u){
+    return usesDay(u, TODAY) || absenceOf(TODAY, u.id) ||
+           tripFor(TODAY,'am',u.id) || tripFor(TODAY,'pm',u.id);
+  });
+}
+
+/* =========================================================================
+   アイコン
+   ========================================================================= */
+function ico(name, color, size){
+  var c = color || 'currentColor';
+  var s = size || 18;
+  var o = '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="'+c+
+          '" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+  var p = {
+    bus:'<rect x="4" y="4" width="16" height="13" rx="2"/><path d="M4 10h16"/><path d="M7 21v-2M17 21v-2"/><circle cx="8" cy="14" r="1"/><circle cx="16" cy="14" r="1"/>',
+    today:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+    live:'<path d="M3 17h2l2-8h8l3 4h3v4h-2"/><circle cx="8" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
+    search:'<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.2-4.2"/>',
+    master:'<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
+    staff:'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5"/><path d="M16 8h5M18.5 5.5v5"/>',
+    sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/>',
+    sunset:'<path d="M12 3v6M8 7l4 4 4-4"/><path d="M2 15h4M18 15h4M7 19h10M4 19h1M19 19h1"/><path d="M8 15a4 4 0 0 1 8 0"/>',
+    absent:'<circle cx="10" cy="8" r="3.2"/><path d="M4 20c0-3.3 2.7-5.5 6-5.5c1.1 0 2.1.2 3 .6"/><path d="M15 15l6 6M21 15l-6 6"/>'
+  };
+  return o + (p[name]||'') + '</svg>';
+}
+
+/* =========================================================================
+   画面の状態
+   ========================================================================= */
+var view = 'today';
+var detail = null;          /* 検索の詳細表示 {date,userId} */
+var searchDone = false;
+var searchCond = {date:'', slot:'', staffId:'', vehicleId:'', name:''};
+var modal = null;           /* 開いているモーダルの種類 */
+var rec = null;             /* 記録モーダルの入力状態 */
+var abs = null;             /* 欠席登録モーダルの入力状態 */
+var form = null;            /* 登録モーダルの入力状態 */
+
+var NAV = [
+  {id:'today',  label:'本日の送迎',        icon:'today'},
+  {id:'live',   label:'運行状況',          icon:'live'},
+  {id:'search', label:'送迎記録の検索',    icon:'search'},
+  {id:'master', label:'車両・利用者の登録',icon:'master'},
+  {id:'staff',  label:'職員の登録',        icon:'staff'}
+];
+
+/* =========================================================================
+   共通パーツ
+   ========================================================================= */
+function moveTag(u){
+  if(!u || u.move==='自立') return '';
+  return '<span class="tag tag-move">' + esc(u.move) + '</span>';
+}
+function statusPill(t){
+  if(t.status==='running'){
+    return '<span class="pill ' + (t.slot==='am'?'pill-am':'pill-pm') + '">' +
+           (t.slot==='am'?'迎え':'送り') + ' 運行中</span>';
+  }
+  return '<span class="pill pill-ok">' + (t.slot==='am'?'迎え':'送り') + ' 完了</span>';
+}
+function tripCard(t, withActions){
+  var v = byId(VEHICLES, t.vehicleId);
+  var h = '<div class="trip">';
+  h += '<div class="trip-h"><span class="nm">' + esc(v?v.name:'-') + '</span>' +
+       '<span class="no mono">' + esc(v?v.number:'') + '</span>' + statusPill(t) + '</div>';
+  h += '<div class="trip-meta">' +
+       '<span>担当 <b>' + esc(sName(t.staffId)) + '</b></span>' +
+       '<span>出発 <b class="mono">' + esc(t.depart) + '</b></span>' +
+       '<span>帰着 <b class="mono">' + (t.arrive ? esc(t.arrive) : '&mdash;') + '</b></span>' +
+       '<span class="mono">' + (t.riders.length - unrecordedCount(t)) + ' / ' + t.riders.length + '名</span>' +
+       '</div>';
+
+  for(var i=0;i<t.riders.length;i++){
+    var r = t.riders[i];
+    var u = byId(USERS, r.userId);
+    h += '<div class="rider"><span class="rn">' + esc(u?u.name:'-') + '</span>' + moveTag(u);
+    if(r.time){
+      h += '<span class="rt mono">' + esc(r.time) + '</span>';
+    }else if(withActions && t.status==='running'){
+      h += '<span class="rt non">&nbsp;</span>' +
+           '<button class="btn btn-sm btn-ok" data-act="ride" data-trip="' + t.id + '" data-user="' + esc(r.userId) + '">' +
+           rideWord(t.slot) + '</button>';
+    }else{
+      h += '<span class="rt non mono">未</span>';
+    }
+    h += '</div>';
+  }
+
+  if(withActions && t.status==='running'){
+    h += '<div class="trip-f">' +
+         '<button class="btn btn-sm btn-dark" data-act="arrive" data-trip="' + t.id + '">事業所に帰着</button>' +
+         '<button class="btn btn-sm btn-danger" data-act="cancel" data-trip="' + t.id + '">この便を取り消す</button>' +
+         '</div>';
+  }
+  h += '</div>';
+  return h;
+}
+
+/* =========================================================================
+   画面1：本日の送迎
+   ========================================================================= */
+function viewToday(){
+  var trips = todayTrips();
+  var abs = absencesOf(TODAY);
+  var h = '';
+
+  h += '<div class="bigrow">';
+  h += '<button class="big big-am" data-act="open-rec" data-slot="am">' +
+       '<i>' + ico('sun','#fff',24) + '</i><span><b>朝の迎えを記録</b>' +
+       '<span>車を選ぶと出発時刻が入ります</span></span></button>';
+  h += '<button class="big big-pm" data-act="open-rec" data-slot="pm">' +
+       '<i>' + ico('sunset','#fff',24) + '</i><span><b>夕の送りを記録</b>' +
+       '<span>車を選ぶと出発時刻が入ります</span></span></button>';
+  h += '</div>';
+
+  h += '<button class="btn btn-line" data-act="open-abs">' + ico('absent','currentColor',18) +
+       '本日の欠席を登録</button>';
+  if(abs.length){
+    h += '<div class="note" data-act="open-abs-list" style="margin:10px 0 18px;cursor:pointer">' +
+         '本日の欠席 <b class="mono">' + abs.length + '名</b>：' +
+         abs.map(function(a){ return esc(uName(a.userId)) + ' 様（' + esc(a.reason) + '）'; }).join('、') +
+         '</div>';
+  }else{
+    h += '<div style="height:18px"></div>';
+  }
+
+  h += '<div class="card"><div class="card-h"><h2>本日の便</h2>' +
+       '<span class="sub mono">' + esc(fmtDate(TODAY)) + '</span>' +
+       '<span class="act">' +
+       '<button class="btn btn-sm" data-act="print-today">PDFで出力</button>' +
+       '<button class="btn btn-sm" data-act="csv-today">Excelで出力</button>' +
+       '</span></div><div class="card-b">';
+  if(!trips.length){
+    h += '<div class="empty">まだ記録がありません。上のボタンから登録してください。</div>';
+  }else{
+    h += '<div class="trips">';
+    for(var i=0;i<trips.length;i++) h += tripCard(trips[i], false);
+    h += '</div>';
+  }
+  h += '</div></div>';
+
+  /* 利用者別の送迎表 */
+  var rows = todayRows();
+  h += '<div class="card"><div class="card-h"><h2>利用者別の送迎表</h2>' +
+       '<span class="sub">本日の利用予定 <b class="mono">' + usersOfDay(TODAY).length + '名</b>' +
+       ' / 朝 <b class="mono">' + registeredUserIds(TODAY,'am').length + '名</b>' +
+       ' / 夕 <b class="mono">' + registeredUserIds(TODAY,'pm').length + '名</b></span>' +
+       '</div><div class="card-b">';
+  h += '<div class="tw"><table class="grid"><thead><tr>' +
+       '<th class="stick">利用者</th><th>地区</th>' +
+       '<th class="am">朝 出発</th><th class="am">朝 乗車</th><th class="am">朝 車両</th><th class="am">朝 担当</th>' +
+       '<th class="pm">夕 出発</th><th class="pm">夕 降車</th><th class="pm">夕 車両</th><th class="pm">夕 担当</th>' +
+       '</tr></thead><tbody>';
+
+  if(!rows.length){
+    h += '<tr><td class="stick">&nbsp;</td><td colspan="9" style="color:var(--muted)">' +
+         '本日の利用予定はありません。利用者の登録で曜日を設定してください。</td></tr>';
+  }
+  for(var k=0;k<rows.length;k++){
+    var u = rows[k];
+    var am = tripFor(TODAY,'am',u.id);
+    var pm = tripFor(TODAY,'pm',u.id);
+    var ab = absenceOf(TODAY, u.id);
+    var offAm = isAbsent(TODAY, u.id, 'am');
+    var offPm = isAbsent(TODAY, u.id, 'pm');
+    h += '<tr' + (ab && ab.slot==='day' ? ' class="absent"' : '') + '>';
+    h += '<td class="stick">' + esc(u.name) +
+         (ab ? ' <span class="tag">欠席</span>' : '') +
+         (!usesDay(u, TODAY) ? ' <span class="tag">利用予定外</span>' : '') + '</td>';
+    h += '<td>' + esc(u.area) + '</td>';
+    if(offAm){
+      h += cellOff('am') + cellOff('am') + cellOff('am') + cellOff('am');
+    }else{
+      h += cellT(am ? am.trip.depart : null, 'am');
+      h += cellT(am ? am.rider.time : null, 'am');
+      h += cellS(am ? vName(am.trip.vehicleId) : null, 'am');
+      h += cellS(am ? sName(am.trip.staffId) : null, 'am');
+    }
+    if(offPm){
+      h += cellOff('pm') + cellOff('pm') + cellOff('pm') + cellOff('pm');
+    }else{
+      h += cellT(pm ? pm.trip.depart : null, 'pm');
+      h += cellT(pm ? pm.rider.time : null, 'pm');
+      h += cellS(pm ? vName(pm.trip.vehicleId) : null, 'pm');
+      h += cellS(pm ? sName(pm.trip.staffId) : null, 'pm');
+    }
+    h += '</tr>';
+  }
+  h += '</tbody></table></div>';
+  h += '<div class="note" style="margin-top:14px">この表がそのまま運行記録になります。' +
+       'PDFで出力したものを運営指導の資料として保管できます。</div>';
+  h += '</div></div>';
+  return h;
+}
+function cellT(v, cls){
+  return '<td class="' + cls + '">' + (v ? '<span class="mono">' + esc(v) + '</span>' : '<span class="dash">-</span>') + '</td>';
+}
+function cellS(v, cls){
+  return '<td class="' + cls + '">' + (v ? esc(v) : '<span class="dash">-</span>') + '</td>';
+}
+function cellOff(cls){
+  return '<td class="' + cls + ' off">欠席</td>';
+}
+
+/* =========================================================================
+   画面2：運行状況
+   ========================================================================= */
+function viewLive(){
+  var run = runningTrips();
+  var h = '';
+
+  if(run.length){
+    h += '<div class="note note-ok" style="margin-bottom:16px">現在 <b class="mono">' + run.length +
+         '台</b> が運行中です。空いている車から代わりに向かえます。</div>';
+  }else{
+    h += '<div class="note" style="margin-bottom:16px">現在すべての車が待機中です。</div>';
+  }
+
+  h += '<div class="trips">';
+  for(var i=0;i<VEHICLES.length;i++){
+    var v = VEHICLES[i];
+    var t = runningTripOf(v.id);
+    if(t){
+      h += tripCard(t, true);
+    }else{
+      var la = lastArriveToday(v.id);
+      h += '<div class="trip">';
+      h += '<div class="trip-h"><span class="nm">' + esc(v.name) + '</span>' +
+           '<span class="no mono">' + esc(v.number) + '</span>' +
+           '<span class="pill pill-idle">待機中</span></div>';
+      h += '<div class="vinfo">' + esc(v.model) + ' / 定員<span class="mono"> ' + v.cap + '</span>名 / ' +
+           (v.lift ? 'リフト付' : 'リフトなし') + '</div>';
+      h += '<div class="vinfo" style="border-top:1px solid var(--line-2)">' +
+           (la ? esc(v.name) + ' は <span class="mono">' + esc(la) + '</span> に帰着しています。今すぐ出せます。'
+               : esc(v.name) + ' は本日まだ出ていません。今すぐ出せます。') + '</div>';
+      h += '<div class="trip-f">' +
+           '<button class="btn btn-sm btn-dark" data-act="go-out" data-veh="' + esc(v.id) + '">この車で迎え・送りに出る</button>' +
+           '</div>';
+      h += '</div>';
+    }
+  }
+  h += '</div>';
+
+  /* 夕の送りが未登録の利用者（本日利用予定の方のうち、欠席を除く） */
+  var doneIds = registeredUserIds(TODAY,'pm');
+  var offCnt = 0;
+  var rest = usersOfDay(TODAY).filter(function(u){
+    if(doneIds.indexOf(u.id) >= 0) return false;
+    if(isAbsent(TODAY, u.id, 'pm')){ offCnt++; return false; }
+    return true;
+  });
+  h += '<div class="card" style="margin-top:18px"><div class="card-h"><h2>夕の送りが未登録の利用者</h2>' +
+       '<span class="sub mono">' + rest.length + '名</span></div><div class="card-b">';
+  if(!rest.length){
+    h += '<div class="empty">本日の夕の送りは全員分の登録が済んでいます。</div>';
+  }else{
+    h += '<div class="tw" style="max-height:none"><table class="grid" style="min-width:420px"><thead><tr>' +
+         '<th class="stick">お名前</th><th>地区</th><th>移動</th></tr></thead><tbody>';
+    for(var j=0;j<rest.length;j++){
+      var u = rest[j];
+      h += '<tr><td class="stick">' + esc(u.name) + '</td><td>' + esc(u.area) + '</td><td>' +
+           (u.move==='自立' ? '<span class="dash">自立</span>' : moveTag(u)) + '</td></tr>';
+    }
+    h += '</tbody></table></div>';
+  }
+  if(offCnt){
+    h += '<div style="margin-top:10px;font-size:13px;color:var(--muted)">' +
+         'このほかに本日欠席の方が <span class="mono">' + offCnt + '名</span> います。</div>';
+  }
+  h += '</div></div>';
+  return h;
+}
+
+/* =========================================================================
+   画面3：送迎記録の検索
+   ========================================================================= */
+function searchRecords(){
+  var out = [];
+  TRIPS.forEach(function(t){
+    if(searchCond.date && t.date !== searchCond.date) return;
+    if(searchCond.slot && t.slot !== searchCond.slot) return;
+    if(searchCond.staffId && t.staffId !== searchCond.staffId) return;
+    if(searchCond.vehicleId && t.vehicleId !== searchCond.vehicleId) return;
+    t.riders.forEach(function(r){
+      var u = byId(USERS, r.userId);
+      if(searchCond.name){
+        var q = searchCond.name;
+        var hit = u && ((u.name.indexOf(q) >= 0) || (u.kana.indexOf(q) >= 0));
+        if(!hit) return;
+      }
+      out.push({trip:t, rider:r, user:u});
+    });
+  });
+  out.sort(function(a,b){
+    if(a.trip.date !== b.trip.date) return a.trip.date < b.trip.date ? 1 : -1;
+    if(a.trip.slot !== b.trip.slot) return a.trip.slot==='am' ? -1 : 1;
+    return toMin(a.trip.depart) - toMin(b.trip.depart);
+  });
+  return out;
+}
+
+/* 区分に「欠席」を選んだときは欠席記録を探す（日付と利用者名で絞る） */
+function searchAbsences(){
+  var out = ABSENCES.filter(function(a){
+    if(searchCond.date && a.date !== searchCond.date) return false;
+    if(searchCond.name){
+      var u = byId(USERS, a.userId);
+      var q = searchCond.name;
+      if(!u || (u.name.indexOf(q) < 0 && u.kana.indexOf(q) < 0)) return false;
+    }
+    return true;
+  });
+  out.sort(function(a,b){
+    if(a.date !== b.date) return a.date < b.date ? 1 : -1;
+    return toMin(a.at) - toMin(b.at);
+  });
+  return out;
+}
+
+function viewSearch(){
+  var h = '';
+  h += '<div class="card"><div class="card-h"><h2>検索の条件</h2>' +
+       '<span class="sub">空欄の項目は絞り込みに使いません</span></div><div class="card-b">';
+  h += '<div class="form">';
+  h += '<div class="fld"><label for="f-date">日付</label>' +
+       '<input type="date" id="f-date" data-cond="date" value="' + esc(searchCond.date) + '"></div>';
+  h += '<div class="fld"><label for="f-slot">区分</label><select id="f-slot" data-cond="slot">' +
+       opt('', '朝・夕の両方', searchCond.slot) +
+       opt('am','朝の迎え', searchCond.slot) +
+       opt('pm','夕の送り', searchCond.slot) +
+       opt('abs','欠席', searchCond.slot) + '</select></div>';
+  h += '<div class="fld"><label for="f-staff">担当者</label><select id="f-staff" data-cond="staffId">' +
+       opt('','すべて', searchCond.staffId) + STAFF.map(function(s){
+         return opt(s.id, s.name, searchCond.staffId);
+       }).join('') + '</select></div>';
+  h += '<div class="fld"><label for="f-veh">車両</label><select id="f-veh" data-cond="vehicleId">' +
+       opt('','すべて', searchCond.vehicleId) + VEHICLES.map(function(v){
+         return opt(v.id, v.name, searchCond.vehicleId);
+       }).join('') + '</select></div>';
+  h += '<div class="fld"><label for="f-name">利用者名</label>' +
+       '<input type="text" id="f-name" data-cond="name" placeholder="氏名・ふりがなの一部" value="' + esc(searchCond.name) + '"></div>';
+  h += '</div>';
+  h += '<div class="formact">' +
+       '<button class="btn btn-dark" data-act="do-search">この条件で検索</button>' +
+       '<button class="btn" data-act="clear-search">条件をクリア</button>' +
+       '<button class="btn" data-act="csv-search">検索結果を書き出す</button>' +
+       '</div>';
+  h += '</div></div>';
+
+  if(!searchDone){
+    h += '<div class="card"><div class="card-b"><div class="empty">' +
+         '条件を選んで「この条件で検索」を押してください。条件を空のまま押すと、すべての記録が出ます。' +
+         '</div></div></div>';
+    return h;
+  }
+
+  if(searchCond.slot === 'abs') return h + viewSearchAbs();
+
+  var res = searchRecords();
+  var shown = res.slice(0,120);
+  h += '<div class="card"><div class="card-h"><h2>検索結果</h2><span class="sub mono">' +
+       res.length + '件' + (res.length>120 ? '（先頭120件を表示）' : '') + '</span></div><div class="card-b">';
+
+  if(!res.length){
+    h += '<div class="empty">この条件に合う記録はありません。日付や区分をゆるめて、もう一度お試しください。</div>';
+  }else{
+    h += '<div class="tw"><table class="grid"><thead><tr>' +
+         '<th class="stick">日付</th><th>区分</th><th>利用者</th><th>担当者</th><th>車両</th>' +
+         '<th>出発</th><th>乗降</th><th></th></tr></thead><tbody>';
+    for(var i=0;i<shown.length;i++){
+      var r = shown[i];
+      var on = detail && detail.date===r.trip.date && detail.userId===r.rider.userId;
+      h += '<tr class="rowlink' + (on?' on':'') + '" data-act="open-detail" data-date="' + esc(r.trip.date) +
+           '" data-user="' + esc(r.rider.userId) + '">';
+      h += '<td class="stick mono">' + esc(fmtDateShort(r.trip.date)) + '</td>';
+      h += '<td class="' + r.trip.slot + '">' + slotLabel(r.trip.slot) + '</td>';
+      h += '<td>' + esc(r.user ? r.user.name : '-') + '</td>';
+      h += '<td>' + esc(sName(r.trip.staffId)) + '</td>';
+      h += '<td>' + esc(vName(r.trip.vehicleId)) + '</td>';
+      h += '<td class="mono">' + esc(r.trip.depart) + '</td>';
+      h += '<td>' + (r.rider.time ? '<span class="mono">' + esc(r.rider.time) + '</span>' : '<span class="dash">-</span>') + '</td>';
+      h += '<td><button class="btn btn-sm" data-act="open-detail" data-date="' + esc(r.trip.date) +
+           '" data-user="' + esc(r.rider.userId) + '">詳細</button></td>';
+      h += '</tr>';
+    }
+    h += '</tbody></table></div>';
+  }
+  h += '</div></div>';
+
+  if(detail) h += detailBlock();
+  return h;
+}
+function opt(val, label, cur){
+  return '<option value="' + esc(val) + '"' + (cur===val ? ' selected' : '') + '>' + esc(label) + '</option>';
+}
+
+function viewSearchAbs(){
+  var res = searchAbsences();
+  var shown = res.slice(0,120);
+  var h = '<div class="card"><div class="card-h"><h2>検索結果</h2><span class="sub mono">' +
+          res.length + '件' + (res.length>120 ? '（先頭120件を表示）' : '') + '</span></div><div class="card-b">';
+  if(!res.length){
+    h += '<div class="empty">この条件に合う欠席の記録はありません。日付をゆるめて、もう一度お試しください。</div>';
+  }else{
+    h += '<div class="tw"><table class="grid" style="min-width:680px"><thead><tr>' +
+         '<th class="stick">日付</th><th>区分</th><th>利用者</th><th>範囲</th><th>理由</th><th>登録時刻</th><th></th>' +
+         '</tr></thead><tbody>';
+    for(var i=0;i<shown.length;i++){
+      var a = shown[i];
+      var on = detail && detail.date===a.date && detail.userId===a.userId;
+      h += '<tr class="rowlink' + (on?' on':'') + '" data-act="open-detail" data-date="' + esc(a.date) +
+           '" data-user="' + esc(a.userId) + '">';
+      h += '<td class="stick mono">' + esc(fmtDateShort(a.date)) + '</td>';
+      h += '<td class="off">欠席</td>';
+      h += '<td>' + esc(uName(a.userId)) + '</td>';
+      h += '<td>' + esc(rangeShort(a.slot)) + '</td>';
+      h += '<td>' + esc(a.reason) + '</td>';
+      h += '<td class="mono">' + esc(a.at) + '</td>';
+      h += '<td><button class="btn btn-sm" data-act="open-detail" data-date="' + esc(a.date) +
+           '" data-user="' + esc(a.userId) + '">詳細</button></td>';
+      h += '</tr>';
+    }
+    h += '</tbody></table></div>';
+  }
+  h += '</div></div>';
+  if(detail) h += detailBlock();
+  return h;
+}
+
+function detailBlock(){
+  var u = byId(USERS, detail.userId);
+  if(!u) return '';
+  var h = '<div class="detail" id="detailBox">';
+  h += '<div class="detail-h"><h3>' + esc(u.name) + ' 様</h3>' +
+       '<span class="sub mono" style="color:var(--muted);font-size:13px">' + esc(fmtDate(detail.date)) + '</span>' +
+       '<span class="tag">' + esc(u.area) + '</span>' + moveTag(u) +
+       '<span style="margin-left:auto"><button class="btn btn-sm" data-act="close-detail">詳細を閉じる</button></span></div>';
+  if(u.note){
+    h += '<div style="padding:0 16px"><div class="note" style="margin-top:14px">申し送り：' + esc(u.note) + '</div></div>';
+  }
+  h += '<div class="dcols">';
+  var ab = absenceOf(detail.date, u.id);
+  if(ab){
+    h += '<div class="dcard abs"><div class="dcard-h abs">本日は欠席です</div><dl class="kv">' +
+         '<dt>範囲</dt><dd>' + esc(rangeLabel(ab.slot)) + '（' + esc(rangeShort(ab.slot)) + '）</dd>' +
+         '<dt>理由</dt><dd>' + esc(ab.reason) + '</dd>' +
+         '<dt>申し送り</dt><dd>' + (ab.note ? esc(ab.note) : '<span class="dash">なし</span>') + '</dd>' +
+         '<dt>登録時刻</dt><dd class="mono">' + esc(ab.at) + '</dd>' +
+         '</dl></div>';
+  }
+  h += detailCard(detail.date, 'am', u.id);
+  h += detailCard(detail.date, 'pm', u.id);
+  h += '</div></div>';
+  return h;
+}
+function detailCard(dateKey, slot, userId){
+  var f = tripFor(dateKey, slot, userId);
+  var h = '<div class="dcard"><div class="dcard-h ' + slot + '">' + slotLabel(slot) + '</div>';
+  if(!f){
+    h += isAbsent(dateKey, userId, slot)
+      ? '<div style="padding:14px 13px"><div class="note">欠席のため送迎はありません（送迎減算の対象外です）</div></div>'
+      : '<div style="padding:14px 13px"><div class="note note-warn">記録がありません（送迎減算の対象になる可能性があります）</div></div>';
+    return h + '</div>';
+  }
+  var t = f.trip;
+  var v = byId(VEHICLES, t.vehicleId);
+  var s = byId(STAFF, t.staffId);
+  var mates = t.riders.filter(function(r){ return r.userId !== userId; })
+                      .map(function(r){ return uName(r.userId); });
+  h += '<dl class="kv">';
+  h += '<dt>事業所 出発</dt><dd class="mono">' + esc(t.depart) + '</dd>';
+  h += '<dt>' + rideWord(slot) + '</dt><dd>' + (f.rider.time ? '<span class="mono">' + esc(f.rider.time) + '</span>' : '<span class="dash">未記録</span>') + '</dd>';
+  h += '<dt>事業所 帰着</dt><dd>' + (t.arrive ? '<span class="mono">' + esc(t.arrive) + '</span>' : '<span class="dash">運行中</span>') + '</dd>';
+  h += '<dt>車両</dt><dd>' + esc(v?v.name:'-') + ' <span class="mono" style="font-size:12px;color:var(--muted)">' +
+       esc(v?v.number:'') + '</span><br><span style="font-size:12.5px;color:var(--muted)">' + esc(v?v.model:'') + '</span></dd>';
+  h += '<dt>担当者</dt><dd>' + esc(s?s.name:'-') + ' <span class="tag">' + esc(s?s.role:'') + '</span></dd>';
+  h += '<dt>同乗者</dt><dd>' + (mates.length ? esc(mates.join('、')) : '<span class="dash">なし</span>') + '</dd>';
+  h += '</dl></div>';
+  return h;
+}
+
+/* =========================================================================
+   画面4：車両・利用者の登録
+   ========================================================================= */
+function viewMaster(){
+  var h = '';
+  h += '<div class="card"><div class="card-h"><h2>車両の一覧</h2><span class="sub mono">' + VEHICLES.length + '台</span>' +
+       '<span class="act"><button class="btn btn-sm btn-dark" data-act="veh-new">車両を追加</button></span></div><div class="card-b">';
+  h += '<div class="tw" style="max-height:none"><table class="grid" style="min-width:640px"><thead><tr>' +
+       '<th class="stick">呼称</th><th>ナンバー</th><th>車種</th><th>定員</th><th>リフト</th><th></th>' +
+       '</tr></thead><tbody>';
+  for(var i=0;i<VEHICLES.length;i++){
+    var v = VEHICLES[i];
+    h += '<tr><td class="stick">' + esc(v.name) + '</td><td class="mono">' + esc(v.number) + '</td>' +
+         '<td>' + esc(v.model) + '</td><td class="mono">' + v.cap + '名</td>' +
+         '<td>' + (v.lift ? 'あり' : 'なし') + '</td>' +
+         '<td><span class="actcell">' +
+         '<button class="btn btn-sm" data-act="veh-edit" data-id="' + esc(v.id) + '">編集</button>' +
+         '<button class="btn btn-sm btn-danger" data-act="veh-del" data-id="' + esc(v.id) + '">削除</button>' +
+         '</span></td></tr>';
+  }
+  h += '</tbody></table></div></div></div>';
+
+  h += '<div class="card"><div class="card-h"><h2>利用者の一覧</h2><span class="sub mono">' + USERS.length + '名</span>' +
+       '<span class="act"><button class="btn btn-sm btn-dark" data-act="usr-new">利用者を追加</button></span></div><div class="card-b">';
+  h += '<div class="tw" style="max-height:none"><table class="grid" style="min-width:1040px"><thead><tr>' +
+       '<th class="stick">お名前</th><th>ふりがな</th><th>年齢</th><th>地区</th><th>利用曜日</th><th>電話</th><th>移動</th><th>申し送り</th><th></th>' +
+       '</tr></thead><tbody>';
+  for(var j=0;j<USERS.length;j++){
+    var u = USERS[j];
+    h += '<tr><td class="stick">' + esc(u.name) + '</td><td>' + esc(u.kana) + '</td>' +
+         '<td class="mono">' + esc(u.age) + '</td><td>' + esc(u.area) + '</td>' +
+         '<td>' + (daysLabel(u) ? esc(daysLabel(u)) : '<span class="dash">未設定</span>') + '</td>' +
+         '<td class="mono">' + esc(u.tel) + '</td>' +
+         '<td>' + (u.move==='自立' ? '<span class="dash">自立</span>' : moveTag(u)) + '</td>' +
+         '<td class="wrapcell">' + (u.note ? esc(u.note) : '<span class="dash">-</span>') + '</td>' +
+         '<td><span class="actcell">' +
+         '<button class="btn btn-sm" data-act="usr-edit" data-id="' + esc(u.id) + '">編集</button>' +
+         '<button class="btn btn-sm btn-danger" data-act="usr-del" data-id="' + esc(u.id) + '">削除</button>' +
+         '</span></td></tr>';
+  }
+  h += '</tbody></table></div></div></div>';
+  return h;
+}
+
+/* =========================================================================
+   画面5：職員の登録
+   ========================================================================= */
+function viewStaff(){
+  var h = '';
+  h += '<div class="card"><div class="card-h"><h2>職員の一覧</h2><span class="sub mono">' + STAFF.length + '名</span>' +
+       '<span class="act"><button class="btn btn-sm btn-dark" data-act="stf-new">職員を追加</button></span></div><div class="card-b">';
+  h += '<div class="tw" style="max-height:none"><table class="grid" style="min-width:560px"><thead><tr>' +
+       '<th class="stick">お名前</th><th>区分</th><th>連絡先</th><th></th></tr></thead><tbody>';
+  for(var i=0;i<STAFF.length;i++){
+    var s = STAFF[i];
+    h += '<tr><td class="stick">' + esc(s.name) + '</td><td><span class="tag">' + esc(s.role) + '</span></td>' +
+         '<td class="mono">' + esc(s.tel) + '</td>' +
+         '<td><span class="actcell">' +
+         '<button class="btn btn-sm" data-act="stf-edit" data-id="' + esc(s.id) + '">編集</button>' +
+         '<button class="btn btn-sm btn-danger" data-act="stf-del" data-id="' + esc(s.id) + '">削除</button>' +
+         '</span></td></tr>';
+  }
+  h += '</tbody></table></div>';
+  h += '<div class="note" style="margin-top:14px">送迎の記録は、ここに登録した職員から担当者を選ぶ形になります。' +
+       '区分に「管理者」を設定した職員だけが、車両や利用者の削除を行えるようにする想定です。</div>';
+  h += '</div></div>';
+  return h;
+}
+
+/* =========================================================================
+   描画
+   ========================================================================= */
+var HEADS = {
+  today:  {t:'本日の送迎', d:'今日の便と、利用者ごとの送迎の記録です。'},
+  live:   {t:'運行状況',   d:'いま出ている車と、空いている車が分かります。'},
+  search: {t:'送迎記録の検索', d:'過去の送迎を、日付・担当者・利用者から探せます。'},
+  master: {t:'車両・利用者の登録', d:'送迎で使う車と、送迎する方を登録します。'},
+  staff:  {t:'職員の登録', d:'送迎の担当者として選べる職員を登録します。'}
+};
+
+function render(){
+  var h = '';
+  /* サイドバー */
+  h += '<div class="side">';
+  h += '<div class="brand"><span class="logo">' + ico('bus','#fff',20) + '</span>' +
+       '<span class="brand-t">送迎きろく</span></div>';
+  h += '<div class="brand-sub">' + esc(OFFICE.name) + '</div>';
+  h += '<nav class="nav">';
+  for(var i=0;i<NAV.length;i++){
+    var n = NAV[i];
+    h += '<button class="nav-item' + (view===n.id?' active':'') + '" data-act="nav" data-view="' + n.id + '">' +
+         ico(n.icon, 'currentColor', 18) + '<span class="nav-label">' + esc(n.label) + '</span></button>';
+  }
+  h += '</nav>';
+  h += '<div class="side-foot"><b>' + esc(ME.name) + '</b>' + esc(ME.role) + 'としてログイン中</div>';
+  h += '</div>';
+
+  /* コンテンツ */
+  var hd = HEADS[view];
+  h += '<div class="main"><div class="head"><div><h1>' + esc(hd.t) + '</h1><p>' + esc(hd.d) + '</p></div>';
+  h += '<div class="head-act">';
+  if(view==='today'){
+    h += '<button class="btn btn-am" data-act="open-rec" data-slot="am">朝の迎えを記録</button>' +
+         '<button class="btn btn-pm" data-act="open-rec" data-slot="pm">夕の送りを記録</button>';
+  }else if(view==='live'){
+    h += '<button class="btn" data-act="nav" data-view="today">本日の送迎へ戻る</button>';
+  }else if(view==='search'){
+    h += '<button class="btn" data-act="do-search">この条件で検索</button>';
+  }
+  h += '</div></div>';
+
+  h += '<div class="content">';
+  if(view==='today')       h += viewToday();
+  else if(view==='live')   h += viewLive();
+  else if(view==='search') h += viewSearch();
+  else if(view==='master') h += viewMaster();
+  else                     h += viewStaff();
+  h += '</div></div>';
+
+  document.getElementById('app').innerHTML = h;
+  renderModal();
+}
+
+/* =========================================================================
+   モーダル
+   ========================================================================= */
+function renderModal(){
+  var root = document.getElementById('modalRoot');
+  if(!modal){ root.innerHTML = ''; return; }
+  var h = '<div class="mask" data-act="mask"><div class="modal' + (modal==='sheet' ? ' wide' : '') +
+          '" role="dialog" aria-modal="true">';
+  if(modal==='rec')          h += recModalHtml();
+  else if(modal==='sheet')   h += sheetModalHtml();
+  else if(modal==='abs')     h += absModalHtml();
+  else if(modal==='absList') h += absListHtml();
+  else if(modal==='veh')     h += vehModalHtml();
+  else if(modal==='usr')     h += usrModalHtml();
+  else                       h += stfModalHtml();
+  h += '</div></div>';
+  root.innerHTML = h;
+}
+function closeModal(){ modal = null; rec = null; form = null; abs = null; renderModal(); }
+
+/* ---- 記録モーダル ---- */
+function openRec(slot, vehicleId){
+  rec = {slot:slot, vehicleId:'', depart:'', staffId:'', picked:[], showAll:false};
+  modal = 'rec';
+  if(vehicleId) pickVehicle(vehicleId);
+  else renderModal();
+}
+function pickVehicle(id){
+  if(runningTripOf(id)) return;
+  rec.vehicleId = id;
+  rec.depart = nowHM();                       /* 車を選んだ瞬間に時刻が入る */
+  rec.staffId = COURSES[id] ? COURSES[id].staffId : '';
+  renderModal();
+}
+/* 登録済み・欠席の方を除いた、その日に選べる利用者 */
+function recAvailable(){
+  var used = registeredUserIds(TODAY, rec.slot);
+  return USERS.filter(function(u){
+    return used.indexOf(u.id) < 0 && !isAbsent(TODAY, u.id, rec.slot);
+  });
+}
+function recCandidates(){                        /* 本日の利用予定がある方 */
+  return recAvailable().filter(function(u){ return usesDay(u, TODAY); });
+}
+function recExtra(){                             /* 本日は利用予定のない方 */
+  return recAvailable().filter(function(u){ return !usesDay(u, TODAY); });
+}
+function courseRest(){
+  if(!rec.vehicleId || !COURSES[rec.vehicleId]) return [];
+  var used = registeredUserIds(TODAY, rec.slot);
+  return COURSES[rec.vehicleId].users.filter(function(id){
+    return used.indexOf(id) < 0 && usesDay(byId(USERS,id), TODAY) && !isAbsent(TODAY, id, rec.slot);
+  });
+}
+function recModalHtml(){
+  var slot = rec.slot;
+  var cands = recCandidates();
+  var course = rec.vehicleId && COURSES[rec.vehicleId] ? COURSES[rec.vehicleId].users : [];
+  var v = byId(VEHICLES, rec.vehicleId);
+  var over = v && rec.picked.length > v.cap;
+  var ok = rec.vehicleId && rec.staffId && rec.depart && rec.picked.length > 0;
+
+  var h = '<div class="modal-h"><h2>' + slotLabel(slot) + 'を記録</h2>' +
+          '<span class="date">' + esc(fmtDate(TODAY)) + '</span>' +
+          '<button class="x" data-act="close-modal" aria-label="閉じる">&times;</button></div>';
+  h += '<div class="modal-b">';
+
+  /* ステップ1 */
+  h += '<div class="step"><div class="step-h"><span class="step-n">1</span><b>車を選ぶ</b></div>';
+  h += '<div class="step-b"><div class="chips">';
+  for(var i=0;i<VEHICLES.length;i++){
+    var vv = VEHICLES[i];
+    var run = runningTripOf(vv.id);
+    h += '<button class="chip' + (rec.vehicleId===vv.id?' on':'') + '"' + (run?' disabled':'') +
+         ' data-act="pick-veh" data-id="' + esc(vv.id) + '">' +
+         '<b>' + esc(vv.name) + (run ? '（運行中）' : '') + '</b>' +
+         '<span>' + esc(vv.model) + ' / 定員' + vv.cap + '名 / ' + (vv.lift?'リフト付':'リフトなし') + '</span></button>';
+  }
+  h += '</div></div></div>';
+
+  /* ステップ2 */
+  h += '<div class="step"><div class="step-h"><span class="step-n">2</span><b>事業所を出発した時刻</b></div>';
+  h += '<p class="hint">' + (rec.vehicleId
+        ? '車を選んだ時点の時刻が入っています。ずれていれば直せます。'
+        : '車を選ぶと、いまの時刻が自動で入ります。') + '</p>';
+  h += '<div class="step-b"><div class="two">';
+  h += '<div class="fld"><label for="r-dep">出発時刻</label>' +
+       '<input type="time" id="r-dep" data-rec="depart" value="' + esc(rec.depart) + '"' +
+       (rec.vehicleId?'':' disabled') + '></div>';
+  h += '<div class="fld"><label for="r-stf">担当者</label><select id="r-stf" data-rec="staffId"' +
+       (rec.vehicleId?'':' disabled') + '>' + opt('','選んでください', rec.staffId) +
+       STAFF.map(function(s){ return opt(s.id, s.name + '（' + s.role + '）', rec.staffId); }).join('') +
+       '</select></div>';
+  h += '</div></div></div>';
+
+  /* ステップ3 */
+  h += '<div class="step"><div class="step-h"><span class="step-n">3</span><b>乗せる利用者を選ぶ</b>' +
+       '<span class="cnt" id="pickCnt">' + rec.picked.length + '名選択中</span></div>';
+  h += '<p class="hint">本日（' + WD[dowOf(TODAY)] + '曜）に利用がある方 <span class="mono">' +
+       cands.length + '名</span>から選べます</p>';
+  h += '<div class="step-b">';
+  var cr = courseRest();
+  if(rec.vehicleId && cr.length){
+    h += '<div style="margin-bottom:10px"><button class="btn btn-sm" data-act="pick-course">' +
+         'いつものコースを選ぶ（' + cr.length + '名）</button></div>';
+  }
+  var extra = rec.showAll ? recExtra() : [];
+  if(!cands.length && !extra.length){
+    h += '<div class="empty">' + (recExtra().length
+         ? '本日この区分でお迎えする方はいません。'
+         : 'この区分は全員分の登録が済んでいます。') + '</div>';
+  }else{
+    h += '<div class="picks">';
+    for(var j=0;j<cands.length;j++){
+      h += pickCard(cands[j], course, false);
+    }
+    for(var x=0;x<extra.length;x++){
+      h += pickCard(extra[x], course, true);
+    }
+    h += '</div>';
+    h += '<div class="note" style="margin-top:10px">緑の線が付いているのは、この車でいつも送迎している方です。</div>';
+    h += '<div id="overNote" style="margin-top:10px' + (over?'':';display:none') + '">' +
+         '<div class="note note-warn">定員 <span class="mono">' + (v?v.cap:0) + '名</span>を超えています。</div></div>';
+  }
+  if(!rec.showAll && recExtra().length){
+    h += '<div><button class="btn-link" data-act="show-all">今日は利用予定のない方も表示する</button></div>';
+  }
+  h += '</div></div>';
+  h += '</div>';
+
+  h += '<div class="modal-f">' +
+       '<button class="btn" data-act="close-modal">やめる</button>' +
+       '<button class="btn ' + (slot==='am'?'btn-am':'btn-pm') + '" id="recSubmit" data-act="submit-rec"' +
+       (ok?'':' disabled') + '>この内容で登録する</button></div>';
+  return h;
+}
+function pickCard(u, course, isExtra){
+  var on = rec.picked.indexOf(u.id) >= 0;
+  var isC = course.indexOf(u.id) >= 0;
+  return '<label class="pick' + (on?' on':'') + (isC?' course':'') + (isExtra?' dim':'') +
+         '" data-pick="' + esc(u.id) + '">' +
+         '<input type="checkbox" data-act="pick-user" data-id="' + esc(u.id) + '"' + (on?' checked':'') + '>' +
+         '<span><b>' + esc(u.name) + '</b><span>' + esc(u.area) + ' / ' + esc(u.move) + '</span>' +
+         (isExtra ? '<span class="tag">利用予定外</span>' : '') + '</span></label>';
+}
+function syncPickUI(){
+  var v = byId(VEHICLES, rec.vehicleId);
+  var cnt = document.getElementById('pickCnt');
+  if(cnt) cnt.textContent = rec.picked.length + '名選択中';
+  var nodes = document.querySelectorAll('[data-pick]');
+  for(var i=0;i<nodes.length;i++){
+    var id = nodes[i].getAttribute('data-pick');
+    var on = rec.picked.indexOf(id) >= 0;
+    if(on) nodes[i].className = nodes[i].className.replace(/\s*\bon\b/,'') + ' on';
+    else   nodes[i].className = nodes[i].className.replace(/\s*\bon\b/,'');
+    var cb = nodes[i].querySelector('input');
+    if(cb) cb.checked = on;
+  }
+  var ov = document.getElementById('overNote');
+  if(ov) ov.style.display = (v && rec.picked.length > v.cap) ? '' : 'none';
+  var sb = document.getElementById('recSubmit');
+  if(sb) sb.disabled = !(rec.vehicleId && rec.staffId && rec.depart && rec.picked.length > 0);
+}
+function submitRec(){
+  var v = byId(VEHICLES, rec.vehicleId);
+  var t = {
+    id:'T' + (seq++), date:TODAY, slot:rec.slot, vehicleId:rec.vehicleId,
+    staffId:rec.staffId, depart:rec.depart, arrive:null, status:'running', riders:[]
+  };
+  for(var i=0;i<rec.picked.length;i++) t.riders.push({userId:rec.picked[i], time:null});
+  TRIPS.push(t);
+  var msg = (v?v.name:'車') + ' が ' + t.depart + ' に出発しました。到着したら' + rideWord(t.slot) + 'を記録してください';
+  closeModal();
+  view = 'live';
+  render();
+  toast(msg);
+}
+
+/* ---- 欠席登録モーダル ---- */
+function openAbs(){
+  abs = {picked:[], slot:'day', reason:'', note:''};
+  modal = 'abs';
+  renderModal();
+}
+function absCandidates(){
+  return usersOfDay(TODAY).filter(function(u){ return !absenceOf(TODAY, u.id); });
+}
+function hasRecordToday(userId){
+  return !!(tripFor(TODAY,'am',userId) || tripFor(TODAY,'pm',userId));
+}
+/* すでに送迎の記録が入っている区分は欠席にできない。
+   朝を送迎したあとでも「夕だけお迎えなし」は登録できる */
+function absBlocked(userId){
+  if(abs.slot === 'day') return hasRecordToday(userId);
+  return !!tripFor(TODAY, abs.slot, userId);
+}
+function readAbsNote(){
+  var el = document.getElementById('a-note');
+  if(el && abs) abs.note = el.value;
+}
+function absModalHtml(){
+  var cands = absCandidates();
+  var ok = abs.picked.length > 0 && abs.reason;
+  var h = '<div class="modal-h"><h2>本日の欠席を登録</h2>' +
+          '<span class="date">' + esc(fmtDate(TODAY)) + '</span>' +
+          '<button class="x" data-act="close-modal" aria-label="閉じる">&times;</button></div>';
+  h += '<div class="modal-b">';
+
+  /* ステップ1 */
+  h += '<div class="step"><div class="step-h"><span class="step-n">1</span><b>どなたが欠席ですか</b>' +
+       '<span class="cnt" id="absCnt">' + abs.picked.length + '名選択中</span></div>';
+  h += '<p class="hint">本日（' + WD[dowOf(TODAY)] + '曜）に利用予定のある方が出ます</p>';
+  h += '<div class="step-b">';
+  if(!cands.length){
+    h += '<div class="empty">本日、欠席を登録できる方はいません。</div>';
+  }else{
+    var blocked = 0;
+    h += '<div class="picks">';
+    for(var i=0;i<cands.length;i++){
+      var u = cands[i];
+      var ng = absBlocked(u.id);
+      if(ng) blocked++;
+      var on = abs.picked.indexOf(u.id) >= 0;
+      h += '<label class="pick' + (on?' on':'') + (ng?' dis':'') + '" data-apick="' + esc(u.id) + '">' +
+           '<input type="checkbox" data-act="abs-pick" data-id="' + esc(u.id) + '"' +
+           (on?' checked':'') + (ng?' disabled':'') + '>' +
+           '<span><b>' + esc(u.name) + '</b><span>' + esc(u.area) + ' / ' + esc(u.move) + '</span>' +
+           (ng ? '<span class="tag">送迎記録あり</span>' : '') + '</span></label>';
+    }
+    h += '</div>';
+    if(blocked === cands.length){
+      h += '<div class="note" style="margin-top:10px">' +
+           '送迎の記録が入っている方は選べません。ご家族がお迎えに来られる場合は、' +
+           '下の「夕だけお迎えなし」を先に選んでください。</div>';
+    }
+  }
+  h += '</div></div>';
+
+  /* ステップ2 */
+  h += '<div class="step"><div class="step-h"><span class="step-n">2</span><b>どの範囲ですか</b></div>';
+  h += '<div class="step-b"><div class="chips">';
+  var ranges = [
+    {v:'day', t:'終日おやすみ',       s:''},
+    {v:'am',  t:'朝だけ来られない',   s:'ご家族が送ってこられる場合など'},
+    {v:'pm',  t:'夕だけお迎えなし',   s:'ご家族が迎えに来られる場合など'}
+  ];
+  for(var r=0;r<ranges.length;r++){
+    h += '<button class="chip' + (abs.slot===ranges[r].v?' on':'') + '" data-act="abs-range" data-range="' +
+         ranges[r].v + '" aria-pressed="' + (abs.slot===ranges[r].v?'true':'false') + '">' +
+         '<b>' + ranges[r].t + '</b>' + (ranges[r].s ? '<span>' + ranges[r].s + '</span>' : '') + '</button>';
+  }
+  h += '</div></div></div>';
+
+  /* ステップ3 */
+  h += '<div class="step"><div class="step-h"><span class="step-n">3</span><b>理由と申し送り</b></div>';
+  h += '<div class="step-b"><div class="chips">';
+  for(var k=0;k<REASONS.length;k++){
+    h += '<button class="chip' + (abs.reason===REASONS[k]?' on':'') + '" style="min-width:0;padding:8px 15px"' +
+         ' data-act="abs-reason" data-reason="' + esc(REASONS[k]) + '"' +
+         ' aria-pressed="' + (abs.reason===REASONS[k]?'true':'false') + '">' +
+         '<b>' + esc(REASONS[k]) + '</b></button>';
+  }
+  h += '</div>';
+  h += '<div class="fld" style="margin-top:12px"><label for="a-note">申し送り（任意）</label>' +
+       '<textarea id="a-note" data-abs="note" placeholder="例）発熱のためご家族から連絡">' + esc(abs.note) + '</textarea></div>';
+  h += '</div></div>';
+  h += '</div>';
+
+  h += '<div class="modal-f"><button class="btn" data-act="close-modal">やめる</button>' +
+       '<button class="btn btn-dark" id="absSubmit" data-act="submit-abs"' + (ok?'':' disabled') +
+       '>欠席として登録する</button></div>';
+  return h;
+}
+function syncAbsUI(){
+  var cnt = document.getElementById('absCnt');
+  if(cnt) cnt.textContent = abs.picked.length + '名選択中';
+  var nodes = document.querySelectorAll('[data-apick]');
+  for(var i=0;i<nodes.length;i++){
+    var id = nodes[i].getAttribute('data-apick');
+    var on = abs.picked.indexOf(id) >= 0;
+    nodes[i].className = nodes[i].className.replace(/\s*\bon\b/,'') + (on ? ' on' : '');
+    var cb = nodes[i].querySelector('input');
+    if(cb) cb.checked = on;
+  }
+  var sb = document.getElementById('absSubmit');
+  if(sb) sb.disabled = !(abs.picked.length > 0 && abs.reason);
+}
+function submitAbs(){
+  readAbsNote();
+  var at = nowHM();
+  var names = [];
+  for(var i=0;i<abs.picked.length;i++){
+    ABSENCES.push({
+      id:'A' + (absSeq++), date:TODAY, userId:abs.picked[i], slot:abs.slot,
+      reason:abs.reason, note:abs.note, at:at
+    });
+    names.push(uName(abs.picked[i]));
+  }
+  var msg = names.length===1
+    ? names[0] + ' 様を本日の欠席として登録しました'
+    : names[0] + ' 様ほか' + (names.length-1) + '名を本日の欠席として登録しました';
+  closeModal();
+  render();
+  toast(msg);
+}
+
+/* ---- 印刷イメージ ---- */
+function sheetModalHtml(){
+  var h = '<div class="modal-h"><h2>送迎記録（印刷イメージ）</h2>' +
+          '<span class="date">' + esc(fmtDate(TODAY)) + '</span>' +
+          '<button class="x" data-act="close-modal" aria-label="閉じる">&times;</button></div>';
+  h += '<div class="modal-b"><div class="sheetwrap"><div class="sheet">' +
+       document.getElementById('printRoot').innerHTML + '</div></div>' +
+       '<div class="note" style="margin-top:12px">A4横で印刷したときの体裁です。' +
+       'この用紙をそのまま運営指導の資料として保管できます。</div></div>';
+  h += '<div class="modal-f"><button class="btn" data-act="close-modal">閉じる</button>' +
+       '<button class="btn btn-dark" data-act="save-sheet">画像として保存</button></div>';
+  return h;
+}
+
+/* 印刷イメージを画像に描き出す（枠内から印刷できない環境でも持ち帰れるように） */
+function sheetCanvas(){
+  var UI = '"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Yu Gothic","Meiryo",sans-serif';
+  var W = 1754, H = 1240, M = 76;
+  var cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  var g = cv.getContext('2d');
+  g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#000000';
+  g.textBaseline = 'middle';
+
+  g.font = '700 34px ' + UI;
+  g.textAlign = 'center';
+  g.fillText('送迎記録（車両運行記録）', W/2, M + 16);
+  g.font = '20px ' + UI;
+  g.textAlign = 'left';
+  g.fillText(OFFICE.corp + '　' + OFFICE.name, M, M + 68);
+  g.textAlign = 'right';
+  g.fillText(fmtDate(TODAY), W - M, M + 68);
+
+  var raw = [190, 210, 118, 118, 132, 160, 118, 118, 132, 160];
+  var sum = 0, i;
+  for(i=0;i<raw.length;i++) sum += raw[i];
+  var scale = (W - M*2) / sum;
+  var cw = raw.map(function(n){ return Math.round(n * scale); });
+  var x0 = M, y0 = M + 100, rh = 34;
+
+  function colX(idx){
+    var x = x0;
+    for(var k=0;k<idx;k++) x += cw[k];
+    return x;
+  }
+  function box(x, y, w, h, fill){
+    if(fill){ g.fillStyle = fill; g.fillRect(x, y, w, h); g.fillStyle = '#000000'; }
+    g.strokeStyle = '#000000'; g.lineWidth = 1;
+    g.strokeRect(x + .5, y + .5, w, h);
+  }
+  function cell(x, y, w, h, text, align, fill){
+    box(x, y, w, h, fill);
+    if(!text) return;
+    g.font = '17px ' + UI;
+    if(align === 'center'){ g.textAlign = 'center'; g.fillText(text, x + w/2, y + h/2 + 1); }
+    else { g.textAlign = 'left'; g.fillText(text, x + 8, y + h/2 + 1); }
+  }
+
+  /* 見出し2段 */
+  cell(colX(0), y0, cw[0], rh*2, '利用者', 'center', '#EEEEEE');
+  cell(colX(1), y0, cw[1], rh*2, '地区',   'center', '#EEEEEE');
+  var amW = cw[2]+cw[3]+cw[4]+cw[5], pmW = cw[6]+cw[7]+cw[8]+cw[9];
+  cell(colX(2), y0, amW, rh, '朝の迎え', 'center', '#EEEEEE');
+  cell(colX(6), y0, pmW, rh, '夕の送り', 'center', '#EEEEEE');
+  var sub = ['出発','乗車','車両','担当者','出発','降車','車両','担当者'];
+  for(i=0;i<8;i++) cell(colX(i+2), y0+rh, cw[i+2], rh, sub[i], 'center', '#EEEEEE');
+
+  /* 明細 */
+  var rows = todayRows();
+  var y = y0 + rh*2;
+  for(i=0;i<rows.length;i++){
+    var u = rows[i];
+    var am = tripFor(TODAY,'am',u.id);
+    var pm = tripFor(TODAY,'pm',u.id);
+    var ab = absenceOf(TODAY, u.id);
+    var bg = (ab && ab.slot==='day') ? '#D6D3CE' : null;
+    var v = [
+      u.name, u.area,
+      isAbsent(TODAY,u.id,'am') ? '欠席' : (am ? am.trip.depart : ''),
+      isAbsent(TODAY,u.id,'am') ? '欠席' : (am && am.rider.time ? am.rider.time : ''),
+      isAbsent(TODAY,u.id,'am') ? '' : (am ? vName(am.trip.vehicleId) : ''),
+      isAbsent(TODAY,u.id,'am') ? '' : (am ? sName(am.trip.staffId) : ''),
+      isAbsent(TODAY,u.id,'pm') ? '欠席' : (pm ? pm.trip.depart : ''),
+      isAbsent(TODAY,u.id,'pm') ? '欠席' : (pm && pm.rider.time ? pm.rider.time : ''),
+      isAbsent(TODAY,u.id,'pm') ? '' : (pm ? vName(pm.trip.vehicleId) : ''),
+      isAbsent(TODAY,u.id,'pm') ? '' : (pm ? sName(pm.trip.staffId) : '')
+    ];
+    for(var j=0;j<10;j++){
+      cell(colX(j), y, cw[j], rh, v[j], (j<2 ? 'left' : 'center'), bg);
+    }
+    y += rh;
+  }
+
+  /* 欠席の集計 */
+  var abl = absencesOf(TODAY);
+  if(abl.length){
+    var cnt = {}, parts = [];
+    abl.forEach(function(a){ cnt[a.reason] = (cnt[a.reason]||0) + 1; });
+    for(var key in cnt){ if(cnt.hasOwnProperty(key)) parts.push(key + cnt[key]); }
+    g.font = '18px ' + UI; g.textAlign = 'left';
+    g.fillText('本日の欠席：' + abl.length + '名（' + parts.join('、') + '）', M, y + 30);
+  }
+
+  /* 押印欄 */
+  var sw = 150, sh = 34, sb = 92, sy = y + 56;
+  var labels = ['管理者','確認者'];
+  for(i=0;i<2;i++){
+    var sx = W - M - (2-i)*sw - (1-i)*14;
+    box(sx, sy, sw, sh, null);
+    box(sx, sy + sh, sw, sb, null);
+    g.font = '17px ' + UI; g.textAlign = 'center';
+    g.fillText(labels[i], sx + sw/2, sy + sh/2 + 1);
+  }
+  return cv;
+}
+function saveSheet(){
+  var cv = sheetCanvas();
+  var name = '送迎記録_' + TODAY + '.png';
+  cv.toBlob(function(blob){
+    if(!blob){ toast('画像を作れませんでした。もう一度お試しください。'); return; }
+    if(inViewer()){
+      claude.use('downloads').then(function(dl){
+        if(!dl){ toast('この画面では保存できません。'); return; }
+        return dl.save({filename:name, data:blob}).then(function(){
+          toast('印刷イメージを画像で保存しました');
+        })['catch'](function(e){
+          toast((e && e.code === 'declined') ? '保存を取り消しました' : '保存できませんでした。もう一度お試しください。');
+        });
+      });
+      return;
+    }
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+    toast('印刷イメージを画像で保存しました');
+  }, 'image/png');
+}
+
+/* ---- 欠席の一覧・取り消し ---- */
+function absListHtml(){
+  var list = absencesOf(TODAY);
+  var h = '<div class="modal-h"><h2>本日の欠席</h2>' +
+          '<span class="date">' + esc(fmtDate(TODAY)) + '</span>' +
+          '<button class="x" data-act="close-modal" aria-label="閉じる">&times;</button></div>';
+  h += '<div class="modal-b" style="padding:0">';
+  if(!list.length){
+    h += '<div class="empty">本日の欠席はまだ登録されていません。</div>';
+  }else{
+    for(var i=0;i<list.length;i++){
+      var a = list[i];
+      h += '<div class="abs-row"><span class="nm">' + esc(uName(a.userId)) + ' 様</span>' +
+           '<span class="tag">' + esc(rangeShort(a.slot)) + '</span>' +
+           '<span class="tag">' + esc(a.reason) + '</span>' +
+           '<span class="at">' + esc(a.at) + ' 登録</span>' +
+           '<span class="rest"><button class="btn btn-sm btn-danger" data-act="abs-cancel" data-id="' +
+           esc(a.id) + '">取り消す</button></span>' +
+           (a.note ? '<span class="memo">申し送り：' + esc(a.note) + '</span>' : '') +
+           '</div>';
+    }
+  }
+  h += '</div>';
+  h += '<div class="modal-f"><button class="btn" data-act="close-modal">閉じる</button>' +
+       '<button class="btn btn-dark" data-act="open-abs">欠席を追加する</button></div>';
+  return h;
+}
+
+/* ---- 車両モーダル ---- */
+function vehModalHtml(){
+  var f = form;
+  var h = '<div class="modal-h"><h2>' + (f.id ? '車両の編集' : '車両の追加') + '</h2>' +
+          '<button class="x" data-act="close-modal" aria-label="閉じる">&times;</button></div>';
+  h += '<div class="modal-b"><div class="form">';
+  h += fldText('m-name','呼称（必須）', f.name);
+  h += fldText('m-number','ナンバー', f.number);
+  h += fldText('m-model','車種', f.model);
+  h += '<div class="fld"><label for="m-cap">定員</label><input type="number" id="m-cap" min="1" max="30" value="' + esc(f.cap) + '"></div>';
+  h += '<div class="fld"><label for="m-lift">リフト</label><select id="m-lift">' +
+       '<option value="1"' + (f.lift?' selected':'') + '>あり</option>' +
+       '<option value="0"' + (f.lift?'':' selected') + '>なし</option></select></div>';
+  h += '</div></div>';
+  h += '<div class="modal-f"><button class="btn" data-act="close-modal">やめる</button>' +
+       '<button class="btn btn-dark" data-act="save-veh">' + (f.id?'この内容で更新する':'この内容で登録する') + '</button></div>';
+  return h;
+}
+/* ---- 利用者モーダル ---- */
+function usrModalHtml(){
+  var f = form;
+  var h = '<div class="modal-h"><h2>' + (f.id ? '利用者の編集' : '利用者の追加') + '</h2>' +
+          '<button class="x" data-act="close-modal" aria-label="閉じる">&times;</button></div>';
+  h += '<div class="modal-b"><div class="form">';
+  h += fldText('m-name','お名前（必須）', f.name);
+  h += fldText('m-kana','ふりがな', f.kana);
+  h += '<div class="fld"><label for="m-age">年齢</label><input type="number" id="m-age" min="0" max="120" value="' + esc(f.age) + '"></div>';
+  h += fldText('m-area','地区', f.area);
+  h += fldText('m-tel','電話', f.tel);
+  h += '<div class="fld"><label for="m-move">移動の状況</label><select id="m-move">' +
+       MOVES.map(function(m){ return opt(m, m, f.move); }).join('') + '</select></div>';
+  h += '</div>';
+  h += '<div class="fld" style="margin-top:12px"><label>利用する曜日</label><div class="chips">';
+  for(var d=1; d<=6; d++){
+    var on = f.days.indexOf(d) >= 0;
+    h += '<button type="button" class="chip' + (on?' on':'') + '" style="min-width:0;padding:8px 15px"' +
+         ' data-act="toggle-day" data-day="' + d + '" aria-pressed="' + (on?'true':'false') + '">' +
+         '<b>' + WD[d] + '</b></button>';
+  }
+  h += '</div><p style="margin:8px 0 0;font-size:12.5px;color:var(--muted)">' +
+       '送迎の記録を付けるときに、この曜日の方だけが候補に出ます。</p></div>';
+  h += '<div class="fld" style="margin-top:12px"><label for="m-note">送迎時の申し送り</label>' +
+       '<textarea id="m-note" placeholder="玄関前に段差あり。介助が必要 など">' + esc(f.note) + '</textarea></div>';
+  h += '</div>';
+  h += '<div class="modal-f"><button class="btn" data-act="close-modal">やめる</button>' +
+       '<button class="btn btn-dark" data-act="save-usr">' + (f.id?'この内容で更新する':'この内容で登録する') + '</button></div>';
+  return h;
+}
+/* ---- 職員モーダル ---- */
+function stfModalHtml(){
+  var f = form;
+  var h = '<div class="modal-h"><h2>' + (f.id ? '職員の編集' : '職員の追加') + '</h2>' +
+          '<button class="x" data-act="close-modal" aria-label="閉じる">&times;</button></div>';
+  h += '<div class="modal-b"><div class="form">';
+  h += fldText('m-name','お名前（必須）', f.name);
+  h += '<div class="fld"><label for="m-role">区分</label><select id="m-role">' +
+       ROLES.map(function(r){ return opt(r, r, f.role); }).join('') + '</select></div>';
+  h += fldText('m-tel','連絡先', f.tel);
+  h += '</div></div>';
+  h += '<div class="modal-f"><button class="btn" data-act="close-modal">やめる</button>' +
+       '<button class="btn btn-dark" data-act="save-stf">' + (f.id?'この内容で更新する':'この内容で登録する') + '</button></div>';
+  return h;
+}
+function fldText(id, label, val){
+  return '<div class="fld"><label for="' + id + '">' + esc(label) + '</label>' +
+         '<input type="text" id="' + id + '" value="' + esc(val) + '"></div>';
+}
+function val(id){
+  var el = document.getElementById(id);
+  return el ? el.value : '';
+}
+
+/* =========================================================================
+   トースト
+   ========================================================================= */
+var toastTimer = null;
+function toast(msg){
+  var root = document.getElementById('toastRoot');
+  root.innerHTML = '<div class="toast">' + esc(msg) + '</div>';
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ root.innerHTML = ''; }, 3000);
+}
+
+/* =========================================================================
+   出力
+   ========================================================================= */
+/* 共有ページ（claude.ai）は印刷ダイアログを開けない枠の中で動くため、
+   その場合は印刷イメージを画面に出し、画像として保存できるようにする */
+function inViewer(){
+  return typeof claude !== 'undefined' && claude && typeof claude.use === 'function';
+}
+function printToday(){
+  document.getElementById('printRoot').innerHTML = buildSheet();
+  if(inViewer()){ modal = 'sheet'; renderModal(); return; }
+  window.print();
+}
+function buildSheet(){
+  var h = '<h1>送迎記録（車両運行記録）</h1>';
+  h += '<div class="pmeta"><span>' + esc(OFFICE.corp) + '　' + esc(OFFICE.name) + '</span>' +
+       '<span>' + esc(fmtDate(TODAY)) + '</span></div>';
+  h += '<table><thead>';
+  h += '<tr><th rowspan="2">利用者</th><th rowspan="2">地区</th>' +
+       '<th colspan="4">朝の迎え</th><th colspan="4">夕の送り</th></tr>';
+  h += '<tr><th>出発</th><th>乗車</th><th>車両</th><th>担当者</th>' +
+       '<th>出発</th><th>降車</th><th>車両</th><th>担当者</th></tr>';
+  h += '</thead><tbody>';
+  var rows = todayRows();
+  for(var i=0;i<rows.length;i++){
+    var u = rows[i];
+    var am = tripFor(TODAY,'am',u.id);
+    var pm = tripFor(TODAY,'pm',u.id);
+    var ab = absenceOf(TODAY, u.id);
+    var offAm = isAbsent(TODAY, u.id, 'am');
+    var offPm = isAbsent(TODAY, u.id, 'pm');
+    h += '<tr' + (ab && ab.slot==='day' ? ' class="absent"' : '') + '>' +
+         '<td>' + esc(u.name) + '</td><td>' + esc(u.area) + '</td>' +
+         (offAm
+           ? '<td>欠席</td><td>欠席</td><td></td><td></td>'
+           : '<td>' + (am?esc(am.trip.depart):'') + '</td>' +
+             '<td>' + (am&&am.rider.time?esc(am.rider.time):'') + '</td>' +
+             '<td>' + (am?esc(vName(am.trip.vehicleId)):'') + '</td>' +
+             '<td>' + (am?esc(sName(am.trip.staffId)):'') + '</td>') +
+         (offPm
+           ? '<td>欠席</td><td>欠席</td><td></td><td></td>'
+           : '<td>' + (pm?esc(pm.trip.depart):'') + '</td>' +
+             '<td>' + (pm&&pm.rider.time?esc(pm.rider.time):'') + '</td>' +
+             '<td>' + (pm?esc(vName(pm.trip.vehicleId)):'') + '</td>' +
+             '<td>' + (pm?esc(sName(pm.trip.staffId)):'') + '</td>') +
+         '</tr>';
+  }
+  h += '</tbody></table>';
+
+  var abl = absencesOf(TODAY);
+  if(abl.length){
+    var cnt = {};
+    abl.forEach(function(a){ cnt[a.reason] = (cnt[a.reason]||0) + 1; });
+    var parts = [];
+    for(var key in cnt){ if(cnt.hasOwnProperty(key)) parts.push(key + cnt[key]); }
+    h += '<div class="absnote">本日の欠席：' + abl.length + '名（' + esc(parts.join('、')) + '）</div>';
+  }
+  h += '<div class="seals">' +
+       '<div class="seal"><div class="st">管理者</div><div class="sb"></div></div>' +
+       '<div class="seal"><div class="st">確認者</div><div class="sb"></div></div>' +
+       '</div>';
+  return h;
+}
+
+function csvCell(v){
+  var s = (v===null||v===undefined) ? '' : String(v);
+  if(s.indexOf('"')>=0 || s.indexOf(',')>=0 || s.indexOf('\n')>=0){
+    return '"' + s.replace(/"/g,'""') + '"';
+  }
+  return s;
+}
+function saveLocal(text, filename){
+  var blob = new Blob([text], {type:'text/csv;charset=utf-8;'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+}
+function download(rows, filename, okMsg){
+  var lines = rows.map(function(r){
+    return r.map(csvCell).join(',');
+  }).join('\r\n');
+  var bom = String.fromCharCode(0xFEFF);
+  var text = bom + lines;                 /* BOM必須。無いとExcelで文字化けする */
+
+  /* 共有ページで開いているときは、ブラウザの保存確認を通して書き出す */
+  if(typeof claude !== 'undefined' && claude && typeof claude.use === 'function'){
+    claude.use('downloads').then(function(dl){
+      if(!dl){ saveLocal(text, filename); toast(okMsg); return; }
+      return dl.save({filename:filename, data:text}).then(function(){
+        toast(okMsg);
+      })['catch'](function(e){
+        var code = e && e.code;
+        if(code === 'declined'){ toast('書き出しを取り消しました'); return; }
+        if(code === 'extension_not_enabled'){
+          return dl.save({filename:filename.replace(/\.csv$/, '.txt'), data:text}).then(function(){
+            toast(okMsg + '（テキスト形式。Excelで開けます）');
+          })['catch'](function(){
+            toast('書き出しできませんでした。もう一度お試しください。');
+          });
+        }
+        saveLocal(text, filename);
+        toast(okMsg);
+      });
+    })['catch'](function(){ saveLocal(text, filename); toast(okMsg); });
+    return;
+  }
+  saveLocal(text, filename);
+  toast(okMsg);
+}
+function csvToday(){
+  var rows = [['日付','利用者','地区','朝 出発','朝 乗車','朝 車両','朝 担当',
+               '夕 出発','夕 降車','夕 車両','夕 担当','欠席','欠席理由']];
+  var list = todayRows();
+  for(var i=0;i<list.length;i++){
+    var u = list[i];
+    var am = tripFor(TODAY,'am',u.id);
+    var pm = tripFor(TODAY,'pm',u.id);
+    var ab = absenceOf(TODAY, u.id);
+    rows.push([
+      TODAY, u.name, u.area,
+      am?am.trip.depart:'', am&&am.rider.time?am.rider.time:'', am?vName(am.trip.vehicleId):'', am?sName(am.trip.staffId):'',
+      pm?pm.trip.depart:'', pm&&pm.rider.time?pm.rider.time:'', pm?vName(pm.trip.vehicleId):'', pm?sName(pm.trip.staffId):'',
+      ab?rangeShort(ab.slot):'', ab?ab.reason:''
+    ]);
+  }
+  download(rows, '送迎記録_' + TODAY + '.csv', '本日の送迎記録を書き出しました');
+}
+function csvSearch(){
+  if(searchCond.slot === 'abs'){
+    var al = searchAbsences();
+    var ar = [['日付','区分','利用者','範囲','理由','登録時刻','申し送り']];
+    for(var k=0;k<al.length;k++){
+      ar.push([al[k].date, '欠席', uName(al[k].userId), rangeShort(al[k].slot),
+               al[k].reason, al[k].at, al[k].note]);
+    }
+    download(ar, '送迎記録_検索結果.csv', al.length + '件を書き出しました');
+    return;
+  }
+  var res = searchRecords();
+  var rows = [['日付','区分','利用者','担当者','車両','出発','乗降','帰着']];
+  for(var i=0;i<res.length;i++){
+    var r = res[i];
+    rows.push([
+      r.trip.date, slotLabel(r.trip.slot), r.user?r.user.name:'',
+      sName(r.trip.staffId), vName(r.trip.vehicleId),
+      r.trip.depart, r.rider.time||'', r.trip.arrive||''
+    ]);
+  }
+  download(rows, '送迎記録_検索結果.csv', res.length + '件を書き出しました');
+}
+
+/* =========================================================================
+   操作
+   ========================================================================= */
+function usedInTrips(kind, id){
+  for(var i=0;i<TRIPS.length;i++){
+    var t = TRIPS[i];
+    if(kind==='veh' && t.vehicleId===id) return true;
+    if(kind==='stf' && t.staffId===id) return true;
+    if(kind==='usr'){
+      for(var j=0;j<t.riders.length;j++){ if(t.riders[j].userId===id) return true; }
+    }
+  }
+  return false;
+}
+function confirmDelete(kind, name, id){
+  if(usedInTrips(kind, id)){
+    return window.confirm(name + ' は過去の送迎記録で使われています。削除すると記録の表示に影響します。それでも削除しますか。');
+  }
+  return window.confirm(name + ' を削除します。よろしいですか。');
+}
+function removeById(list, id){
+  for(var i=0;i<list.length;i++){ if(list[i].id===id){ list.splice(i,1); return; } }
+}
+function newId(prefix, list){
+  var n = 1;
+  while(byId(list, prefix + n)) n++;
+  return prefix + n;
+}
+
+document.addEventListener('click', function(e){
+  var el = closest(e.target, '[data-act]');
+  if(!el) return;
+  var act = el.getAttribute('data-act');
+
+  if(act==='mask'){ if(e.target===el) closeModal(); return; }
+  if(act==='close-modal'){ closeModal(); return; }
+
+  if(act==='nav'){ view = el.getAttribute('data-view'); render(); return; }
+
+  /* 記録モーダル */
+  if(act==='open-rec'){ openRec(el.getAttribute('data-slot'), null); return; }
+  if(act==='go-out'){
+    /* 朝がまだ1本も出ていなければ朝の迎え、出ていれば夕の送りとして開く */
+    var slot0 = tripsOf(TODAY,'am').length ? 'pm' : 'am';
+    openRec(slot0, el.getAttribute('data-veh'));
+    return;
+  }
+  if(act==='pick-veh'){ pickVehicle(el.getAttribute('data-id')); return; }
+  if(act==='pick-user'){
+    var id = el.getAttribute('data-id');
+    var p = rec.picked.indexOf(id);
+    if(p>=0) rec.picked.splice(p,1); else rec.picked.push(id);
+    syncPickUI();
+    return;
+  }
+  if(act==='show-all'){ rec.showAll = true; renderModal(); return; }
+  if(act==='pick-course'){
+    var rest = courseRest();
+    for(var i=0;i<rest.length;i++){
+      if(rec.picked.indexOf(rest[i]) < 0) rec.picked.push(rest[i]);
+    }
+    syncPickUI();
+    return;
+  }
+  if(act==='submit-rec'){ submitRec(); return; }
+
+  /* 欠席 */
+  if(act==='open-abs'){ openAbs(); return; }
+  if(act==='open-abs-list'){ modal = 'absList'; renderModal(); return; }
+  if(act==='abs-pick'){
+    var aid = el.getAttribute('data-id');
+    var ap = abs.picked.indexOf(aid);
+    if(ap>=0) abs.picked.splice(ap,1); else abs.picked.push(aid);
+    syncAbsUI();
+    return;
+  }
+  if(act==='abs-range'){
+    readAbsNote();
+    abs.slot = el.getAttribute('data-range');
+    /* 範囲を変えて登録できなくなった方は選択から外す */
+    abs.picked = abs.picked.filter(function(id){ return !absBlocked(id); });
+    renderModal();
+    return;
+  }
+  if(act==='abs-reason'){ readAbsNote(); abs.reason = el.getAttribute('data-reason'); renderModal(); return; }
+  if(act==='submit-abs'){ submitAbs(); return; }
+  if(act==='abs-cancel'){
+    var a2 = byId(ABSENCES, el.getAttribute('data-id'));
+    if(!a2) return;
+    if(!window.confirm(uName(a2.userId) + ' 様の欠席を取り消します。よろしいですか。')) return;
+    removeById(ABSENCES, a2.id);
+    render();
+    if(absencesOf(TODAY).length) renderModal(); else closeModal();
+    toast(uName(a2.userId) + ' 様の欠席を取り消しました');
+    return;
+  }
+
+  /* 運行状況 */
+  if(act==='ride'){
+    var t = byId(TRIPS, el.getAttribute('data-trip'));
+    if(!t) return;
+    var uid = el.getAttribute('data-user');
+    var hm = nowHM();
+    for(var k=0;k<t.riders.length;k++){
+      if(t.riders[k].userId===uid){ t.riders[k].time = hm; }
+    }
+    render();
+    toast(uName(uid) + ' 様の' + rideWord(t.slot) + 'を ' + hm + ' で記録しました');
+    return;
+  }
+  if(act==='arrive'){
+    var t2 = byId(TRIPS, el.getAttribute('data-trip'));
+    if(!t2) return;
+    var rest2 = unrecordedCount(t2);
+    if(rest2 > 0){
+      if(!window.confirm(rest2 + '名がまだ未記録です。このまま帰着として記録しますか。')) return;
+    }
+    t2.status = 'done';
+    t2.arrive = nowHM();
+    render();
+    toast(vName(t2.vehicleId) + ' の帰着を ' + t2.arrive + ' で記録しました');
+    return;
+  }
+  if(act==='cancel'){
+    var t3 = byId(TRIPS, el.getAttribute('data-trip'));
+    if(!t3) return;
+    if(!window.confirm(vName(t3.vehicleId) + ' の' + slotLabel(t3.slot) + 'を取り消します。記録は残りません。よろしいですか。')) return;
+    removeById(TRIPS, t3.id);
+    render();
+    toast('この便を取り消しました');
+    return;
+  }
+
+  /* 検索 */
+  if(act==='do-search'){
+    view = 'search';
+    readCond();
+    searchDone = true;
+    detail = null;
+    render();
+    return;
+  }
+  if(act==='clear-search'){
+    searchCond = {date:'', slot:'', staffId:'', vehicleId:'', name:''};
+    searchDone = false; detail = null;
+    render();
+    return;
+  }
+  if(act==='csv-search'){ readCond(); csvSearch(); return; }
+  if(act==='open-detail'){
+    detail = {date: el.getAttribute('data-date'), userId: el.getAttribute('data-user')};
+    render();
+    var box = document.getElementById('detailBox');
+    if(box && box.scrollIntoView) box.scrollIntoView({behavior:'smooth', block:'start'});
+    return;
+  }
+  if(act==='close-detail'){ detail = null; render(); return; }
+
+  /* 出力 */
+  if(act==='print-today'){ printToday(); return; }
+  if(act==='save-sheet'){ saveSheet(); return; }
+  if(act==='csv-today'){ csvToday(); return; }
+
+  /* 車両 */
+  if(act==='veh-new'){
+    form = {id:'', name:'', number:'', model:'', cap:8, lift:false};
+    modal = 'veh'; renderModal(); return;
+  }
+  if(act==='veh-edit'){
+    var v = byId(VEHICLES, el.getAttribute('data-id'));
+    if(!v) return;
+    form = {id:v.id, name:v.name, number:v.number, model:v.model, cap:v.cap, lift:v.lift};
+    modal = 'veh'; renderModal(); return;
+  }
+  if(act==='veh-del'){
+    var v2 = byId(VEHICLES, el.getAttribute('data-id'));
+    if(!v2) return;
+    if(!confirmDelete('veh', v2.name, v2.id)) return;
+    removeById(VEHICLES, v2.id);
+    delete COURSES[v2.id];
+    render(); toast(v2.name + ' を削除しました');
+    return;
+  }
+  if(act==='save-veh'){
+    var nm = val('m-name').replace(/^\s+|\s+$/g,'');
+    if(!nm){ window.alert('呼称を入力してください。'); return; }
+    var cap = parseInt(val('m-cap'),10); if(isNaN(cap)||cap<1) cap = 1;
+    var lift = val('m-lift')==='1';
+    if(form.id){
+      var tv = byId(VEHICLES, form.id);
+      tv.name = nm; tv.number = val('m-number'); tv.model = val('m-model'); tv.cap = cap; tv.lift = lift;
+    }else{
+      var nid = newId('v', VEHICLES);
+      VEHICLES.push({id:nid, name:nm, number:val('m-number'), model:val('m-model'), cap:cap, lift:lift});
+      COURSES[nid] = {staffId: STAFF.length?STAFF[0].id:'', users:[]};
+    }
+    closeModal(); render(); toast(nm + ' を保存しました');
+    return;
+  }
+
+  /* 利用者 */
+  if(act==='usr-new'){
+    form = {id:'', name:'', kana:'', age:'', area:'', tel:'', move:'自立', days:[], note:''};
+    modal = 'usr'; renderModal(); return;
+  }
+  if(act==='usr-edit'){
+    var u = byId(USERS, el.getAttribute('data-id'));
+    if(!u) return;
+    form = {id:u.id, name:u.name, kana:u.kana, age:u.age, area:u.area, tel:u.tel,
+            move:u.move, days:(u.days||[]).slice(), note:u.note};
+    modal = 'usr'; renderModal(); return;
+  }
+  if(act==='toggle-day'){
+    var dn = parseInt(el.getAttribute('data-day'), 10);
+    var dp = form.days.indexOf(dn);
+    if(dp >= 0) form.days.splice(dp,1); else form.days.push(dn);
+    var nowOn = form.days.indexOf(dn) >= 0;
+    el.className = 'chip' + (nowOn ? ' on' : '');
+    el.setAttribute('aria-pressed', nowOn ? 'true' : 'false');
+    return;
+  }
+  if(act==='usr-del'){
+    var u2 = byId(USERS, el.getAttribute('data-id'));
+    if(!u2) return;
+    if(!confirmDelete('usr', u2.name, u2.id)) return;
+    removeById(USERS, u2.id);
+    for(var key in COURSES){
+      if(!COURSES.hasOwnProperty(key)) continue;
+      COURSES[key].users = COURSES[key].users.filter(function(x){ return x !== u2.id; });
+    }
+    render(); toast(u2.name + ' を削除しました');
+    return;
+  }
+  if(act==='save-usr'){
+    var un = val('m-name').replace(/^\s+|\s+$/g,'');
+    if(!un){ window.alert('お名前を入力してください。'); return; }
+    var age = parseInt(val('m-age'),10); if(isNaN(age)) age = '';
+    var uds = form.days.slice().sort(function(a,b){ return a-b; });
+    if(form.id){
+      var tu = byId(USERS, form.id);
+      tu.name = un; tu.kana = val('m-kana'); tu.age = age; tu.area = val('m-area');
+      tu.tel = val('m-tel'); tu.move = val('m-move'); tu.days = uds; tu.note = val('m-note');
+    }else{
+      USERS.push({id:newId('u', USERS), name:un, kana:val('m-kana'), age:age, area:val('m-area'),
+                  tel:val('m-tel'), move:val('m-move'), days:uds, note:val('m-note')});
+    }
+    closeModal(); render(); toast(un + ' 様を保存しました');
+    return;
+  }
+
+  /* 職員 */
+  if(act==='stf-new'){
+    form = {id:'', name:'', role:'介護職員', tel:''};
+    modal = 'stf'; renderModal(); return;
+  }
+  if(act==='stf-edit'){
+    var s = byId(STAFF, el.getAttribute('data-id'));
+    if(!s) return;
+    form = {id:s.id, name:s.name, role:s.role, tel:s.tel};
+    modal = 'stf'; renderModal(); return;
+  }
+  if(act==='stf-del'){
+    var s2 = byId(STAFF, el.getAttribute('data-id'));
+    if(!s2) return;
+    if(!confirmDelete('stf', s2.name, s2.id)) return;
+    removeById(STAFF, s2.id);
+    render(); toast(s2.name + ' を削除しました');
+    return;
+  }
+  if(act==='save-stf'){
+    var sn = val('m-name').replace(/^\s+|\s+$/g,'');
+    if(!sn){ window.alert('お名前を入力してください。'); return; }
+    if(form.id){
+      var ts = byId(STAFF, form.id);
+      ts.name = sn; ts.role = val('m-role'); ts.tel = val('m-tel');
+    }else{
+      STAFF.push({id:newId('s', STAFF), name:sn, role:val('m-role'), tel:val('m-tel')});
+    }
+    closeModal(); render(); toast(sn + ' を保存しました');
+    return;
+  }
+});
+
+function readCond(){
+  var f = document.getElementById('f-date');
+  if(!f) return;
+  searchCond.date      = val('f-date');
+  searchCond.slot      = val('f-slot');
+  searchCond.staffId   = val('f-staff');
+  searchCond.vehicleId = val('f-veh');
+  searchCond.name      = val('f-name').replace(/^\s+|\s+$/g,'');
+}
+
+document.addEventListener('change', function(e){
+  var el = closest(e.target, '[data-rec]');
+  if(el && rec){
+    rec[el.getAttribute('data-rec')] = el.value;
+    var sb = document.getElementById('recSubmit');
+    if(sb) sb.disabled = !(rec.vehicleId && rec.staffId && rec.depart && rec.picked.length > 0);
+  }
+  var ae = closest(e.target, '[data-abs]');
+  if(ae && abs) abs[ae.getAttribute('data-abs')] = ae.value;
+});
+
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape' && modal) closeModal();
+});
+
+render();
+</script>
