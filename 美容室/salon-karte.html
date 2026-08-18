@@ -1,0 +1,892 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>カルテコロン — 美容室の薬剤カルテ</title>
+<style>
+:root{
+  --chrome:#2B2530;
+  --chrome-2:#3E3646;
+  --ink:#231F27;
+  --bg:#F0EDEA;
+  --panel:#FFFFFF;
+  --accent:#B08B6A;
+  --accent-d:#8E6C4D;
+  --accent-lt:#D9BC9C;
+  --rose:#C4627A;
+  --alert:#BC4A3C;
+  --ok:#4E7C63;
+  --muted:#7A7180;
+  --line:rgba(35,31,39,.13);
+  --line-2:rgba(35,31,39,.06);
+  --ui:"Hiragino Sans","Yu Gothic UI","Yu Gothic","Noto Sans JP","Meiryo",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Hiragino Sans","Yu Gothic",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--ui);
+  color:var(--ink);
+  background:
+    radial-gradient(1200px 700px at 50% -10%,#3A3346 0%,rgba(58,51,70,0) 60%),
+    radial-gradient(900px 600px at 80% 110%,#4A3B33 0%,rgba(74,59,51,0) 62%),
+    linear-gradient(160deg,#221E2A 0%,#15121B 100%);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+/* ---------- 端末フレーム ---------- */
+.scaler{transform-origin:center center}
+.shell{
+  padding:13px;border-radius:58px;
+  background:linear-gradient(155deg,#4A4454 0%,#232029 45%,#131118 100%);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.09) inset,
+    0 2px 1px rgba(255,255,255,.16) inset,
+    0 46px 90px rgba(0,0,0,.6),
+    0 12px 30px rgba(0,0,0,.45);
+}
+.phone{
+  width:390px;height:844px;border-radius:46px;background:var(--bg);
+  position:relative;overflow:hidden;display:flex;flex-direction:column;
+}
+.island{
+  position:absolute;top:11px;left:50%;transform:translateX(-50%);
+  width:116px;height:33px;border-radius:18px;background:#0B0A0D;z-index:40;
+}
+.statusbar{
+  height:52px;padding:16px 26px 0;display:flex;align-items:center;
+  justify-content:space-between;font-family:var(--mono);font-size:13px;
+  letter-spacing:.02em;color:var(--ink);flex:0 0 auto;
+}
+.statusbar .sb-icons{display:flex;align-items:center;gap:6px}
+
+/* ---------- アプリヘッダー ---------- */
+.appbar{
+  flex:0 0 auto;background:var(--chrome);color:#fff;
+  border-bottom:3px solid var(--accent);padding:8px 16px 11px;
+}
+.appbar-top{display:flex;align-items:center;gap:10px}
+.logo{
+  width:34px;height:34px;border-radius:50%;background:var(--accent-lt);
+  display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+}
+.brand{flex:1;min-width:0}
+.brand b{display:block;font-size:16px;font-weight:700;letter-spacing:.04em}
+.brand span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.22em;color:rgba(255,255,255,.5);margin-top:1px}
+.me{
+  display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.08);
+  border-radius:999px;padding:4px 11px 4px 4px;
+}
+.me i{
+  width:24px;height:24px;border-radius:50%;background:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  font-style:normal;font-size:11px;font-weight:700;color:#fff;
+}
+.me span{font-size:11px;color:rgba(255,255,255,.85)}
+.appstats{display:flex;gap:8px;margin-top:11px}
+.appstats div{
+  flex:1;background:rgba(255,255,255,.07);border-radius:9px;padding:6px 9px;
+}
+.appstats em{
+  display:block;font-style:normal;font-size:9.5px;color:rgba(255,255,255,.55);
+  letter-spacing:.04em;
+}
+.appstats b{font-family:var(--mono);font-size:17px;font-weight:600;line-height:1.15;display:block;margin-top:1px}
+.appstats .warn b{color:#E8927F}
+
+/* ---------- 画面 ---------- */
+.screen{
+  flex:1;overflow-y:auto;overflow-x:hidden;position:relative;padding-bottom:94px;
+  scrollbar-width:none;-ms-overflow-style:none;
+}
+.screen::-webkit-scrollbar{width:0;height:0;display:none}
+.pad{padding:14px 16px 0}
+.lead{
+  font-size:11.5px;line-height:1.75;color:var(--muted);
+  padding:13px 16px 3px;
+}
+.foot{
+  font-size:11px;line-height:1.75;color:var(--muted);
+  padding:14px 16px 6px;border-top:1px solid var(--line-2);margin-top:14px;
+}
+.sect{
+  display:flex;align-items:baseline;gap:8px;padding:20px 16px 9px;
+}
+.sect h2{font-size:12.5px;font-weight:700;letter-spacing:.06em}
+.sect span{font-family:var(--mono);font-size:10px;color:var(--muted)}
+
+/* ---------- 本日：予約行 ---------- */
+.book{
+  width:100%;display:flex;align-items:center;gap:11px;text-align:left;
+  background:var(--panel);border-radius:12px;padding:11px 12px;margin-bottom:8px;
+  border:1px solid var(--line-2);
+  box-shadow:0 1px 2px rgba(35,31,39,.04);
+  transition:transform .14s ease,box-shadow .14s ease;
+}
+.book:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(35,31,39,.09)}
+.book:active{transform:translateY(0)}
+.book.on{border-color:var(--accent-lt);box-shadow:0 0 0 2px rgba(176,139,106,.18)}
+.bk-time{font-family:var(--mono);font-size:13px;font-weight:600;width:41px;flex:0 0 auto;letter-spacing:-.01em}
+.bk-main{flex:1;min-width:0}
+.bk-name{display:block;font-size:13.5px;font-weight:700;letter-spacing:.02em}
+.bk-sub{display:block;font-size:10.5px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bk-right{display:flex;align-items:center;gap:7px;flex:0 0 auto}
+.dots{display:flex;align-items:center;padding-left:7px}
+.dot{
+  width:22px;height:22px;border-radius:50%;border:2px solid #fff;
+  margin-left:-7px;position:relative;
+  box-shadow:0 1px 2px rgba(35,31,39,.22);
+}
+.nodots{font-family:var(--mono);font-size:11px;color:rgba(35,31,39,.22);letter-spacing:.1em}
+.bk-cnt{font-family:var(--mono);font-size:10.5px;color:var(--muted);width:26px;text-align:right}
+.reddot{width:8px;height:8px;border-radius:50%;background:var(--alert);flex:0 0 auto}
+.reddot.ghost{background:transparent}
+
+/* ---------- レシピカード ---------- */
+.card{
+  background:var(--panel);border-radius:13px;overflow:hidden;
+  border:1px solid var(--line-2);margin-bottom:12px;
+  box-shadow:0 1px 3px rgba(35,31,39,.05);
+}
+.rc-head{display:flex;align-items:center;gap:10px;padding:11px 13px 10px}
+.rc-date{font-family:var(--mono);line-height:1;flex:0 0 auto}
+.rc-date b{font-size:17px;font-weight:600;letter-spacing:-.02em}
+.rc-date span{display:block;font-size:9px;color:var(--muted);margin-top:3px;letter-spacing:.08em}
+.rc-menu{flex:1;min-width:0;font-size:12.5px;font-weight:700;line-height:1.4}
+.rc-who{text-align:right;flex:0 0 auto}
+.rc-who b{display:block;font-size:11px;font-weight:600}
+.rc-who span{display:block;font-family:var(--mono);font-size:9.5px;color:var(--muted);margin-top:2px}
+.band{height:52px;display:flex;position:relative}
+.band .half{flex:1;position:relative;height:100%}
+.band .half span{
+  position:absolute;left:0;right:0;bottom:5px;text-align:center;
+  font-size:9px;letter-spacing:.14em;font-weight:600;
+}
+.band .sep{position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.32);z-index:2}
+.mix{padding:11px 13px 3px}
+.mrow{display:flex;align-items:center;gap:9px;padding:5px 0}
+.chip{width:14px;height:14px;border-radius:4px;flex:0 0 auto;box-shadow:0 0 0 1px rgba(35,31,39,.1) inset}
+.mrow b{flex:1;font-size:12px;font-weight:500}
+.mrow span{font-family:var(--mono);font-size:12px;letter-spacing:-.01em}
+.msum{
+  display:flex;justify-content:space-between;align-items:center;
+  border-top:1px solid var(--line);margin-top:7px;padding:8px 0 11px;
+}
+.msum b{font-size:11.5px;font-weight:700;letter-spacing:.06em}
+.msum span{font-family:var(--mono);font-size:13px;font-weight:700}
+.specs{display:flex;background:rgba(35,31,39,.045);padding:8px 13px}
+.specs div{flex:1;text-align:center}
+.specs em{display:block;font-style:normal;font-size:9px;color:var(--muted);letter-spacing:.06em}
+.specs b{font-family:var(--mono);font-size:12.5px;font-weight:600;margin-top:2px;display:block}
+.note{margin:11px 13px 0;background:rgba(35,31,39,.04);border-radius:9px;padding:9px 11px}
+.note em{display:block;font-style:normal;font-size:9px;letter-spacing:.1em;color:var(--muted);font-weight:600}
+.note p{font-size:11.5px;line-height:1.75;margin-top:4px}
+.note.care{background:rgba(188,74,60,.07)}
+.note.care em{color:var(--alert)}
+.card .note:last-child{margin-bottom:13px}
+
+/* ---------- カルテ ---------- */
+.kt-head{padding:16px 16px 0}
+.kt-head h1{font-size:19px;font-weight:700;letter-spacing:.03em}
+.kt-head p{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:5px}
+.btn-main{
+  display:block;width:calc(100% - 32px);margin:14px 16px 0;
+  background:var(--accent);color:#fff;border-radius:11px;
+  padding:14px;font-size:14px;font-weight:700;letter-spacing:.06em;
+  box-shadow:0 4px 12px rgba(176,139,106,.35);
+  transition:transform .14s ease,box-shadow .14s ease;
+}
+.btn-main:hover{transform:translateY(-1px);box-shadow:0 7px 18px rgba(176,139,106,.42)}
+.btn-main:active{transform:translateY(0)}
+.empty{
+  margin:22px 16px;border:1.5px dashed var(--line);border-radius:13px;
+  padding:34px 20px;text-align:center;
+}
+.empty b{display:block;font-size:13px;font-weight:700}
+.empty p{font-size:11.5px;line-height:1.8;color:var(--muted);margin-top:7px}
+.photos{display:flex;gap:8px;padding:0 16px}
+.photo{flex:1}
+.photo i{
+  display:block;height:104px;border-radius:3px;
+  border:5px solid #fff;box-shadow:0 2px 7px rgba(35,31,39,.16);
+}
+.photo span{display:block;font-family:var(--mono);font-size:9.5px;color:var(--muted);text-align:center;margin-top:6px}
+
+/* ---------- 提案カード ---------- */
+.prop{
+  margin:14px 16px 0;border:1.5px solid var(--accent);border-radius:13px;
+  background:#FAF4EC;overflow:hidden;
+  box-shadow:0 6px 20px rgba(142,108,77,.16);
+  animation:rise .42s cubic-bezier(.2,.8,.3,1) both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.prop-head{
+  background:var(--accent);color:#fff;display:flex;align-items:center;gap:8px;
+  padding:10px 13px;font-size:13px;font-weight:700;letter-spacing:.04em;
+}
+.prop-body{padding:12px 13px 14px}
+.want{
+  font-size:11.5px;line-height:1.7;background:rgba(255,255,255,.72);
+  border-radius:8px;padding:8px 10px;
+}
+.want em{font-style:normal;color:var(--accent-d);font-weight:700}
+.cmp{display:flex;align-items:flex-end;gap:9px;margin-top:12px}
+.cmp .c{flex:1}
+.cmp .c i{display:block;height:38px;border-radius:6px;box-shadow:0 0 0 1px rgba(35,31,39,.12) inset}
+.cmp .c span{display:block;font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:5px;text-align:center}
+.cmp .ar{font-size:16px;color:var(--accent-d);padding-bottom:22px;font-weight:700}
+.prop .card{margin:12px 0 0;border-color:var(--line)}
+.why{margin-top:12px}
+.why .wr{display:flex;gap:8px;padding:4px 0;font-size:11.5px;line-height:1.7}
+.why .wr i{color:var(--accent);font-style:normal;flex:0 0 auto;line-height:1.7}
+.confirm{
+  margin-top:12px;background:rgba(188,74,60,.09);border-radius:9px;padding:9px 11px;
+}
+.confirm em{display:block;font-style:normal;font-size:9px;letter-spacing:.1em;color:var(--alert);font-weight:700}
+.confirm p{font-size:11.5px;line-height:1.75;margin-top:4px}
+.prop-btns{display:flex;gap:8px;margin-top:13px}
+.prop-btns button{
+  flex:1;border-radius:10px;padding:12px;font-size:12.5px;font-weight:700;letter-spacing:.04em;
+}
+.prop-btns .go{background:var(--accent-d);color:#fff}
+.prop-btns .adj{background:#fff;border:1px solid var(--line);color:var(--ink)}
+
+/* ---------- 記録 ---------- */
+.metric{
+  background:var(--panel);border-radius:13px;border:1px solid var(--line-2);
+  padding:14px 14px 15px;margin-bottom:10px;box-shadow:0 1px 3px rgba(35,31,39,.05);
+}
+.metric .mh{display:flex;align-items:baseline;gap:9px}
+.metric .mh b{flex:1;font-size:12.5px;font-weight:700;letter-spacing:.04em}
+.metric .mh span{font-family:var(--mono);font-size:25px;font-weight:600;letter-spacing:-.02em;line-height:1}
+.metric.good .mh span{color:var(--ok)}
+.metric p{font-size:11px;line-height:1.8;color:var(--muted);margin-top:8px}
+.track{height:10px;border-radius:5px;background:rgba(35,31,39,.08);margin-top:12px;position:relative;overflow:hidden}
+.track i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,var(--accent-lt),var(--accent))}
+.track u{position:absolute;top:0;bottom:0;width:2px;background:var(--chrome);opacity:.55}
+.tlab{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9.5px;color:var(--muted);margin-top:6px}
+.fav{
+  display:flex;align-items:center;gap:10px;background:var(--panel);
+  border-radius:11px;border:1px solid var(--line-2);padding:10px 12px;margin-bottom:8px;
+}
+.fav .cc{display:flex;flex:0 0 auto}
+.fav .cc i{width:16px;height:16px;border-radius:5px;margin-left:-5px;border:2px solid #fff;box-shadow:0 1px 2px rgba(35,31,39,.18)}
+.fav .cc i:first-child{margin-left:0}
+.fav div{flex:1;min-width:0}
+.fav b{display:block;font-size:12px;font-weight:700}
+.fav em{display:block;font-style:normal;font-size:10px;color:var(--muted);margin-top:2px}
+.fav .cnt{font-family:var(--mono);font-size:10.5px;color:var(--accent-d);flex:0 0 auto}
+
+/* ---------- FAB / タブ ---------- */
+.fab{
+  position:absolute;right:16px;bottom:88px;z-index:30;
+  width:60px;height:60px;border-radius:50%;background:var(--accent);color:#fff;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  box-shadow:0 8px 20px rgba(142,108,77,.45);
+  transition:transform .14s ease;
+}
+.fab:hover{transform:scale(1.05)}
+.fab span{font-size:9px;font-weight:700;letter-spacing:.08em}
+.tabbar{
+  flex:0 0 auto;height:74px;background:var(--chrome);display:flex;
+  padding-bottom:12px;z-index:35;
+}
+.tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  color:rgba(255,255,255,.45);position:relative;padding-top:2px;
+}
+.tab span{font-size:10px;letter-spacing:.08em;font-weight:600}
+.tab.on{color:#fff}
+.tab.on::before{
+  content:"";position:absolute;top:0;left:22%;right:22%;height:3px;
+  background:var(--accent);border-radius:0 0 3px 3px;
+}
+
+/* ---------- 組み立て演出 ---------- */
+.overlay{
+  position:absolute;inset:0;z-index:60;background:rgba(30,26,36,.94);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  padding:0 30px;color:#fff;
+}
+.overlay.on{display:flex;animation:fade .3s ease both}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.ov-title{font-size:13.5px;font-weight:700;letter-spacing:.08em;margin-bottom:26px}
+.bowl{
+  width:132px;height:132px;border-radius:50%;position:relative;flex:0 0 auto;
+  background:rgba(255,255,255,.05);overflow:hidden;
+}
+.bowl .ring{
+  position:absolute;inset:0;border-radius:50%;border:1px solid rgba(217,188,156,.35);
+}
+.bowl .dash{
+  position:absolute;inset:11px;border-radius:50%;
+  border:1.5px dashed rgba(217,188,156,.55);
+  animation:spin 4s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.bowl .liq{
+  position:absolute;left:0;right:0;bottom:0;height:0;
+  background:linear-gradient(180deg,var(--accent-lt),var(--accent-d));
+  transition:height .9s cubic-bezier(.4,0,.2,1);
+}
+.bowl .liq::before{
+  content:"";position:absolute;top:-4px;left:0;right:0;height:8px;border-radius:50%;
+  background:var(--accent-lt);opacity:.85;
+}
+.checks{width:100%;max-width:268px;margin-top:26px}
+.chk{
+  display:flex;align-items:center;gap:9px;padding:6px 0;
+  opacity:0;transform:translateY(6px);transition:opacity .34s ease,transform .34s ease;
+}
+.chk.in{opacity:1;transform:none}
+.chk i{width:13px;height:13px;border-radius:4px;flex:0 0 auto}
+.chk b{flex:1;font-size:11.5px;font-weight:500;color:rgba(255,255,255,.92)}
+.chk span{font-size:9.5px;letter-spacing:.1em;color:var(--accent-lt);font-weight:700}
+.ov-last{
+  margin-top:22px;font-size:11.5px;letter-spacing:.06em;color:rgba(255,255,255,.62);
+  opacity:0;transition:opacity .4s ease;
+}
+.ov-last.in{opacity:1}
+
+/* ---------- トースト ---------- */
+.toast{
+  position:absolute;left:16px;right:16px;bottom:96px;z-index:70;
+  background:var(--chrome-2);color:#fff;border-radius:11px;
+  padding:12px 14px;font-size:12px;line-height:1.6;letter-spacing:.03em;
+  box-shadow:0 10px 26px rgba(0,0,0,.35);
+  opacity:0;transform:translateY(10px);pointer-events:none;
+  transition:opacity .28s ease,transform .28s ease;
+}
+.toast.on{opacity:1;transform:none}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="scaler" id="scaler">
+  <div class="shell">
+    <div class="phone">
+      <div class="island"></div>
+
+      <div class="statusbar">
+        <span>10:35</span>
+        <span class="sb-icons">
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="#231F27" stroke-width="1.4" stroke-linecap="round">
+            <path d="M1 4.2a10 10 0 0 1 14 0"/><path d="M3.6 6.8a6.4 6.4 0 0 1 8.8 0"/><path d="M6.2 9.3a2.8 2.8 0 0 1 3.6 0"/>
+          </svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+            <rect x="1" y="1.6" width="20" height="9.2" rx="3" stroke="#231F27" stroke-width="1.2" opacity=".5"/>
+            <rect x="2.8" y="3.4" width="15" height="5.6" rx="1.7" fill="#231F27"/>
+            <path d="M22.6 4.6v3.2a2 2 0 0 0 0-3.2z" fill="#231F27" opacity=".5"/>
+          </svg>
+        </span>
+      </div>
+
+      <div class="appbar">
+        <div class="appbar-top">
+          <div class="logo">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2B2530" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4.2 9.4a4.2 4.2 0 0 1 4.2-4.2h4.4l3.4-1.7v11.8l-3.4-1.7H8.4a4.2 4.2 0 0 1-4.2-4.2z"/>
+              <path d="M9.7 13.6l.7 5.6h2.6l-.7-5.6"/>
+              <path d="M19 7.6h2.2M19.4 10.2h1.5"/>
+            </svg>
+          </div>
+          <div class="brand">
+            <b>カルテコロン</b>
+            <span>SALON KARTE</span>
+          </div>
+          <div class="me"><i>木</i><span>木下</span></div>
+        </div>
+        <div class="appstats">
+          <div><em>本日の予約</em><b>6</b></div>
+          <div><em>担当が交代</em><b>1</b></div>
+          <div class="warn"><em>要注意</em><b>2</b></div>
+        </div>
+      </div>
+
+      <div class="screen" id="screen"></div>
+
+      <button class="fab" id="fab" aria-label="施術を記録する">
+        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round">
+          <path d="M12 5.5v13M5.5 12h13"/>
+        </svg>
+        <span>記録</span>
+      </button>
+
+      <nav class="tabbar" id="tabbar">
+        <button class="tab" data-tab="today">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+            <rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 9.5h17M8 3.4v3M16 3.4v3"/>
+          </svg><span>本日</span>
+        </button>
+        <button class="tab" data-tab="chart">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 3.6h8.5L19 8v12.4H6z"/><path d="M14 3.6V8h5"/><path d="M9 12.5h6M9 16h4"/>
+          </svg><span>カルテ</span>
+        </button>
+        <button class="tab" data-tab="log">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+            <path d="M4 20h16"/><path d="M7 20v-7M12 20V6M17 20v-10"/>
+          </svg><span>記録</span>
+        </button>
+      </nav>
+
+      <div class="overlay" id="overlay">
+        <div class="ov-title">前回までの記録を読んでいます</div>
+        <div class="bowl">
+          <div class="ring"></div>
+          <div class="dash"></div>
+          <div class="liq" id="liq"></div>
+        </div>
+        <div class="checks" id="checks"></div>
+        <div class="ov-last" id="ovlast">ご希望に合わせて量を決めています</div>
+      </div>
+
+      <div class="toast" id="toast"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= データ ================= */
+var RX = {
+  a8 :{name:"アッシュ 8",  color:"#8E8C86"},
+  a10:{name:"アッシュ 10", color:"#A5A39C"},
+  m7 :{name:"マット 7",    color:"#7C8168"},
+  b6 :{name:"ベージュ 6",  color:"#9A8468"},
+  b8 :{name:"ベージュ 8",  color:"#B49B7C"},
+  p7 :{name:"ピンク 7",    color:"#B57E82"},
+  n5 :{name:"ナチュラル 5",color:"#6B5B4E"},
+  n7 :{name:"ナチュラル 7",color:"#8A7561"},
+  gr :{name:"グレー 9",    color:"#9C9A98"},
+  cl :{name:"クリア",      color:"#DED8CF"},
+  ox3:{name:"オキシ 3%",   color:"#E6E2DC"},
+  ox6:{name:"オキシ 6%",   color:"#E0DBD3"}
+};
+
+var CUSTOMERS = {
+  fujii:{
+    name:"藤井 麻衣", visits:3, alert:true,
+    records:[
+      {date:"2026-06-14", menu:"カラー（リタッチ＋毛先）", staff:"川島 直人", min:95,
+       before:"#5E4A3C", after:"#7E6A52",
+       mix:[{id:"b8",g:30},{id:"a8",g:10},{id:"ox6",g:40}],
+       lv:"7.5", ox:"6%", wait:"30分",
+       memo:"根元の白髪が全体の1割ほど。前回より少し明るめを希望されたため、ベージュを主軸に。"},
+      {date:"2026-04-05", menu:"カラー＋トリートメント", staff:"川島 直人", min:110,
+       before:"#57453A", after:"#6E5A48",
+       mix:[{id:"b6",g:25},{id:"n7",g:15},{id:"ox6",g:40}],
+       lv:"7", ox:"6%", wait:"30分",
+       memo:"毛先のパサつきが気になるとのこと。トリートメントを追加。"},
+      {date:"2026-01-18", menu:"カラー（全体）", staff:"木下 理沙", min:100,
+       before:"#4E3D33", after:"#6A5645",
+       mix:[{id:"n7",g:30},{id:"b6",g:10},{id:"ox6",g:40}],
+       lv:"7", ox:"6%", wait:"35分",
+       memo:"はじめてのご来店。地毛が硬めで染まりにくい。",
+       care:"ジアミンで軽いかゆみが出た経験あり。パッチテスト済み、当日は問題なし。"}
+    ]
+  },
+  koyanagi:{
+    name:"小柳 あかり", visits:1, alert:true,
+    records:[
+      {date:"2026-05-30", menu:"ブリーチ＋オンカラー", staff:"木下 理沙", min:180,
+       before:"#4A3B31", after:"#B9A88E",
+       mix:[{id:"a10",g:20},{id:"cl",g:20},{id:"ox3",g:40}],
+       lv:"11", ox:"3%", wait:"20分",
+       memo:"ブリーチ1回。毛先は既に明るかったため根元のみ。オンカラーは寒色で。",
+       care:"毛先の体力が落ちている。次回のブリーチは根元のみに留めたい。"}
+    ]
+  },
+  watarai:{
+    name:"渡会 節子", visits:2, alert:false,
+    records:[
+      {date:"2026-06-28", menu:"白髪染め（リタッチ）", staff:"川島 直人", min:70,
+       before:"#3E332C", after:"#4A3D33",
+       mix:[{id:"n5",g:30},{id:"m7",g:5},{id:"ox6",g:35}],
+       lv:"5", ox:"6%", wait:"25分",
+       memo:"白髪は生え際とつむじに集中。3週間ごとのご来店。赤みが出やすいためマットを少量。"},
+      {date:"2026-06-07", menu:"白髪染め（リタッチ）", staff:"川島 直人", min:70,
+       before:"#3E332C", after:"#493C32",
+       mix:[{id:"n5",g:30},{id:"ox6",g:30}],
+       lv:"5", ox:"6%", wait:"25分",
+       memo:"前回より赤みが出たとのご指摘。次回マットを足す。"}
+    ]
+  },
+  mikuni:{
+    name:"三國 侑里", visits:1, alert:false,
+    records:[
+      {date:"2026-06-20", menu:"カラー（毛先）＋カット", staff:"木下 理沙", min:120,
+       before:"#6B5544", after:"#9C7E62",
+       mix:[{id:"b8",g:25},{id:"p7",g:5},{id:"ox6",g:30}],
+       lv:"8", ox:"6%", wait:"25分",
+       memo:"やわらかいベージュ希望。ピンクを少量入れて血色感を出した。"}
+    ]
+  },
+  domoto:{ name:"堂本 かおる", visits:4, alert:false, records:[] },
+  nose:{   name:"能勢 千秋",   visits:2, alert:false, records:[] }
+};
+
+var BOOKINGS = [
+  {t:"11:00", id:"fujii",    menu:"カラー リタッチ",      prev:"川島 直人"},
+  {t:"12:30", id:"koyanagi", menu:"ブリーチ＋オンカラー", prev:"木下 理沙"},
+  {t:"14:00", id:"watarai",  menu:"白髪染め",             prev:"川島 直人"},
+  {t:"15:30", id:"mikuni",   menu:"カラー＋カット",       prev:"木下 理沙"},
+  {t:"17:00", id:"domoto",   menu:"カット",               prev:"木下 理沙"},
+  {t:"18:15", id:"nose",     menu:"パーマ",               prev:"川島 直人"}
+];
+
+var PROPOSAL = {
+  want:"前回より1トーン暗く、赤みを抑えたい",
+  from:"#7E6A52", to:"#6C5B4A", fromLv:"7.5", toLv:"6.5",
+  mix:[{id:"b6",g:25},{id:"a8",g:10},{id:"m7",g:5},{id:"ox6",g:40}],
+  lv:"6.5", ox:"6%", wait:"30分",
+  why:[
+    "前回のベージュ主軸から、ベージュ6に落として1トーン下げます。",
+    "1月にご指摘のあった赤みを抑えるため、マット7を5g足しています。",
+    "地毛が硬く染まりにくいため、放置時間は前回と同じ30分を確保します。"
+  ],
+  confirm:"ジアミンで軽いかゆみが出た経験があります。施術前に一度ご確認ください。"
+};
+
+var FAVS = [
+  {mix:["b8","a8"],  name:"ベージュ 8 + アッシュ 8", sub:"明るめの寒色ベージュ",   cnt:21},
+  {mix:["n5","m7"],  name:"ナチュラル 5 + マット 7", sub:"白髪染め 赤み抑え",      cnt:17},
+  {mix:["a10","cl"], name:"アッシュ 10 + クリア",    sub:"ブリーチ後のオンカラー", cnt:9}
+];
+
+var BUILD_STEPS = [
+  {text:"3回分の記録を読みました", color:"#8E6C4D"},
+  {text:"前回はベージュ8が主軸",   color:"#B49B7C"},
+  {text:"1月に赤みのご指摘あり",   color:"#7C8168"},
+  {text:"地毛が硬く染まりにくい",  color:"#4E3D33"},
+  {text:"ジアミンの記録あり",      color:"#BC4A3C"}
+];
+
+/* ================= 小道具 ================= */
+function esc(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+function isBright(hex){
+  var h = hex.replace("#","");
+  var r = parseInt(h.substring(0,2),16);
+  var g = parseInt(h.substring(2,4),16);
+  var b = parseInt(h.substring(4,6),16);
+  return (r*299 + g*587 + b*114)/1000 > 150;
+}
+function bandTextColor(hex){ return isBright(hex) ? "#231F27" : "#FFFFFF"; }
+function total(mix){
+  var t = 0, i;
+  for(i=0;i<mix.length;i++){ t += mix[i].g; }
+  return t;
+}
+function yearOf(date){ return date.substring(0,4); }
+function mdOf(date){
+  var m = parseInt(date.substring(5,7),10);
+  var d = parseInt(date.substring(8,10),10);
+  return m + "/" + d;
+}
+function $(id){ return document.getElementById(id); }
+
+/* ================= 状態 ================= */
+var state = { tab:"today", picked:null, proposed:false, busy:false };
+
+/* ================= 部品 ================= */
+function dotsHtml(cust){
+  var recs = cust.records.slice(0,3), h, i;
+  if(!recs.length){ return '<span class="nodots">&mdash;</span>'; }
+  h = '<span class="dots">';
+  for(i=0;i<recs.length;i++){
+    h += '<span class="dot" style="background:' + esc(recs[i].after) + ";z-index:" + (10-i) + '"></span>';
+  }
+  return h + "</span>";
+}
+
+function mixRows(mix){
+  var h = "", i, rx;
+  for(i=0;i<mix.length;i++){
+    rx = RX[mix[i].id];
+    h += '<div class="mrow"><span class="chip" style="background:' + esc(rx.color) + '"></span>'
+       + "<b>" + esc(rx.name) + "</b><span>" + mix[i].g + " g</span></div>";
+  }
+  h += '<div class="msum"><b>合計</b><span>' + total(mix) + " g</span></div>";
+  return h;
+}
+
+function bandHtml(before, after){
+  return '<div class="band">'
+    + '<div class="half" style="background:' + esc(before) + '"><span style="color:' + bandTextColor(before) + '">施術前</span></div>'
+    + '<span class="sep"></span>'
+    + '<div class="half" style="background:' + esc(after) + '"><span style="color:' + bandTextColor(after) + '">仕上がり</span></div>'
+    + "</div>";
+}
+
+function specsHtml(lv, ox, wait){
+  return '<div class="specs">'
+    + "<div><em>仕上がり</em><b>Lv " + esc(lv) + "</b></div>"
+    + "<div><em>オキシ</em><b>" + esc(ox) + "</b></div>"
+    + "<div><em>放置</em><b>" + esc(wait) + "</b></div>"
+    + "</div>";
+}
+
+function recipeCard(r){
+  var h = '<div class="card">'
+    + '<div class="rc-head">'
+    +   '<span class="rc-date"><b>' + esc(mdOf(r.date)) + "</b><span>" + esc(yearOf(r.date)) + "</span></span>"
+    +   '<span class="rc-menu">' + esc(r.menu) + "</span>"
+    +   '<span class="rc-who"><b>' + esc(r.staff) + "</b><span>" + r.min + " 分</span></span>"
+    + "</div>"
+    + bandHtml(r.before, r.after)
+    + '<div class="mix">' + mixRows(r.mix) + "</div>"
+    + specsHtml(r.lv, r.ox, r.wait)
+    + '<div class="note"><em>担当者のメモ</em><p>' + esc(r.memo) + "</p></div>";
+  if(r.care){
+    h += '<div class="note care"><em>気をつけること</em><p>' + esc(r.care) + "</p></div>";
+  }
+  return h + "</div>";
+}
+
+/* ================= 画面：本日 ================= */
+function viewToday(){
+  var h = '<p class="lead">お客様を選ぶと、これまでの薬剤の記録が色見本つきで出てきます。<br>担当が変わっても同じものが見えます。</p><div class="pad">';
+  var i, b, c;
+  for(i=0;i<BOOKINGS.length;i++){
+    b = BOOKINGS[i];
+    c = CUSTOMERS[b.id];
+    h += '<button class="book' + (state.picked === b.id ? " on" : "") + '" data-go="' + esc(b.id) + '">'
+      +  '<span class="bk-time">' + esc(b.t) + "</span>"
+      +  '<span class="bk-main"><span class="bk-name">' + esc(c.name) + " 様</span>"
+      +  '<span class="bk-sub">' + esc(b.menu) + "　前回 " + esc(b.prev) + "</span></span>"
+      +  '<span class="bk-right">' + dotsHtml(c)
+      +  '<span class="bk-cnt">' + c.visits + "回</span>"
+      +  '<span class="reddot' + (c.alert ? "" : " ghost") + '"></span></span>'
+      +  "</button>";
+  }
+  h += "</div>"
+    +  '<p class="foot">丸い色は過去の仕上がり。新しいものが左です。<br>赤い点は、薬剤や履歴で気をつけることがある方です。</p>';
+  return h;
+}
+
+/* ================= 提案カード ================= */
+function propCard(){
+  var p = PROPOSAL, h, i;
+  h = '<div class="prop">'
+    + '<div class="prop-head">'
+    +   '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.6l4.6 4.6L19 7.6"/></svg>'
+    +   "本日の配合ができました</div>"
+    + '<div class="prop-body">'
+    +   '<p class="want"><em>ご希望</em>　' + esc(p.want) + "</p>"
+    +   '<div class="cmp">'
+    +     '<span class="c"><i style="background:' + esc(p.from) + '"></i><span>前回 Lv ' + esc(p.fromLv) + "</span></span>"
+    +     '<span class="ar">&rarr;</span>'
+    +     '<span class="c"><i style="background:' + esc(p.to) + '"></i><span>今回 Lv ' + esc(p.toLv) + "</span></span>"
+    +   "</div>"
+    +   '<div class="card"><div class="mix">' + mixRows(p.mix) + "</div>" + specsHtml(p.lv, p.ox, p.wait) + "</div>"
+    +   '<div class="why">';
+  for(i=0;i<p.why.length;i++){
+    h += '<p class="wr"><i>&#8226;</i>' + esc(p.why[i]) + "</p>";
+  }
+  h += "</div>"
+    +   '<div class="confirm"><em>確認してください</em><p>' + esc(p.confirm) + "</p></div>"
+    +   '<div class="prop-btns"><button class="go" data-act="go">この配合で進める</button>'
+    +   '<button class="adj" data-act="adjust">量を調整する</button></div>'
+    + "</div></div>";
+  return h;
+}
+
+/* ================= 画面：カルテ ================= */
+function viewChart(){
+  var c, h, i, ph, j;
+  if(!state.picked){
+    return '<div class="empty"><b>お客様が選ばれていません</b>'
+      + "<p>本日の一覧から選ぶか、お名前で探してください。</p></div>";
+  }
+  c = CUSTOMERS[state.picked];
+  h = '<div class="kt-head"><h1>' + esc(c.name) + " 様</h1><p>来店 " + c.visits + "回</p></div>";
+
+  if(state.proposed && state.picked === "fujii"){
+    h += propCard();
+  }else{
+    h += '<button class="btn-main" data-act="build">本日の配合を組み立てる</button>';
+  }
+
+  if(c.records.length){
+    h += '<div class="sect"><h2>これまでの施術</h2><span>' + c.records.length + " 件</span></div><div class=\"pad\">";
+    for(i=0;i<c.records.length;i++){ h += recipeCard(c.records[i]); }
+    h += "</div>"
+      +  '<div class="sect"><h2>仕上がりの写真</h2></div><div class="photos">';
+    ph = c.records.slice(0,3);
+    for(j=0;j<ph.length;j++){
+      h += '<span class="photo"><i style="background:linear-gradient(165deg,' + esc(ph[j].after) + " 0%," + esc(ph[j].before) + ' 100%)"></i>'
+        +  "<span>" + esc(mdOf(ph[j].date)) + "</span></span>";
+    }
+    h += "</div>"
+      +  '<p class="foot">同じ照明・同じ角度で撮るようにしているので、色の違いがそのまま比べられます。</p>';
+  }else{
+    h += '<div class="empty"><b>カラーの記録はまだありません</b>'
+      +  "<p>本日の施術を記録すると、次に担当する人にも<br>同じ色と配合がそのまま伝わります。</p></div>";
+  }
+  return h;
+}
+
+/* ================= 画面：記録 ================= */
+function viewLog(){
+  var h, i, k, f, cc;
+  h = '<div class="pad" style="padding-top:18px">'
+    + '<div class="metric good"><div class="mh"><b>「前と同じで」に応えられた割合</b><span>94%</span></div>'
+    +   "<p>担当が変わったお客様でも、前回と同じ仕上がりにできた割合です。<br>記録が個人の手帳にあった頃は 51% でした。</p>"
+    +   '<div class="track"><i style="width:94%"></i><u style="left:51%"></u></div>'
+    +   '<div class="tlab"><span>手帳の頃 51%</span><span>いま 94%</span></div></div>'
+    + '<div class="metric"><div class="mh"><b>色が違うと言われた回数</b><span>0件</span></div>'
+    +   "<p>今月はまだありません。導入前は月に4件ほどありました。<br>原因の多くは、前回の配合が分からず勘で合わせていたことでした。</p></div>"
+    + '<div class="metric"><div class="mh"><b>薬剤の使用量</b><span>-18%</span></div>'
+    +   "<p>必要な量が最初から分かるため、作りすぎて捨てる分が減りました。</p></div>"
+    + "</div>"
+    + '<div class="sect"><h2>よく使う配合</h2><span>今月</span></div><div class="pad">';
+  for(i=0;i<FAVS.length;i++){
+    f = FAVS[i];
+    cc = "";
+    for(k=0;k<f.mix.length;k++){
+      cc += '<i style="background:' + esc(RX[f.mix[k]].color) + '"></i>';
+    }
+    h += '<div class="fav"><span class="cc">' + cc + "</span>"
+      +  "<div><b>" + esc(f.name) + "</b><em>" + esc(f.sub) + "</em></div>"
+      +  '<span class="cnt">' + f.cnt + " 回</span></div>";
+  }
+  return h + "</div>";
+}
+
+/* ================= 描画 ================= */
+function render(){
+  var s = $("screen"), tabs, i;
+  if(state.tab === "today"){ s.innerHTML = viewToday(); }
+  else if(state.tab === "chart"){ s.innerHTML = viewChart(); }
+  else { s.innerHTML = viewLog(); }
+  s.scrollTop = 0;
+  tabs = $("tabbar").getElementsByClassName("tab");
+  for(i=0;i<tabs.length;i++){
+    tabs[i].className = (tabs[i].getAttribute("data-tab") === state.tab) ? "tab on" : "tab";
+  }
+}
+
+/* ================= トースト ================= */
+var toastTimer = null;
+function toast(msg){
+  var t = $("toast");
+  t.textContent = msg;
+  t.className = "toast on";
+  if(toastTimer){ clearTimeout(toastTimer); }
+  toastTimer = setTimeout(function(){ t.className = "toast"; }, 3400);
+}
+
+/* ================= 組み立ての演出 ================= */
+function build(){
+  if(state.busy){ return; }
+  state.busy = true;
+
+  var ov = $("overlay"), liq = $("liq"), last = $("ovlast"), box = $("checks");
+  var h = "", i, rows;
+  for(i=0;i<BUILD_STEPS.length;i++){
+    h += '<div class="chk"><i style="background:' + esc(BUILD_STEPS[i].color) + '"></i>'
+      +  "<b>" + esc(BUILD_STEPS[i].text) + "</b><span>確認</span></div>";
+  }
+  box.innerHTML = h;
+  last.className = "ov-last";
+  liq.style.height = "0";
+  ov.className = "overlay on";
+
+  rows = box.getElementsByClassName("chk");
+  for(i=0;i<rows.length;i++){
+    (function(row, n){
+      setTimeout(function(){
+        row.className = "chk in";
+        liq.style.height = (18 + n * 16) + "px";
+      }, 340 + n * 520);
+    })(rows[i], i);
+  }
+  setTimeout(function(){
+    last.className = "ov-last in";
+    liq.style.height = "106px";
+  }, 340 + BUILD_STEPS.length * 520);
+
+  setTimeout(function(){
+    ov.className = "overlay";
+    state.busy = false;
+    state.proposed = true;
+    render();
+    toast("本日の配合ができました（所要 40秒）");
+  }, 3980);
+}
+
+/* ================= 操作 ================= */
+function findAttr(node, root, attr){
+  var el = node;
+  while(el && el !== root){
+    if(el.getAttribute){
+      var v = el.getAttribute(attr);
+      if(v){ return v; }
+    }
+    el = el.parentNode;
+  }
+  return null;
+}
+
+$("screen").addEventListener("click", function(e){
+  var go = findAttr(e.target, this, "data-go");
+  if(go){
+    state.picked = go;
+    state.tab = "chart";
+    render();
+    return;
+  }
+  var act = findAttr(e.target, this, "data-act");
+  if(act === "build"){
+    if(state.picked !== "fujii"){
+      toast("このデモで組み立てられるのは 藤井 麻衣 様の分です");
+      return;
+    }
+    build();
+  }else if(act === "go"){
+    toast("この配合を本日の施術に引き継ぎました");
+  }else if(act === "adjust"){
+    toast("1gきざみで調整できます（このデモでは省いています）");
+  }
+});
+
+$("tabbar").addEventListener("click", function(e){
+  var tab = findAttr(e.target, this, "data-tab");
+  if(tab){
+    state.tab = tab;
+    render();
+  }
+});
+
+$("fab").addEventListener("click", function(){
+  toast("施術の記録は、お会計の前に残します（このデモでは省いています）");
+});
+
+/* ================= 端末の自動縮小 ================= */
+function fit(){
+  var s = Math.min((window.innerWidth - 28) / 416, (window.innerHeight - 28) / 870, 1);
+  if(s < .3){ s = .3; }
+  $("scaler").style.transform = "scale(" + s + ")";
+}
+window.addEventListener("resize", fit);
+
+fit();
+render();
+
+})();
+</script>
+</body>
+</html>
