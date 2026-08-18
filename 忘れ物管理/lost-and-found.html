@@ -1,0 +1,672 @@
+<meta charset="utf-8">
+<title>わすれもの棚 — 忘れ物の預かり管理</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{
+  --chrome:#3A3A3C;
+  --chrome-2:#4E4E51;
+  --ink:#222225;
+  --bg:#E5E3DE;
+  --shelf:#B99A6B;
+  --shelf-d:#8E7349;
+  --panel:#FBFAF7;
+  --tag:#F5F1E6;
+  --accent:#2F7CA8;
+  --accent-d:#20607F;
+  --accent-lt:#8FBCD4;
+  --alert:#BF4A38;
+  --warn:#C8892C;
+  --ok:#4C7C50;
+  --muted:#74736E;
+  --line:rgba(34,34,37,.14);
+  --line-2:rgba(34,34,37,.06);
+  --ui:"Hiragino Sans","Yu Gothic UI","Yu Gothic","Noto Sans JP","Meiryo",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Hiragino Sans","Yu Gothic",monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  margin:0;overflow:hidden;font-family:var(--ui);color:var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(120% 90% at 50% 0%,#3B3A37 0%,#242320 45%,#141312 100%);
+}
+button{font-family:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---------- device ---------- */
+.wrap{transform-origin:center center}
+.phone{
+  width:412px;height:866px;padding:11px;border-radius:56px;background:#0E0E10;
+  box-shadow:0 40px 70px rgba(0,0,0,.55),0 0 0 2px #2A2A2C inset;position:relative;
+}
+.screen{
+  width:390px;height:844px;border-radius:46px;overflow:hidden;background:var(--bg);
+  position:relative;display:flex;flex-direction:column;
+}
+.island{
+  position:absolute;top:22px;left:50%;transform:translateX(-50%);
+  width:118px;height:34px;border-radius:20px;background:#08080A;z-index:50;
+}
+.statusbar{
+  height:54px;flex:none;background:var(--chrome);color:#fff;
+  display:flex;align-items:flex-end;justify-content:space-between;padding:0 24px 7px;
+}
+.statusbar .t{font:12px/1 var(--mono);letter-spacing:.04em}
+.statusbar .r{display:flex;align-items:center;gap:6px}
+
+/* ---------- app header ---------- */
+.appheader{flex:none;background:var(--chrome);color:#fff;padding:6px 14px 12px;border-bottom:3px solid var(--shelf)}
+.brandrow{display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;border-radius:9px;background:var(--shelf);display:grid;place-items:center;flex:none}
+.brand h1{margin:0;font-size:17px;letter-spacing:.04em;font-weight:700}
+.brand small{display:block;font-size:8.5px;letter-spacing:.2em;color:rgba(255,255,255,.5);margin-top:1px}
+.who{margin-left:auto;background:var(--chrome-2);border-radius:999px;padding:5px 13px;font-size:12px}
+.stats{display:flex;gap:7px;margin-top:11px}
+.stat{flex:1;background:rgba(255,255,255,.07);border-radius:8px;padding:7px 9px}
+.stat b{display:block;font-size:17px;line-height:1.15}
+.stat span{font-size:9.5px;color:rgba(255,255,255,.58)}
+.stat.near b{color:var(--warn)}
+
+/* ---------- body ---------- */
+/* 下の余白はFABの逃げ（FABは bottom:80px / 高さ62px で本文の上に浮く） */
+.body{flex:1;min-height:0;overflow-y:auto;padding:13px 13px 92px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.note{font-size:11px;color:var(--muted);line-height:1.7;margin-top:9px}
+.h{font-size:12.5px;font-weight:700;margin:0 2px 8px}
+
+.ask{padding:12px;display:flex;gap:10px;align-items:flex-start}
+.askmic{width:34px;height:34px;border-radius:50%;background:var(--accent);display:grid;place-items:center;flex:none}
+.ask p{margin:2px 0 0;font-size:13px;font-weight:700;line-height:1.5}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.pill{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:5px 10px;font-size:11px;color:var(--muted)}
+
+.rrow{display:flex;gap:10px;padding:9px;margin-bottom:8px;width:100%;text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:12px;animation:rise .34s both}
+.rpic{width:86px;height:86px;border-radius:9px;overflow:hidden;flex:none;background:#EAE7E0}
+.rpic img{width:100%;height:100%;object-fit:cover;display:block}
+.rinfo{flex:1;min-width:0}
+.rname{display:block;font-size:13.5px;font-weight:700;line-height:1.35}
+.rmeta{display:block;font-size:11px;color:var(--muted);line-height:1.6;margin-top:4px}
+.rno{font-family:var(--mono);font-size:11px}
+.rscore{flex:none;align-self:flex-start;background:rgba(47,124,168,.11);color:var(--accent-d);border-radius:6px;padding:3px 7px;font-size:11px;font-weight:700;white-space:nowrap}
+
+/* ---------- shelf ---------- */
+.shelf{position:relative;margin:18px 0 14px;padding:20px 10px 0;border-radius:10px 10px 4px 4px;
+  background:linear-gradient(180deg,#F3F0E9,#E8E4DA);box-shadow:inset 0 2px 6px rgba(34,34,37,.10)}
+.shelf .lab{position:absolute;top:-10px;left:10px;background:var(--shelf);color:#fff;font-size:11px;font-weight:700;
+  padding:3px 10px;border-radius:6px;box-shadow:0 2px 5px rgba(34,34,37,.22)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding-bottom:10px}
+.board{height:7px;margin:0 -10px;border-radius:0 0 4px 4px;
+  background:linear-gradient(180deg,var(--shelf),var(--shelf-d));box-shadow:0 4px 7px rgba(34,34,37,.22)}
+.item{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:8px;
+  padding:5px 4px 4px;text-align:center;transition:opacity .35s,filter .35s}
+.item img{width:100%;height:48px;object-fit:contain;display:block}
+.item .no{font-family:var(--mono);font-size:9.5px;color:var(--muted);margin-top:3px}
+.item .dot{position:absolute;top:-4px;right:-4px;width:11px;height:11px;border-radius:50%;border:2px solid var(--panel)}
+.item .dot.w{background:var(--warn)}
+.item .dot.a{background:var(--alert)}
+.item.hit{border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,124,168,.38);animation:pop .5s both}
+.item.dim{opacity:.28;filter:grayscale(.7)}
+
+/* ---------- detail ---------- */
+.back{background:none;border:0;padding:4px 2px 10px;font-size:12.5px;color:var(--accent-d);font-weight:700;display:flex;align-items:center;gap:5px}
+.hero{position:relative;padding:14px}
+.hero img{width:100%;height:150px;object-fit:contain;display:block}
+.tagno{position:absolute;top:12px;left:12px;background:var(--tag);border:1px solid rgba(34,34,37,.20);
+  border-radius:7px;padding:5px 9px;text-align:center;box-shadow:0 2px 5px rgba(34,34,37,.18)}
+.tagno b{font-family:var(--mono);font-size:13px;letter-spacing:.02em}
+.tagno span{display:block;font-size:8px;color:var(--muted);letter-spacing:.08em;margin-top:1px}
+.dname{font-size:18px;font-weight:700;margin:14px 2px 3px;line-height:1.35}
+.dsub{font-size:11.5px;color:var(--muted);margin:0 2px 12px}
+.dl{display:grid;grid-template-columns:82px 1fr;gap:7px 10px;font-size:12px;margin:0;padding:12px}
+.dl dt{color:var(--muted)}
+.dl dd{margin:0}
+.dl dd.m{font-family:var(--mono);font-size:11.5px}
+.feat{border-left:4px solid var(--shelf);background:#F7F4EC;border-radius:0 9px 9px 0;padding:10px 12px;margin-top:10px}
+.feat b{display:block;font-size:10.5px;color:var(--shelf-d);letter-spacing:.04em;margin-bottom:4px}
+.feat p{margin:0;font-size:12.5px;line-height:1.65;font-weight:700}
+.limit{padding:12px;margin-top:10px}
+.limrow{display:flex;justify-content:space-between;font-size:12px;margin-bottom:7px}
+.limrow em{font-style:normal;font-weight:700}
+.bar{height:8px;border-radius:5px;background:rgba(34,34,37,.10);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:5px;background:var(--ok)}
+.bar i.w{background:var(--warn)}
+.bar i.a{background:var(--alert)}
+.alert{margin-top:10px;background:rgba(191,74,56,.07);border:1px solid rgba(191,74,56,.30);
+  border-radius:9px;padding:10px 12px;font-size:11.5px;line-height:1.65;color:#7C2E23}
+.btns{display:flex;gap:8px;margin-top:12px}
+.btn{flex:1;padding:12px;border-radius:9px;font-size:13px;font-weight:700;border:1px solid var(--line);background:var(--panel)}
+.btn.pri{background:var(--accent);border-color:var(--accent-d);color:#fff}
+
+/* ---------- due / log ---------- */
+.due{display:flex;gap:10px;padding:10px;margin-bottom:8px;width:100%;text-align:left;align-items:center;
+  border:1px solid var(--line);background:var(--panel);border-radius:12px}
+.due .p{width:56px;height:56px;border-radius:8px;overflow:hidden;flex:none;background:#EAE7E0}
+.due .p img{width:100%;height:100%;object-fit:cover;display:block}
+.due .i{flex:1;min-width:0}
+.due .i b{font-size:13px}
+.due .i span{display:block;font-size:11px;color:var(--muted);margin-top:3px;line-height:1.55}
+.left{flex:none;border-radius:7px;padding:5px 9px;font-size:11.5px;font-weight:700;background:var(--bg);color:var(--ink)}
+.left.a{background:rgba(200,137,44,.16);color:#8A5B12}
+.wide{width:100%;padding:12px;border-radius:10px;font-size:12.5px;font-weight:700;border:1px solid var(--line);background:var(--panel);margin-top:4px}
+.kpi{padding:13px;margin-bottom:10px}
+.kpi span{font-size:11.5px;color:var(--muted)}
+.kpi b{display:block;font-size:30px;line-height:1.15;margin:2px 0 5px}
+.kpi p{margin:0;font-size:11px;color:var(--muted);line-height:1.7}
+.rank{padding:4px 12px}
+.rank div{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line-2)}
+.rank div:last-child{border-bottom:0}
+.rank .p{width:36px;height:36px;border-radius:7px;overflow:hidden;flex:none;background:#EAE7E0}
+.rank .p img{width:100%;height:100%;object-fit:cover;display:block}
+.rank b{display:block;font-size:12.5px}
+.rank small{display:block;font-size:10.5px;color:var(--muted);margin-top:2px}
+.rank em{margin-left:auto;font-style:normal;font-size:11.5px;font-weight:700;color:var(--shelf-d);white-space:nowrap}
+
+/* ---------- fab / tabs ---------- */
+.fab{position:absolute;right:16px;bottom:80px;width:62px;height:62px;border-radius:50%;border:0;
+  background:var(--accent);color:#fff;display:grid;place-items:center;gap:1px;z-index:25;
+  box-shadow:0 8px 20px rgba(47,124,168,.45)}
+.fab span{font-size:10px;font-weight:700}
+.tabbar{flex:none;height:62px;background:var(--chrome);display:flex}
+.tab{flex:1;border:0;border-top:3px solid transparent;background:none;color:rgba(255,255,255,.5);
+  display:grid;place-items:center;gap:3px;font-size:10px;position:relative;padding:0}
+.tab.on{color:#fff;border-top-color:var(--shelf)}
+.badge{position:absolute;top:8px;left:calc(50% + 8px);min-width:16px;height:16px;border-radius:9px;
+  background:var(--warn);color:#fff;font-size:10px;font-weight:700;line-height:16px;padding:0 4px}
+
+/* ---------- voice overlay ---------- */
+.voice{position:absolute;inset:0;z-index:60;background:rgba(18,18,20,.95);color:#fff;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:26px;text-align:center}
+.mic{position:relative;width:96px;height:96px;display:grid;place-items:center;margin-bottom:26px}
+.mic .c{width:74px;height:74px;border-radius:50%;background:var(--accent);display:grid;place-items:center;position:relative;z-index:2}
+.mic i{position:absolute;inset:11px;border-radius:50%;border:2px solid var(--accent-lt);animation:ripple 2s ease-out infinite}
+.said{font-size:19px;font-weight:700;line-height:1.5;min-height:30px;letter-spacing:.02em}
+.said .mk{border-bottom:3px solid var(--accent-lt);padding-bottom:2px;margin:0 2px}
+.cap{font-size:12.5px;color:rgba(255,255,255,.62);margin-top:16px;min-height:19px}
+.cond{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:13px;max-width:290px}
+.cond span{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.24);border-radius:999px;
+  padding:6px 12px;font-size:12px;animation:rise .3s both}
+.toast{position:absolute;left:13px;right:13px;bottom:76px;z-index:30;display:flex;align-items:center;gap:9px;
+  background:rgba(34,34,37,.95);color:#fff;border-radius:10px;padding:12px 13px;font-size:12.5px;font-weight:700;
+  animation:rise .3s both}
+
+@keyframes pop{0%{transform:scale(1)}55%{transform:scale(1.16)}100%{transform:scale(1.07)}}
+@keyframes rise{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+@keyframes ripple{0%{transform:scale(.62);opacity:.6}100%{transform:scale(2.5);opacity:0}}
+@media (prefers-reduced-motion:reduce){
+  .rrow,.cond span,.toast,.item.hit,.mic i{animation:none}
+  .item.hit{transform:none}
+}
+</style>
+
+<div class="wrap" id="wrap">
+  <div class="phone">
+    <div class="island"></div>
+    <div class="screen" id="screen">
+      <div class="statusbar">
+        <div class="t">19:12</div>
+        <div class="r">
+          <svg width="16" height="12" viewBox="0 0 16 12" aria-hidden="true"><path d="M8 10.6 6.1 8.7a2.7 2.7 0 0 1 3.8 0Z" fill="#fff"/><path d="M4.3 6.9a5.3 5.3 0 0 1 7.4 0" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M1.9 4.4a8.7 8.7 0 0 1 12.2 0" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+          <svg width="24" height="12" viewBox="0 0 24 12" aria-hidden="true"><rect x=".7" y="1.4" width="19" height="9.2" rx="2.6" stroke="#fff" stroke-opacity=".65" fill="none"/><rect x="2.4" y="3.1" width="14" height="5.8" rx="1.4" fill="#fff"/><path d="M21.4 4.4v3.2a2 2 0 0 0 0-3.2Z" fill="#fff" fill-opacity=".65"/></svg>
+        </div>
+      </div>
+
+      <header class="appheader">
+        <div class="brandrow">
+          <div class="logo">
+            <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 7h18M3 17h18M12 7v10" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="brand">
+            <h1>わすれもの棚</h1>
+            <small>LOST AND FOUND</small>
+          </div>
+          <div class="who">受付</div>
+        </div>
+        <div class="stats" id="stats"></div>
+      </header>
+
+      <main class="body" id="body"></main>
+
+      <button class="fab" id="fab" type="button">
+        <svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="9" y="3" width="6" height="10" rx="3" fill="#fff"/>
+          <path d="M6 11a6 6 0 0 0 12 0M12 17v3" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </svg>
+        <span>探す</span>
+      </button>
+
+      <nav class="tabbar" id="tabs"></nav>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ========== data ========== */
+var LIMIT = 30;   /* 保管期限（日） */
+var NEAR  = 12;   /* 期限が近いとみなす残り日数 */
+var WARN  = 10;   /* 橙の点 */
+var ALERT = 5;    /* 赤の点 */
+
+var ITEMS = [
+  {no:"A-014",name:"折りたたみ傘（黒）",kind:"umbrella-f",col:"#3A3A3F",place:"3階 フードコート 窓側",at:"7月10日（木）20:40",days:2,by:"清掃 大川",feat:"持ち手に赤いストラップ。骨が1本ゆがんでいる",cat:"傘"},
+  {no:"A-015",name:"折りたたみ傘（紺）",kind:"umbrella-f",col:"#2C3E5C",place:"2階 エスカレーター前",at:"7月10日（木）21:05",days:2,by:"警備 三隅",feat:"無地。袋なし",cat:"傘"},
+  {no:"A-011",name:"長傘（ベージュ）",kind:"umbrella-l",col:"#C4B192",place:"1階 正面入口 傘立て",at:"7月8日（火）18:20",days:4,by:"受付 中原",feat:"木の持ち手。名前の記入なし",cat:"傘"},
+  {no:"B-032",name:"二つ折り財布（茶）",kind:"wallet",col:"#7A5636",place:"4階 トイレ 洗面台",at:"7月11日（金）13:15",days:1,by:"清掃 大川",feat:"中身は確認せず封をしています。警察へ届け出済み",cat:"貴重品"},
+  {no:"B-029",name:"鍵（3本まとめ）",kind:"key",col:"#8C8C90",place:"3階 ベンチ",at:"7月2日（水）16:40",days:10,by:"警備 三隅",feat:"車の鍵とキーホルダー。ぬいぐるみ付き",cat:"貴重品"},
+  {no:"C-041",name:"眼鏡（黒ぶち）",kind:"glasses",col:"#2E2E33",place:"5階 書店 レジ前",at:"7月9日（水）19:30",days:3,by:"テナント 書店",feat:"ケースなし。度が強め",cat:"身の回り品"},
+  {no:"C-038",name:"水筒（グリーン）",kind:"bottle",col:"#4E7C50",place:"屋上 広場",at:"7月5日（土）15:10",days:7,by:"清掃 大川",feat:"中身は処分済み。底に名前シールの跡",cat:"身の回り品"},
+  {no:"C-036",name:"ワイヤレスイヤホン",kind:"earphone",col:"#EAE8E4",place:"2階 エレベーター内",at:"7月4日（金）12:00",days:8,by:"警備 三隅",feat:"ケースなし。右耳のみ",cat:"身の回り品"},
+  {no:"D-022",name:"マフラー（グレー）",kind:"scarf",col:"#8E9095",place:"1階 ベンチ",at:"6月18日（水）17:45",days:24,by:"受付 中原",feat:"季節外れ。ウール。タグなし",cat:"衣類"},
+  {no:"D-019",name:"子ども用手袋（黄）",kind:"glove",col:"#D9A82E",place:"3階 遊具コーナー",at:"6月14日（土）16:20",days:28,by:"テナント 遊具",feat:"片方のみ。内側に「みなみ」と刺しゅう",cat:"衣類"},
+  {no:"D-020",name:"ポーチ（ピンク）",kind:"pouch",col:"#C48097",place:"4階 授乳室",at:"7月1日（火）11:30",days:11,by:"受付 中原",feat:"中は化粧品。貴重品なし",cat:"衣類"},
+  {no:"E-007",name:"文庫本",kind:"book",col:"#6E5A7C",place:"5階 休憩スペース",at:"7月7日（月）14:50",days:5,by:"清掃 大川",feat:"図書館のシールあり。返却を案内予定",cat:"その他"}
+];
+
+var CATS = ["傘","貴重品","身の回り品","衣類","その他"];
+var SAID = "黒い折りたたみ傘、木曜の夜";
+var MARKS = ["黒い","折りたたみ傘","木曜の夜"];
+var CONDS = ["傘","折りたたみ","黒っぽい色","木曜日","夕方から夜"];
+var HITS = [{no:"A-014",score:98},{no:"A-015",score:64},{no:"A-011",score:31}];
+
+var RANK = [
+  {kind:"umbrella-l",col:"#C4B192",name:"傘",sub:"雨天の翌日に集中",n:"今月 31本"},
+  {kind:"bottle",col:"#4E7C50",name:"水筒・タンブラー",sub:"屋上と3階に多い",n:"今月 14点"},
+  {kind:"glove",col:"#D9A82E",name:"子どもの手袋・帽子",sub:"遊具コーナー",n:"今月 11点"},
+  {kind:"earphone",col:"#EAE8E4",name:"イヤホン",sub:"エレベーターと椅子まわり",n:"今月 8点"}
+];
+
+/* ========== helpers ========== */
+function esc(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+                  .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+function remain(it){ return LIMIT - it.days; }
+function byNo(no){
+  for(var i=0;i<ITEMS.length;i++){ if(ITEMS[i].no===no){ return ITEMS[i]; } }
+  return null;
+}
+function nearList(){
+  var out=[],i;
+  for(i=0;i<ITEMS.length;i++){ if(remain(ITEMS[i])<=NEAR){ out.push(ITEMS[i]); } }
+  out.sort(function(a,b){ return remain(a)-remain(b); });
+  return out;
+}
+function countToday(){
+  var n=0,i;
+  for(i=0;i<ITEMS.length;i++){ if(ITEMS[i].days<=1){ n++; } }
+  return n;
+}
+function hitScore(no){
+  for(var i=0;i<HITS.length;i++){ if(HITS[i].no===no){ return HITS[i].score; } }
+  return 0;
+}
+
+/* ========== 品物の絵（SVG） ========== */
+function pic(kind,col){
+  var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
+        + '<rect width="100" height="100" fill="#EAE7E0"/>';
+  if(kind==="umbrella-f"){
+    s += '<rect x="34" y="17" width="32" height="56" rx="15" fill="'+col+'"/>'
+       + '<rect x="40" y="24" width="7" height="26" rx="3.5" fill="rgba(255,255,255,.34)"/>'
+       + '<path d="M50 73v8c0 6-5 9-9 9s-9-3-9-9" stroke="'+col+'" stroke-width="7" fill="none" stroke-linecap="round"/>'
+       + '<ellipse cx="50" cy="95" rx="22" ry="4" fill="rgba(0,0,0,.12)"/>';
+  }else if(kind==="umbrella-l"){
+    s += '<path d="M18 54a32 32 0 0 1 64 0Z" fill="'+col+'"/>'
+       + '<path d="M30 54a20 12 0 0 1 40 0Z" fill="rgba(255,255,255,.22)"/>'
+       + '<rect x="47" y="54" width="6" height="26" fill="'+col+'"/>'
+       + '<path d="M50 80c0 8-5 12-11 12s-10-4-10-10" stroke="'+col+'" stroke-width="6" fill="none" stroke-linecap="round"/>';
+  }else if(kind==="wallet"){
+    s += '<rect x="18" y="31" width="64" height="40" rx="8" fill="'+col+'"/>'
+       + '<rect x="18" y="49" width="64" height="3" fill="rgba(0,0,0,.18)"/>'
+       + '<circle cx="66" cy="51" r="6" fill="rgba(255,255,255,.4)"/>'
+       + '<rect x="24" y="36" width="26" height="5" rx="2.5" fill="rgba(255,255,255,.26)"/>';
+  }else if(kind==="glasses"){
+    s += '<circle cx="31" cy="52" r="15" stroke="'+col+'" stroke-width="6" fill="none"/>'
+       + '<circle cx="69" cy="52" r="15" stroke="'+col+'" stroke-width="6" fill="none"/>'
+       + '<path d="M46 51q4-5 8 0" stroke="'+col+'" stroke-width="5" fill="none"/>'
+       + '<path d="M17 46 6 40M83 46l11-6" stroke="'+col+'" stroke-width="5" fill="none" stroke-linecap="round"/>';
+  }else if(kind==="bottle"){
+    s += '<rect x="40" y="14" width="20" height="13" rx="4" fill="rgba(0,0,0,.35)"/>'
+       + '<rect x="35" y="26" width="30" height="60" rx="11" fill="'+col+'"/>'
+       + '<rect x="40" y="34" width="6" height="32" rx="3" fill="rgba(255,255,255,.30)"/>';
+  }else if(kind==="key"){
+    s += '<circle cx="32" cy="38" r="14" stroke="'+col+'" stroke-width="7" fill="none"/>'
+       + '<rect x="42" y="47" width="44" height="8" rx="4" fill="'+col+'"/>'
+       + '<rect x="66" y="55" width="7" height="12" rx="2" fill="'+col+'"/>'
+       + '<rect x="78" y="55" width="7" height="12" rx="2" fill="'+col+'"/>';
+  }else if(kind==="scarf"){
+    s += '<path d="M26 22q12 9 24 0t24 0l5 48q-16 9-29 0t-29 0Z" fill="'+col+'"/>'
+       + '<path d="M28 48q22 10 44 0" stroke="rgba(0,0,0,.16)" stroke-width="3" fill="none"/>'
+       + '<path d="M26 22q12 9 24 0" stroke="rgba(255,255,255,.28)" stroke-width="3" fill="none"/>';
+  }else if(kind==="earphone"){
+    /* 本体が生成りに近い色なので、輪郭を足さないと背景に溶ける */
+    s += '<rect x="30" y="42" width="8" height="33" rx="4" fill="'+col+'" stroke="rgba(0,0,0,.22)" stroke-width="1.6"/>'
+       + '<rect x="62" y="42" width="8" height="33" rx="4" fill="'+col+'" stroke="rgba(0,0,0,.22)" stroke-width="1.6"/>'
+       + '<circle cx="34" cy="35" r="13" fill="'+col+'" stroke="rgba(0,0,0,.22)" stroke-width="1.6"/>'
+       + '<circle cx="66" cy="35" r="13" fill="'+col+'" stroke="rgba(0,0,0,.22)" stroke-width="1.6"/>'
+       + '<circle cx="30" cy="31" r="4" fill="rgba(0,0,0,.16)"/>'
+       + '<circle cx="62" cy="31" r="4" fill="rgba(0,0,0,.16)"/>';
+  }else if(kind==="pouch"){
+    s += '<path d="M37 35a13 13 0 0 1 26 0" stroke="'+col+'" stroke-width="6" fill="none"/>'
+       + '<rect x="23" y="34" width="54" height="42" rx="10" fill="'+col+'"/>'
+       + '<rect x="27" y="47" width="46" height="3" fill="rgba(0,0,0,.18)"/>'
+       + '<rect x="60" y="44" width="7" height="9" rx="2" fill="rgba(255,255,255,.45)"/>';
+  }else if(kind==="book"){
+    s += '<rect x="29" y="17" width="42" height="66" rx="3" fill="'+col+'"/>'
+       + '<rect x="29" y="17" width="10" height="66" fill="rgba(0,0,0,.28)"/>'
+       + '<rect x="45" y="38" width="20" height="5" rx="2.5" fill="rgba(255,255,255,.5)"/>'
+       + '<rect x="45" y="50" width="13" height="5" rx="2.5" fill="rgba(255,255,255,.38)"/>';
+  }else if(kind==="glove"){
+    s += '<path d="M20 86V60c0-4.5 3.6-8 8-8s8 3.5 8 8V47c0-4.5 3.6-8 8-8s8 3.5 8 8V43c0-4.5 3.6-8 8-8s8 3.5 8 8v10c0-4.5 3.6-8 8-8s8 3.5 8 8v26Z" fill="'+col+'"/>'
+       + '<rect x="20" y="78" width="64" height="9" fill="rgba(0,0,0,.16)"/>';
+  }
+  s += '</svg>';
+  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s);
+}
+
+/* ========== state ========== */
+var state = { tab:"shelf", detail:null, found:false, again:false };
+var body   = document.getElementById("body");
+var stats  = document.getElementById("stats");
+var tabs   = document.getElementById("tabs");
+var screen = document.getElementById("screen");
+var timers = [];
+
+function later(fn,ms){ timers.push(setTimeout(fn,ms)); }
+function clearTimers(){
+  for(var i=0;i<timers.length;i++){ clearTimeout(timers[i]); }
+  timers = [];
+}
+
+/* ========== header / tabs ========== */
+function drawStats(){
+  stats.innerHTML =
+     '<div class="stat"><b>'+ITEMS.length+'</b><span>お預かり中</span></div>'
+    +'<div class="stat"><b>'+countToday()+'</b><span>今日届いた</span></div>'
+    +'<div class="stat near"><b>'+nearList().length+'</b><span>期限が近い</span></div>';
+}
+
+var TABDEF = [
+  {id:"shelf",label:"棚",  ic:'<path d="M3 7h18M3 17h18M12 7v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>'},
+  {id:"due",  label:"期限",ic:'<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 7v5.5l3.5 2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>'},
+  {id:"log",  label:"記録",ic:'<path d="M5 19V11M12 19V5M19 19v-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/>'}
+];
+
+function drawTabs(){
+  var html="",i,t,near=nearList().length;
+  for(i=0;i<TABDEF.length;i++){
+    t = TABDEF[i];
+    html += '<button class="tab'+(state.tab===t.id?" on":"")+'" type="button" data-tab="'+t.id+'">'
+          + (t.id==="due"&&near?'<span class="badge">'+near+'</span>':"")
+          + '<svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true">'+t.ic+'</svg>'
+          + '<span>'+t.label+'</span></button>';
+  }
+  tabs.innerHTML = html;
+}
+
+/* ========== 画面1：棚 ========== */
+function shelfHTML(){
+  var html = "", i, j, c, list, it, hit, dot, r, n=0;
+
+  html += '<div class="card ask">'
+        +   '<div class="askmic"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">'
+        +     '<rect x="9" y="3" width="6" height="10" rx="3" fill="#fff"/>'
+        +     '<path d="M6 11a6 6 0 0 0 12 0M12 17v3" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>'
+        +   '</svg></div>'
+        +   '<div><p>お客様の言葉のまま、話しかけて探せます</p><div class="pills">'
+        +     '<span class="pill">「黒い折りたたみ傘、木曜の夜」</span>'
+        +     '<span class="pill">「子どもの黄色い手袋」</span>'
+        +     '<span class="pill">「3階で財布」</span>'
+        +   '</div></div>'
+        + '</div>';
+
+  if(state.found){
+    html += '<div style="margin-top:16px">'
+          + '<p class="h">「'+esc(SAID)+'」で見つかったもの</p>';
+    for(i=0;i<HITS.length;i++){
+      it = byNo(HITS[i].no);
+      html += '<button class="rrow" type="button" data-no="'+esc(it.no)+'" style="animation-delay:'+(i*0.09)+'s">'
+            +   '<span class="rpic"><img src="'+pic(it.kind,it.col)+'" alt=""></span>'
+            +   '<span class="rinfo">'
+            +     '<span class="rname">'+esc(it.name)+'</span>'
+            +     '<span class="rmeta">'+esc(it.place)+'<br>'+esc(it.at)+'<br>'
+            +       '<span class="rno">'+esc(it.no)+'</span> ・ '+esc(it.cat)+'</span>'
+            +   '</span>'
+            +   '<span class="rscore">一致 '+HITS[i].score+'%</span>'
+            + '</button>';
+    }
+    html += '<p class="note">棚の中でも光っています。番号を見ながら取りに行けます。</p></div>';
+  }
+
+  for(i=0;i<CATS.length;i++){
+    c = CATS[i]; list = [];
+    for(j=0;j<ITEMS.length;j++){ if(ITEMS[j].cat===c){ list.push(ITEMS[j]); } }
+    html += '<section class="shelf"><span class="lab">'+esc(c)+' '+list.length+'</span><div class="grid">';
+    for(j=0;j<list.length;j++){
+      it = list[j]; r = remain(it);
+      hit = state.found && hitScore(it.no)>0;
+      dot = r<=ALERT ? '<span class="dot a"></span>' : (r<=WARN ? '<span class="dot w"></span>' : "");
+      html += '<button class="item'+(hit?" hit":"")+(state.found&&!hit?" dim":"")+'" type="button" data-no="'+esc(it.no)+'"'
+            + (hit?' style="animation-delay:'+(n++*0.16)+'s"':"")+'>'
+            +   dot
+            +   '<img src="'+pic(it.kind,it.col)+'" alt="">'
+            +   '<span class="no">'+esc(it.no)+'</span>'
+            + '</button>';
+    }
+    html += '</div><div class="board"></div></section>';
+  }
+  html += '<p class="note">右上の点は保管期限が近いものです。橙が残り10日、赤が残り5日を切っています。</p>';
+  return html;
+}
+
+/* ========== 画面2：品物の詳細 ========== */
+function detailHTML(no){
+  var it = byNo(no), r = remain(it), pct = Math.round(it.days/LIMIT*100);
+  var cls = r<=ALERT ? " a" : (r<=WARN ? " w" : "");
+  var html =
+      '<button class="back" type="button" data-back="1">'
+    +   '<svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    +   '棚に戻る</button>'
+    + '<div class="card hero">'
+    +   '<div class="tagno"><b>'+esc(it.no)+'</b><span>あずかり番号</span></div>'
+    +   '<img src="'+pic(it.kind,it.col)+'" alt="">'
+    + '</div>'
+    + '<h2 class="dname">'+esc(it.name)+'</h2>'
+    + '<p class="dsub">'+esc(it.cat)+' ／ お預かり '+it.days+'日目</p>'
+    + '<dl class="card dl">'
+    +   '<dt>見つけた場所</dt><dd>'+esc(it.place)+'</dd>'
+    +   '<dt>見つけた時</dt><dd class="m">'+esc(it.at)+'</dd>'
+    +   '<dt>届けた人</dt><dd>'+esc(it.by)+'</dd>'
+    + '</dl>'
+    + '<div class="feat"><b>特徴として登録されていること</b><p>'+esc(it.feat)+'</p></div>'
+    + '<div class="card limit">'
+    +   '<div class="limrow"><span>お預かり <em>'+it.days+'日</em></span><span>期限まで <em>あと'+r+'日</em></span></div>'
+    +   '<div class="bar"><i class="'+(cls?cls.slice(1):"")+'" style="width:'+pct+'%"></i></div>'
+    + '</div>';
+  if(r<=WARN){
+    html += '<div class="alert">保管期限は'+LIMIT+'日です。期限を過ぎたものは、警察への届け出または処分の手続きに進みます。</div>';
+  }
+  html += '<div class="btns"><button class="btn pri" type="button">お返しする</button>'
+        + '<button class="btn" type="button">内容を直す</button></div>'
+        + '<p class="note">お返しするときは、受け取った方のお名前と連絡先を残します。'
+        + '同じ品を別の方が探しに来たときの照合に使います。</p>';
+  return html;
+}
+
+/* ========== 画面3：期限 ========== */
+function dueHTML(){
+  var list = nearList(), html = '<p class="h">期限が近いもの</p>', i, it, r;
+  for(i=0;i<list.length;i++){
+    it = list[i]; r = remain(it);
+    html += '<button class="due" type="button" data-no="'+esc(it.no)+'">'
+          +   '<span class="p"><img src="'+pic(it.kind,it.col)+'" alt=""></span>'
+          +   '<span class="i"><b>'+esc(it.name)+'</b>'
+          +     '<span>'+esc(it.place)+'<br>'+esc(it.no)+' ・ お預かり '+it.days+'日目</span></span>'
+          +   '<span class="left'+(r<=ALERT?" a":"")+'">あと'+r+'日</span>'
+          + '</button>';
+  }
+  html += '<button class="wide" type="button" data-expired="1">期限が過ぎたものの一覧を出す</button>'
+        + '<p class="note">遺失物法にもとづく手続きの記録として残せます。'
+        + '警察へ届け出たものは、届出日と受理番号もあわせて保存します。</p>';
+  return html;
+}
+
+/* ========== 画面4：記録 ========== */
+function logHTML(){
+  var html =
+      '<div class="card kpi"><span>お返しできた割合</span><b>73%</b>'
+    +   '<p>探しに来られた方に、その場でお渡しできた割合です。段ボールに入れていた頃は 38% でした。</p></div>'
+    + '<div class="card kpi"><span>探すのにかかる時間</span><b>20秒</b>'
+    +   '<p>お客様の話を聞いてから、棚のどこにあるか分かるまでの時間です。以前は平均で8分、見つからないこともありました。</p></div>'
+    + '<div class="card kpi"><span>今月お預かりしたもの</span><b>86点</b>'
+    +   '<p>うち63点をお返ししました。雨の日の翌日は、傘だけで1日に12本届くことがあります。</p></div>'
+    + '<p class="h" style="margin-top:16px">よく落とされるもの</p><div class="card rank">';
+  for(var i=0;i<RANK.length;i++){
+    html += '<div><span class="p"><img src="'+pic(RANK[i].kind,RANK[i].col)+'" alt=""></span>'
+          + '<span><b>'+esc(RANK[i].name)+'</b><small>'+esc(RANK[i].sub)+'</small></span>'
+          + '<em>'+esc(RANK[i].n)+'</em></div>';
+  }
+  html += '</div><p class="note">落ちやすい場所が分かるので、閉店前の見回りのルートを決める材料にもなります。</p>';
+  return html;
+}
+
+/* ========== render ========== */
+function render(){
+  if(state.detail){ body.innerHTML = detailHTML(state.detail); }
+  else if(state.tab==="shelf"){ body.innerHTML = shelfHTML(); }
+  else if(state.tab==="due"){ body.innerHTML = dueHTML(); }
+  else { body.innerHTML = logHTML(); }
+  body.scrollTop = 0;
+  drawStats();
+  drawTabs();
+}
+
+function toast(msg,ms){
+  var old = document.getElementById("toast");
+  if(old){ old.parentNode.removeChild(old); }
+  var el = document.createElement("div");
+  el.className = "toast";
+  el.id = "toast";
+  el.innerHTML = '<svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">'
+               + '<circle cx="12" cy="12" r="10" fill="#8FBCD4"/>'
+               + '<path d="M7.5 12.3l3 3 6-6.4" stroke="#222225" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
+               + '</svg><span>'+esc(msg)+'</span>';
+  screen.appendChild(el);
+  later(function(){ if(el.parentNode){ el.parentNode.removeChild(el); } }, ms);
+}
+
+/* ========== 話して探す ========== */
+function markUp(text){
+  var out = esc(text), i;
+  for(i=0;i<MARKS.length;i++){
+    out = out.replace(esc(MARKS[i]), '<span class="mk">'+esc(MARKS[i])+'</span>');
+  }
+  return out;
+}
+
+function speak(){
+  var ov = document.createElement("div");
+  ov.className = "voice";
+  ov.innerHTML =
+      '<div class="mic"><i></i><i style="animation-delay:.66s"></i><i style="animation-delay:1.32s"></i>'
+    +   '<span class="c"><svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true">'
+    +     '<rect x="9" y="3" width="6" height="10" rx="3" fill="#fff"/>'
+    +     '<path d="M6 11a6 6 0 0 0 12 0M12 17v3" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>'
+    +   '</svg></span></div>'
+    + '<div class="said" id="said"></div>'
+    + '<div class="cap" id="cap">お聞きしています</div>'
+    + '<div class="cond" id="cond"></div>';
+  screen.appendChild(ov);
+
+  var said = document.getElementById("said");
+  var cap  = document.getElementById("cap");
+  var cond = document.getElementById("cond");
+  var i, t0 = 350, step = 95;
+
+  for(i=1;i<=SAID.length;i++){
+    (function(n){
+      later(function(){ said.textContent = SAID.slice(0,n); }, t0 + n*step);
+    })(i);
+  }
+  var typedEnd = t0 + SAID.length*step;
+
+  later(function(){ said.innerHTML = markUp(SAID); }, typedEnd + 270);
+
+  later(function(){ cap.textContent = "言葉を条件に置きかえています"; }, typedEnd + 720);
+  for(i=0;i<CONDS.length;i++){
+    (function(n){
+      later(function(){
+        var sp = document.createElement("span");
+        sp.textContent = CONDS[n];
+        cond.appendChild(sp);
+      }, typedEnd + 720 + n*230);
+    })(i);
+  }
+  var condEnd = typedEnd + 720 + CONDS.length*230;
+
+  later(function(){ cap.textContent = "棚の中を照らしています"; }, condEnd + 260);
+
+  later(function(){
+    if(ov.parentNode){ ov.parentNode.removeChild(ov); }
+    state.found = true;
+    state.detail = null;
+    state.tab = "shelf";
+    render();
+    toast("3点が見つかりました（所要 20秒）", 3200);
+  }, condEnd + 1000);
+}
+
+/* ========== events ========== */
+document.getElementById("fab").addEventListener("click", function(){
+  if(state.found || state.again){
+    toast("このデモで探せるのは1回分です", 2400);
+    return;
+  }
+  state.again = true;
+  clearTimers();
+  speak();
+});
+
+tabs.addEventListener("click", function(e){
+  var b = e.target.closest ? e.target.closest("[data-tab]") : null;
+  if(!b){ return; }
+  state.tab = b.getAttribute("data-tab");
+  state.detail = null;
+  render();
+});
+
+body.addEventListener("click", function(e){
+  var el = e.target.closest ? e.target.closest("[data-no],[data-back],[data-expired]") : null;
+  if(!el){ return; }
+  if(el.getAttribute("data-back")){
+    state.detail = null;
+    render();
+    return;
+  }
+  if(el.getAttribute("data-expired")){
+    var list = nearList();
+    toast(list.length
+      ? "期限が過ぎたものはありません。次は " + list[0].no + " があと" + remain(list[0]) + "日です。"
+      : "期限が過ぎたものはありません。", 3000);
+    return;
+  }
+  state.detail = el.getAttribute("data-no");
+  render();
+});
+
+/* ========== fit ========== */
+var wrap = document.getElementById("wrap");
+function fit(){
+  var s = Math.min(1, (window.innerHeight-24)/866, (window.innerWidth-24)/412);
+  wrap.style.transform = "scale(" + s + ")";
+}
+window.addEventListener("resize", fit);
+
+fit();
+render();
+})();
+</script>
