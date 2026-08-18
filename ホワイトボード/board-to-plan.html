@@ -1,0 +1,843 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ボードとり</title>
+<style>
+:root{
+  --chrome:#14322E;
+  --chrome-2:#215048;
+  --ink:#132320;
+  --bg:#E7EAE6;
+  --board:#FCFDFB;
+  --ink-pen:#1F2A2E;
+  --pen-red:#C4362F;
+  --pen-blue:#2C5D9B;
+  --pen-green:#2E7D52;
+  --pen-brown:#8A5A2B;
+  --accent:#E4B33C;
+  --accent-d:#B98A1E;
+  --muted:#6C7A76;
+  --line:rgba(19,35,32,.14);
+  --line-2:rgba(19,35,32,.07);
+  --ui:"Hiragino Sans","Yu Gothic UI","Yu Gothic","Noto Sans JP","Meiryo",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Hiragino Sans","Yu Gothic",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--ui);
+  color:var(--ink);
+  background:radial-gradient(1100px 700px at 50% -10%,#20423C 0%,#12211E 45%,#0A100F 100%);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+svg text{font-family:var(--ui)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+/* ===== 端末フレーム ===== */
+.stage{transform-origin:50% 50%}
+.device{
+  width:414px;height:868px;border-radius:66px;
+  background:linear-gradient(160deg,#3A3F3D,#15100F 40%,#2B302E);
+  padding:12px;
+  box-shadow:0 60px 120px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.06) inset,0 8px 30px rgba(0,0,0,.5);
+}
+.phone{
+  position:relative;width:390px;height:844px;border-radius:54px;overflow:hidden;
+  background:var(--bg);display:flex;flex-direction:column;
+}
+.island{
+  position:absolute;top:11px;left:50%;transform:translateX(-50%);
+  width:124px;height:35px;border-radius:20px;background:#080B0A;z-index:60;
+}
+
+/* ===== ステータスバー ===== */
+.statusbar{
+  height:50px;flex:0 0 50px;background:var(--chrome);color:#fff;
+  display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 26px 6px;font-size:13px;font-weight:700;letter-spacing:.02em;
+}
+.sb-r{display:flex;align-items:center;gap:6px}
+.batt{width:23px;height:11px;border:1.4px solid rgba(255,255,255,.85);border-radius:3px;position:relative}
+.batt::after{content:"";position:absolute;right:-3px;top:3px;width:2px;height:5px;background:rgba(255,255,255,.6);border-radius:0 2px 2px 0}
+.batt i{position:absolute;left:1.4px;top:1.4px;bottom:1.4px;width:72%;background:#fff;border-radius:1.5px;display:block}
+
+/* ===== ヘッダー ===== */
+.appbar{background:var(--chrome);padding:6px 18px 12px;display:flex;align-items:center;gap:11px}
+.applogo{width:38px;height:38px;border-radius:11px;background:var(--board);display:flex;align-items:center;justify-content:center;flex:0 0 38px}
+.apptitle{color:#fff;font-size:17px;font-weight:800;letter-spacing:.02em;line-height:1.15}
+.appsub{color:rgba(255,255,255,.5);font-size:9px;font-weight:700;letter-spacing:.14em;font-family:var(--mono)}
+.appchip{margin-left:auto;background:rgba(255,255,255,.13);color:#fff;font-size:11.5px;font-weight:700;padding:6px 12px;border-radius:9px}
+.meetbar{
+  background:var(--chrome);border-bottom:3px solid var(--accent);
+  padding:0 18px 13px;display:flex;gap:10px;
+}
+.meetbar .bar{width:3px;border-radius:2px;background:var(--accent);flex:0 0 3px}
+.meetbar .k{color:var(--accent);font-size:9.5px;font-weight:800;letter-spacing:.1em}
+.meetbar .t{color:#fff;font-size:13.5px;font-weight:700;margin-top:1px}
+.meetbar .s{color:rgba(255,255,255,.55);font-size:10.5px;margin-top:2px;font-family:var(--mono)}
+
+/* ===== 本文 ===== */
+.content{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:14px 14px 96px}
+.content::-webkit-scrollbar{width:0}
+
+.sec{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.09em;margin:4px 2px 8px;display:flex;align-items:center;gap:7px}
+.sec::after{content:"";flex:1;height:1px;background:var(--line-2)}
+
+.card{background:var(--board);border:1px solid var(--line);border-radius:15px;box-shadow:0 1px 2px rgba(19,35,32,.04)}
+.pad{padding:13px}
+
+/* 空状態 */
+.empty{border:2px dashed var(--line);border-radius:18px;padding:34px 22px;text-align:center;background:rgba(255,255,255,.45);margin-top:26px}
+.empty h3{font-size:15px;font-weight:800;margin-bottom:9px}
+.empty p{font-size:12.5px;line-height:1.75;color:var(--muted)}
+.empty .ico{width:56px;height:56px;margin:0 auto 14px;border-radius:16px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center}
+
+/* ===== ホワイトボード（写真） ===== */
+.wb{position:relative;background:var(--board);border:1px solid var(--line);border-radius:13px;overflow:hidden;padding:27px 9px 0}
+.wb svg.bsvg{display:block;width:100%;height:auto}
+.wb .tray{height:7px;margin:6px -9px 0;background:linear-gradient(180deg,#C9CFCB,#9AA5A0 55%,#7E8985)}
+.wb .stamp{
+  position:absolute;top:7px;left:7px;background:rgba(19,35,32,.62);color:#fff;
+  font-family:var(--mono);font-size:9px;padding:3px 7px;border-radius:5px;letter-spacing:.04em;
+}
+.photonote{font-size:10.5px;color:var(--muted);margin:7px 2px 0;display:flex;align-items:center;gap:5px}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--pen-green);flex:0 0 5px}
+
+/* ===== 工程表 ===== */
+.gantt{padding:12px 11px 14px}
+.g-head{display:grid;grid-template-columns:104px repeat(6,1fr);align-items:end;padding-bottom:7px;border-bottom:1px solid var(--line)}
+.g-head b{font-size:10.5px;font-weight:800;color:var(--muted);letter-spacing:.06em}
+.g-head span{font-size:10px;font-weight:700;color:var(--pen-blue);text-align:center;font-family:var(--mono)}
+.g-row{display:grid;grid-template-columns:104px 1fr;align-items:center;border-bottom:1px solid var(--line-2)}
+.g-row:last-child{border-bottom:0}
+.g-name{padding:6px 8px 6px 2px}
+.g-name b{display:block;font-size:12px;font-weight:700;line-height:1.3}
+.g-name i{display:block;font-style:normal;font-size:9.5px;color:var(--muted);margin-top:2px}
+.track{
+  position:relative;height:40px;
+  background:repeating-linear-gradient(to right,transparent 0,transparent calc(16.6667% - 1px),var(--line-2) calc(16.6667% - 1px),var(--line-2) 16.6667%);
+}
+.gbar{
+  position:absolute;top:7px;height:26px;border-radius:7px;
+  display:flex;align-items:center;padding:0 8px;
+  color:#fff;font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;
+  clip-path:inset(0 100% 0 0);
+  animation:draw .5s cubic-bezier(.25,.9,.3,1) forwards;
+  animation-delay:calc(var(--i) * .11s);
+}
+@keyframes draw{to{clip-path:inset(0 0 0 0)}}
+.gbar span{display:block;width:100%;overflow:hidden}
+/* 帯に収まりきらない補足は、帯の右へ逃がす */
+.noteout{
+  position:absolute;top:0;height:40px;display:flex;align-items:center;
+  padding-left:7px;font-size:10px;font-weight:700;color:var(--muted);white-space:nowrap;
+  opacity:0;animation:fadein .3s ease-out forwards;
+  animation-delay:calc(var(--i) * .11s + .34s);
+}
+@keyframes fadein{to{opacity:1}}
+.ms{
+  position:absolute;top:13px;width:15px;height:15px;border-radius:2px;
+  background:var(--pen-red);box-shadow:0 2px 6px rgba(196,54,47,.4);
+  opacity:0;transform:translate(-50%,0) rotate(45deg);
+  animation:pop .5s cubic-bezier(.3,1.5,.5,1) forwards;animation-delay:1.16s;
+}
+@keyframes pop{
+  0%{opacity:0;transform:translate(-50%,-16px) rotate(45deg) scale(.3)}
+  60%{opacity:1;transform:translate(-50%,4px) rotate(45deg) scale(1.18)}
+  100%{opacity:1;transform:translate(-50%,0) rotate(45deg) scale(1)}
+}
+
+.btnrow{display:flex;gap:9px;margin-top:12px}
+.btn{
+  flex:1;background:var(--chrome);color:#fff;border-radius:12px;padding:13px 8px;
+  font-size:13px;font-weight:800;text-align:center;
+}
+.btn.ghost{background:var(--board);color:var(--ink);border:1px solid var(--line)}
+.btn.acc{background:var(--accent);color:#3A2C05;box-shadow:0 3px 0 var(--accent-d)}
+.btn:active{transform:translateY(1px)}
+.hint{font-size:11px;line-height:1.7;color:var(--muted);margin:10px 4px 0}
+
+/* ===== 決定とタスク ===== */
+.dcard{display:flex;background:var(--board);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:9px}
+.dcard .stripe{width:4px;flex:0 0 4px}
+.dbody{padding:11px 12px;flex:1;min-width:0}
+.dkind{font-size:9.5px;font-weight:800;letter-spacing:.1em;margin-bottom:5px}
+.dtext{font-size:12.5px;line-height:1.65}
+.dmeta{display:flex;align-items:center;gap:7px;margin-top:9px;padding-top:8px;border-top:1px dashed var(--line)}
+.pill{display:flex;align-items:center;gap:5px;background:rgba(19,35,32,.05);border-radius:20px;padding:3px 9px 3px 3px;font-size:10.5px;font-weight:700;flex:0 0 auto}
+.ini{width:18px;height:18px;border-radius:50%;background:var(--chrome);color:#fff;font-size:9.5px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.due{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--ink);flex:0 0 auto}
+.src{margin-left:auto;font-size:9.5px;color:var(--muted);text-align:right;line-height:1.3;min-width:0}
+
+/* ===== 過去のボード ===== */
+.stat{background:var(--board);border:1px solid var(--line);border-radius:15px;padding:14px;margin-bottom:10px}
+.stat .n{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1.05}
+.stat .n small{font-size:13px;font-weight:800;color:var(--muted);margin-left:5px}
+.stat .l{font-size:11.5px;font-weight:800;color:var(--muted);margin-bottom:4px}
+.stat p{font-size:11px;line-height:1.7;color:var(--muted);margin-top:7px}
+.hist{display:flex;gap:11px;align-items:center;padding:11px;border-bottom:1px solid var(--line-2)}
+.hist:last-child{border-bottom:0}
+.hist svg{width:46px;height:34px;flex:0 0 46px;border-radius:5px}
+.hist b{display:block;font-size:12.5px;font-weight:700}
+.hist i{display:block;font-style:normal;font-size:10px;color:var(--muted);margin-top:3px;font-family:var(--mono)}
+.hist .cnt{margin-left:auto;font-size:10px;color:var(--muted);text-align:right;font-family:var(--mono);flex:0 0 auto}
+
+/* ===== FAB ===== */
+.fab{
+  position:absolute;right:18px;bottom:88px;width:64px;height:64px;border-radius:50%;
+  background:var(--accent);box-shadow:0 8px 20px rgba(0,0,0,.3),0 4px 0 var(--accent-d);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;z-index:40;
+  color:#3A2C05;
+}
+.fab span{font-size:9.5px;font-weight:800;letter-spacing:.06em}
+.fab:active{transform:translateY(2px);box-shadow:0 5px 14px rgba(0,0,0,.3),0 2px 0 var(--accent-d)}
+
+/* ===== タブバー ===== */
+.tabs{flex:0 0 auto;background:var(--chrome);display:flex;padding-bottom:16px;position:relative;z-index:45}
+.tab{flex:1;position:relative;padding:11px 2px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;color:rgba(255,255,255,.45)}
+.tab b{font-size:10.5px;font-weight:700}
+.tab.on{color:#fff}
+.tab.on::before{content:"";position:absolute;top:0;left:16%;right:16%;height:3px;border-radius:0 0 3px 3px;background:var(--accent)}
+.badge{
+  position:absolute;top:6px;right:calc(50% - 26px);background:var(--pen-red);color:#fff;
+  font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;padding:0 4px;font-family:var(--mono);
+}
+.homebar{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:rgba(255,255,255,.5);z-index:50}
+
+/* ===== トースト ===== */
+.toast{
+  position:absolute;left:16px;right:16px;bottom:166px;z-index:70;
+  background:rgba(19,35,32,.95);color:#fff;border-radius:13px;padding:13px 15px;
+  font-size:12.5px;font-weight:700;line-height:1.55;
+  box-shadow:0 12px 30px rgba(0,0,0,.35);
+  display:flex;gap:9px;align-items:flex-start;
+  opacity:0;transform:translateY(12px);transition:opacity .28s,transform .28s;
+  pointer-events:none;
+}
+.toast.on{opacity:1;transform:translateY(0)}
+.toast .tick{width:18px;height:18px;border-radius:50%;background:var(--accent);flex:0 0 18px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+
+/* ===== 撮影画面 ===== */
+.cam{
+  position:absolute;inset:0;z-index:80;background:#0B1412;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  padding:64px 18px 150px;
+}
+.cam.on{display:flex}
+.camtop{position:absolute;top:64px;left:0;right:0;text-align:center;color:rgba(255,255,255,.55);font-size:10.5px;font-weight:700;letter-spacing:.16em;font-family:var(--mono)}
+.viewport{position:relative;width:100%;border-radius:8px;overflow:hidden;background:#000}
+.viewport .shot{position:relative;background:var(--board);padding:9px}
+.viewport .shot svg.bsvg{display:block;width:100%;height:auto}
+.gd{position:absolute;width:30px;height:30px;border:3px solid var(--accent);z-index:3}
+.gd.tl{top:8px;left:8px;border-right:0;border-bottom:0;border-radius:5px 0 0 0}
+.gd.tr{top:8px;right:8px;border-left:0;border-bottom:0;border-radius:0 5px 0 0}
+.gd.bl{bottom:8px;left:8px;border-right:0;border-top:0;border-radius:0 0 0 5px}
+.gd.br{bottom:8px;right:8px;border-left:0;border-top:0;border-radius:0 0 5px 0}
+.laser{
+  position:absolute;left:0;right:0;top:0;height:3px;z-index:4;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  box-shadow:0 0 16px 4px rgba(228,179,60,.55);
+  animation:sweep 1.6s ease-in-out infinite;
+}
+@keyframes sweep{0%{top:0}50%{top:calc(100% - 3px)}100%{top:0}}
+.det{
+  position:absolute;border:2px solid var(--accent);border-radius:4px;z-index:5;
+  background:rgba(228,179,60,.11);
+  opacity:0;animation:detin .18s ease-out forwards;
+}
+@keyframes detin{from{opacity:0;transform:scale(1.25)}to{opacity:1;transform:scale(1)}}
+.det u{
+  position:absolute;top:-15px;left:-2px;background:var(--accent);color:#3A2C05;
+  font-size:8.5px;font-weight:800;padding:1px 5px;border-radius:3px;text-decoration:none;white-space:nowrap;
+}
+.camtext{
+  margin-top:22px;color:#fff;font-size:14px;font-weight:700;text-align:center;line-height:1.6;
+  min-height:44px;display:flex;align-items:center;justify-content:center;padding:0 8px;
+}
+.camdots{display:flex;gap:6px;margin-top:6px}
+.camdots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.2);transition:background .2s}
+.camdots i.on{background:var(--accent)}
+.shutter{
+  position:absolute;bottom:54px;left:50%;transform:translateX(-50%);
+  width:66px;height:66px;border-radius:50%;border:4px solid rgba(255,255,255,.85);
+  display:flex;align-items:center;justify-content:center;
+}
+.shutter i{width:50px;height:50px;border-radius:50%;background:#fff;display:block;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(.9)}}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;z-index:90;pointer-events:none}
+.flash.go{animation:flashx .45s ease-out}
+@keyframes flashx{0%{opacity:.95}100%{opacity:0}}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important;transition:none !important}
+  .gbar{clip-path:inset(0 0 0 0)}
+  .noteout{opacity:1}
+  .ms{opacity:1}
+  .det{opacity:1}
+}
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+  <div class="device">
+    <div class="phone" id="phone">
+      <div class="island"></div>
+
+      <div class="statusbar">
+        <span>15:48</span>
+        <span class="sb-r">
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M1 4.2A10.5 10.5 0 0 1 15 4.2" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><path d="M3.6 7A6.8 6.8 0 0 1 12.4 7" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="10.2" r="1.4" fill="#fff"/></svg>
+          <span class="batt"><i></i></span>
+        </span>
+      </div>
+
+      <div class="appbar">
+        <div class="applogo">
+          <svg width="22" height="18" viewBox="0 0 22 18" fill="none">
+            <rect x="1" y="1" width="20" height="14" rx="2" stroke="#14322E" stroke-width="1.7"/>
+            <path d="M4.5 5.5h8M4.5 8.5h11M4.5 11.5h6" stroke="#2C5D9B" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M7 15v2M15 15v2" stroke="#14322E" stroke-width="1.7" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="apptitle">ボードとり</div>
+          <div class="appsub">BOARD TO PLAN</div>
+        </div>
+        <div class="appchip">企画</div>
+      </div>
+
+      <div class="meetbar">
+        <div class="bar"></div>
+        <div>
+          <div class="k">この会議</div>
+          <div class="t">春の新商品 立ち上げ会議</div>
+          <div class="s">第2会議室  出席5名  15:00-15:45</div>
+        </div>
+      </div>
+
+      <div class="content" id="content"></div>
+
+      <button class="fab" id="fab" aria-label="ホワイトボードを撮る">
+        <svg width="24" height="20" viewBox="0 0 24 20" fill="none">
+          <path d="M2 6.2A2 2 0 0 1 4 4.2h2.6L8 2h8l1.4 2.2H20a2 2 0 0 1 2 2v9.6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6.2Z" stroke="#3A2C05" stroke-width="1.8" stroke-linejoin="round"/>
+          <circle cx="12" cy="10.6" r="3.7" stroke="#3A2C05" stroke-width="1.8"/>
+        </svg>
+        <span>撮る</span>
+      </button>
+
+      <div class="tabs" id="tabs"></div>
+      <div class="homebar"></div>
+
+      <div class="toast" id="toast">
+        <span class="tick">
+          <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4.2 3.6 6.8 9 1.4" stroke="#3A2C05" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span id="toasttext"></span>
+      </div>
+
+      <div class="cam" id="cam">
+        <div class="camtop">CAMERA</div>
+        <div class="viewport" id="viewport"></div>
+        <div class="camtext" id="camtext"></div>
+        <div class="camdots" id="camdots"></div>
+        <div class="shutter"><i></i></div>
+      </div>
+
+      <div class="flash" id="flash"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   共通ユーティリティ
+   ========================================================= */
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                  .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function r1(n){ return Math.round(n*10)/10; }
+function $(id){ return document.getElementById(id); }
+
+var PEN = { k:'#1F2A2E', r:'#C4362F', b:'#2C5D9B', g:'#2E7D52' };
+
+/* ---------------------------------------------------------
+   手書き線の生成
+   座標を種にしているので、何度描いても同じ形になる（乱数は使わない）
+   --------------------------------------------------------- */
+function jitter(x1,y1,x2,y2,amp){
+  var d='', i, t, x, y;
+  for(i=0;i<=6;i++){
+    t = i/6;
+    x = x1 + (x2-x1)*t + Math.sin(i*2.7 + x1) * amp;
+    y = y1 + (y2-y1)*t + Math.cos(i*1.9 + y1) * amp;
+    d += (i===0?'M':'L') + r1(x) + ' ' + r1(y) + ' ';
+  }
+  return d;
+}
+/* 角はぴったり閉じない。補正しないのが正しい */
+function box(x,y,w,h,amp){
+  return jitter(x,y,x+w,y,amp) +
+         jitter(x+w,y,x+w,y+h,amp) +
+         jitter(x+w,y+h,x,y+h,amp) +
+         jitter(x,y+h,x,y,amp);
+}
+function pen(d,color,w,op){
+  return '<path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="'+w+
+         '" stroke-linecap="round" stroke-linejoin="round" opacity="'+(op||'.88')+'"/>';
+}
+function hand(x,y,txt,color,size,rot){
+  var tr = rot ? ' transform="rotate('+rot+' '+r1(x)+' '+r1(y)+')"' : '';
+  return '<text x="'+r1(x)+'" y="'+r1(y)+'" fill="'+color+'" font-size="'+size+
+         '" opacity=".88"'+tr+'>'+esc(txt)+'</text>';
+}
+function arrow(x,y1,y2,color){
+  var s = pen(jitter(x,y1,x,y2,.7),color,1.6);
+  var a = x-3.4, b = x+3.4, c = y2-4.6;
+  s += pen(jitter(a,c,x,y2,.4)+jitter(x,y2,b,c,.4)+jitter(b,c,a,c,.4),color,1.5);
+  return s;
+}
+function star(cx,cy,rad,color){
+  var pts=[], i, ang, d='';
+  for(i=0;i<5;i++){
+    ang = (-90 + i*144) * Math.PI/180;
+    pts.push([cx+Math.cos(ang)*rad, cy+Math.sin(ang)*rad]);
+  }
+  for(i=0;i<5;i++){
+    var p=pts[i], q=pts[(i+1)%5];
+    d += jitter(p[0],p[1],q[0],q[1],.5);
+  }
+  return pen(d,color,1.6);
+}
+
+/* =========================================================
+   ホワイトボード（撮った写真そのもの）
+   ========================================================= */
+var U  = 43.3;   /* 1か月の幅 */
+var X0 = 70;     /* 時間軸の左端 */
+var MONTHS = ['4月','5月','6月','7月','8月','9月'];
+
+/* ボードに書かれていた工程（手書きのまま） */
+var BOARD_ROWS = [
+  { t:'試作',       c:PEN.g, s:0, e:1 },
+  { t:'パッケージ', c:PEN.b, s:1, e:3 },
+  { t:'原価計算',   c:PEN.k, s:1, e:2 },
+  { t:'量産準備',   c:PEN.g, s:2, e:4 },
+  { t:'販促物',     c:PEN.b, s:3, e:5 },
+  { t:'店頭ならべ', c:PEN.r, s:4, e:5 }
+];
+
+function boardSVG(){
+  var s = [], i, y, x1, x2, row;
+
+  s.push('<svg viewBox="0 0 340 216" xmlns="http://www.w3.org/2000/svg" class="bsvg">');
+
+  /* 見出しと下線 */
+  s.push(hand(13, 22, '春の新商品　立ち上げ', PEN.k, 14));
+  s.push(pen(jitter(11,29,157,29,.9), PEN.k, 2.4));
+
+  /* 右上の星印 */
+  s.push(star(305, 22, 11, PEN.r));
+
+  /* 横軸：月ラベルと縦の区切り線 */
+  for(i=0;i<6;i++){
+    x1 = X0 + i*U;
+    s.push(hand(x1+11, 45, MONTHS[i], PEN.b, 9.5));
+    s.push(pen(jitter(x1, 50, x1, 162, .8), PEN.b, .9, '.5'));
+  }
+  s.push(pen(jitter(X0+6*U, 50, X0+6*U, 162, .8), PEN.b, .9, '.5'));
+
+  /* 工程6行 */
+  for(i=0;i<BOARD_ROWS.length;i++){
+    row = BOARD_ROWS[i];
+    y  = 62 + i*18;
+    x1 = X0 + row.s*U;
+    x2 = X0 + (row.e+1)*U;
+    s.push(hand(8, y, row.t, PEN.k, 9.5));
+    s.push(pen(box(x1, y-9.5, x2-x1, 12, .9), row.c, 1.7));
+  }
+
+  /* 工程どうしをつなぐ矢印2本 */
+  s.push(arrow(X0+2*U, 65, 105, PEN.k));   /* 試作 → 量産準備 */
+  s.push(arrow(X0+3*U, 83, 123, PEN.k));   /* パッケージ → 販促物 */
+
+  /* 店頭ならべの右端、赤い丸囲み */
+  s.push('<ellipse cx="307" cy="150" rx="26" ry="12.5" fill="none" stroke="'+PEN.r+
+         '" stroke-width="1.7" opacity=".88" transform="rotate(-2 307 150)"/>');
+  s.push(hand(293, 154, '8/20', PEN.r, 12));
+
+  /* 下部の走り書き */
+  s.push(hand(11, 180, '原価は先に出す（山根）', PEN.k, 10));
+  s.push(hand(11, 197, '次回 4/18(木) 10:00', PEN.b, 10));
+  s.push(hand(191, 190, '5月頭に社長確認', PEN.r, 10.5, -3));
+
+  s.push('</svg>');
+  return s.join('');
+}
+
+function photoBlock(){
+  return '<div class="wb">' +
+           '<span class="stamp">15:47 撮影</span>' +
+           boardSVG() +
+           '<div class="tray"></div>' +
+         '</div>';
+}
+
+/* =========================================================
+   起こした工程表のデータ
+   ========================================================= */
+var PLAN = [
+  { n:'試作の完成',     w:'開発 山根',   s:0, e:1, c:'var(--pen-green)', note:'3案から1案に絞る' },
+  { n:'パッケージ確定', w:'企画 三沢',   s:1, e:2, c:'var(--pen-blue)',  note:'デザイン会社と2回打合せ' },
+  { n:'原価計算',       w:'経理 平山',   s:1, e:1, c:'var(--pen-brown)', note:'先行して着手する' },
+  { n:'量産準備',       w:'生産 大久保', s:2, e:3, c:'var(--pen-green)', note:'工場のライン確保' },
+  { n:'販促物の制作',   w:'企画 三沢',   s:3, e:4, c:'var(--pen-blue)',  note:'店頭POPとチラシ' },
+  { n:'店頭ならべ',     w:'営業 野々村', s:4, e:5, c:'var(--pen-red)',   note:'主要20店から' }
+];
+var MS_POS = 4 + 0.75;   /* 8月下旬 */
+
+/* =========================================================
+   決定とタスク
+   ========================================================= */
+var GROUPS = [
+  { kind:'決まったこと', color:'var(--pen-blue)', items:[
+    { t:'試作は3案から1案に絞る。5月頭に社長確認を挟む。', w:'山根', d:'5/7',  src:'中央の赤い書き込み' },
+    { t:'パッケージのデザイン会社は前回と同じところに依頼する。', w:'三沢', d:'4/22', src:'左上の囲み' }
+  ]},
+  { kind:'タスク', color:'var(--accent)', items:[
+    { t:'原価計算を他の工程より先に着手する。試作の仕様が固まる前でも概算を出す。', w:'平山', d:'4/25', src:'下段の注記' },
+    { t:'工場のラインを6月分で仮押さえする。', w:'大久保', d:'5/9', src:'量産準備の枠' },
+    { t:'店頭POPとチラシの見積もりを2社から取る。', w:'三沢', d:'6/6', src:'販促物の枠' }
+  ]},
+  { kind:'持ち越し', color:'var(--pen-red)', items:[
+    { t:'店頭ならべを主要20店に限るか、全店に広げるかは未定。次回に持ち越し。', w:'野々村', d:'4/18', src:'右下の丸囲み' },
+    { t:'8/20の店頭締切は動かせないという前提でよいか、営業部に確認が必要。', w:'野々村', d:'4/18', src:'赤い楕円' }
+  ]}
+];
+var TASK_COUNT = 7;
+
+/* =========================================================
+   過去のボード
+   ========================================================= */
+var HISTORY = [
+  { t:'月次の売上ふりかえり',   d:'4月8日(火)',  c:'12件', m:'3分で共有' },
+  { t:'物流ルート見直し',       d:'4月3日(木)',  c:'8件',  m:'2分で共有' },
+  { t:'採用計画のすり合わせ',   d:'3月27日(木)', c:'15件', m:'4分で共有' }
+];
+function thumbSVG(seed){
+  var s = '<svg viewBox="0 0 46 34" xmlns="http://www.w3.org/2000/svg">';
+  s += '<rect x=".7" y=".7" width="44.6" height="32.6" rx="3" fill="#FCFDFB" stroke="rgba(19,35,32,.16)"/>';
+  s += pen(jitter(7, 9+seed,  30+seed, 9+seed,  .5), '#9AA6A2', 1.5);
+  s += pen(jitter(7, 15+seed, 36-seed, 15+seed, .5), '#9AA6A2', 1.5);
+  s += pen(jitter(7, 21+seed, 26+seed, 21+seed, .5), '#9AA6A2', 1.5);
+  s += pen(jitter(7, 27,      20,      27,      .5), PEN.r,     1.6);
+  s += '</svg>';
+  return s;
+}
+
+/* =========================================================
+   画面の描画
+   ========================================================= */
+var state = { tab:0, shot:false };
+
+function renderPlan(){
+  var h = '', i, row, left, width;
+
+  if(!state.shot){
+    return '<div class="empty">' +
+      '<div class="ico">' +
+        '<svg width="26" height="21" viewBox="0 0 26 21" fill="none">' +
+        '<rect x="1.2" y="1.2" width="23.6" height="16.6" rx="2.4" stroke="#6C7A76" stroke-width="1.8" stroke-dasharray="3.4 2.6"/>' +
+        '<path d="M8 19.5v.2M18 19.5v.2" stroke="#6C7A76" stroke-width="1.8" stroke-linecap="round"/>' +
+        '</svg>' +
+      '</div>' +
+      '<h3>まだ何も撮っていません</h3>' +
+      '<p>会議が終わったら、ホワイトボードを1枚だけ撮ってください。<br>手書きのまま、消す前で大丈夫です。</p>' +
+      '</div>';
+  }
+
+  /* --- 上：撮った写真 --- */
+  h += '<div class="sec">撮った写真</div>';
+  h += photoBlock();
+  h += '<div class="photonote"><span class="dot"></span>手書きのまま残しています。加工していません。</div>';
+
+  /* --- 下：起こした工程表 --- */
+  h += '<div class="sec" style="margin-top:18px">起こした工程表</div>';
+  h += '<div class="card gantt">';
+  h += '<div class="g-head"><b>工程</b>';
+  for(i=0;i<MONTHS.length;i++){ h += '<span>'+esc(MONTHS[i])+'</span>'; }
+  h += '</div>';
+
+  for(i=0;i<PLAN.length;i++){
+    row   = PLAN[i];
+    left  = row.s * (100/6);
+    width = (row.e - row.s + 1) * (100/6);
+    h += '<div class="g-row">' +
+           '<div class="g-name"><b>'+esc(row.n)+'</b><i>'+esc(row.w)+'</i></div>' +
+           '<div class="track">' +
+             '<div class="gbar" data-i="'+i+'" data-note="'+esc(row.note)+'" data-right="'+r1(left+width)+
+               '" style="--i:'+i+';left:'+r1(left)+'%;width:'+r1(width)+'%;background:'+row.c+'">' +
+               '<span>'+esc(row.note)+'</span>' +
+             '</div>' +
+           '</div>' +
+         '</div>';
+  }
+  /* マイルストーン行 */
+  h += '<div class="g-row">' +
+         '<div class="g-name"><b>店頭の締切</b><i>動かせない日付</i></div>' +
+         '<div class="track"><div class="ms" style="left:'+r1(MS_POS*(100/6))+'%"></div></div>' +
+       '</div>';
+  h += '</div>';
+
+  h += '<div class="btnrow">' +
+         '<button class="btn" data-act="share">全員に共有する</button>' +
+         '<button class="btn ghost" data-act="format">形式を変える</button>' +
+       '</div>';
+  h += '<div class="hint">赤いひし形は、丸で囲まれていた 8/20 の締切です。動かせない日付として扱っています。</div>';
+  return h;
+}
+
+function renderTasks(){
+  var h = '', g, it, i, j;
+  for(i=0;i<GROUPS.length;i++){
+    g = GROUPS[i];
+    h += '<div class="sec">'+esc(g.kind)+'</div>';
+    for(j=0;j<g.items.length;j++){
+      it = g.items[j];
+      h += '<div class="dcard">' +
+             '<div class="stripe" style="background:'+g.color+'"></div>' +
+             '<div class="dbody">' +
+               '<div class="dkind" style="color:'+g.color+'">'+esc(g.kind)+'</div>' +
+               '<div class="dtext">'+esc(it.t)+'</div>' +
+               '<div class="dmeta">' +
+                 '<span class="pill"><span class="ini">'+esc(it.w.charAt(0))+'</span>'+esc(it.w)+'</span>' +
+                 '<span class="due">'+esc(it.d)+'</span>' +
+                 '<span class="src">写真の'+esc(it.src)+'から</span>' +
+               '</div>' +
+             '</div>' +
+           '</div>';
+    }
+  }
+  h += '<button class="btn acc" style="width:100%;margin-top:14px" data-act="deal">担当者それぞれに配る</button>';
+  h += '<div class="hint">担当ごとに、その人の分だけを抜き出して送ります。期限の3日前に本人へ声をかけます。</div>';
+  return h;
+}
+
+function renderHistory(){
+  var h = '', i, it;
+  h += '<div class="stat">' +
+         '<div class="l">清書にかけていた時間</div>' +
+         '<div class="n">0<small>分</small></div>' +
+         '<p>撮ってから共有までは平均3分。これまでは誰も清書しないまま、写真がカメラロールに残るだけでした。</p>' +
+       '</div>';
+  h += '<div class="stat">' +
+         '<div class="l">タスクが期限内に終わった割合</div>' +
+         '<div class="n">81<small>%（以前は34%）</small></div>' +
+         '<p>担当と期限が本人に届くようになってから、写真共有だけだった頃の 34% から上がりました。</p>' +
+       '</div>';
+
+  h += '<div class="sec" style="margin-top:16px">過去のボード</div>';
+  h += '<div class="card">';
+  for(i=0;i<HISTORY.length;i++){
+    it = HISTORY[i];
+    h += '<div class="hist">' + thumbSVG(i) +
+           '<div><b>'+esc(it.t)+'</b><i>'+esc(it.d)+'</i></div>' +
+           '<div class="cnt">'+esc(it.c)+'<br>'+esc(it.m)+'</div>' +
+         '</div>';
+  }
+  h += '</div>';
+  h += '<div class="hint">写真は消さずに残しています。あとから「あの図どこだっけ」となったとき、書かれていた言葉で探せます。</div>';
+  return h;
+}
+
+var TABS = [
+  { label:'工程表',     render:renderPlan },
+  { label:'決定とタスク', render:renderTasks, badge:TASK_COUNT },
+  { label:'過去のボード', render:renderHistory }
+];
+
+function tabIcon(i){
+  if(i===0) return '<svg width="21" height="19" viewBox="0 0 21 19" fill="none"><path d="M2 3.5h8M2 8h13M2 12.5h6M2 17h10" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/><circle cx="18" cy="12.5" r="2.2" fill="currentColor"/></svg>';
+  if(i===1) return '<svg width="20" height="19" viewBox="0 0 20 19" fill="none"><rect x="1.2" y="1.6" width="17.6" height="16" rx="3" stroke="currentColor" stroke-width="2"/><path d="M5.4 9.4l2.8 2.8 5.6-5.6" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  return '<svg width="21" height="19" viewBox="0 0 21 19" fill="none"><rect x="1.2" y="3" width="12" height="13" rx="2.4" stroke="currentColor" stroke-width="2"/><path d="M16.6 5.4v10.2M19.6 7.2v6.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+}
+
+function drawTabs(){
+  var h = '', i, t;
+  for(i=0;i<TABS.length;i++){
+    t = TABS[i];
+    h += '<button class="tab'+(state.tab===i?' on':'')+'" data-tab="'+i+'">' +
+           tabIcon(i) + '<b>'+esc(t.label)+'</b>' +
+           (t.badge ? '<span class="badge">'+esc(t.badge)+'</span>' : '') +
+         '</button>';
+  }
+  $('tabs').innerHTML = h;
+}
+
+/* 帯に補足が収まらない行は、帯の右側へ逃がす（幅は実測して判定する） */
+function reflowNotes(){
+  var bars = $('content').querySelectorAll('.gbar'), i, bar, sp, out;
+  for(i=0;i<bars.length;i++){
+    bar = bars[i];
+    sp  = bar.firstChild;
+    if(!sp || sp.scrollWidth <= sp.clientWidth) continue;
+    bar.removeChild(sp);
+    out = document.createElement('div');
+    out.className = 'noteout';
+    out.style.setProperty('--i', bar.getAttribute('data-i'));
+    out.style.left = bar.getAttribute('data-right') + '%';
+    out.textContent = bar.getAttribute('data-note');
+    bar.parentNode.appendChild(out);
+    /* 右へ逃がしても収まらない行は、帯の左側へ回す */
+    if(out.offsetLeft + out.offsetWidth > bar.parentNode.clientWidth){
+      out.style.left  = 'auto';
+      out.style.right = r1(100 - parseFloat(bar.style.left)) + '%';
+      out.style.paddingLeft  = '0';
+      out.style.paddingRight = '7px';
+    }
+  }
+}
+
+function draw(){
+  drawTabs();
+  $('content').innerHTML = TABS[state.tab].render();
+  $('content').scrollTop = 0;
+  if(state.tab === 0 && state.shot) reflowNotes();
+}
+
+function go(i){ state.tab = i; draw(); }
+
+/* =========================================================
+   トースト
+   ========================================================= */
+var toastTimer = null;
+function toast(msg, ms){
+  $('toasttext').textContent = msg;
+  $('toast').classList.add('on');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ $('toast').classList.remove('on'); }, ms || 6000);
+}
+
+/* =========================================================
+   撮影の演出（約6秒）
+   ========================================================= */
+var DETS = [
+  { l:'見出し',        x:2,  y:2,  w:48, h:13 },
+  { l:'時間軸 6か月',  x:19, y:15, w:79, h:11 },
+  { l:'工程 6件',      x:1,  y:24, w:19, h:47 },
+  { l:'帯とつながり',  x:19, y:24, w:79, h:47 },
+  { l:'丸囲み 8/20',   x:79, y:60, w:20, h:15 },
+  { l:'注記 担当あり', x:1,  y:77, w:56, h:11 },
+  { l:'次回の日程',    x:1,  y:86, w:56, h:11 }
+];
+var camTimers = [];
+var shooting = false;
+
+function clearCamTimers(){
+  for(var i=0;i<camTimers.length;i++) clearTimeout(camTimers[i]);
+  camTimers = [];
+}
+function at(ms, fn){ camTimers.push(setTimeout(fn, ms)); }
+
+function camSay(txt){ $('camtext').textContent = txt; }
+function camDots(n){
+  var h='', i;
+  for(i=0;i<DETS.length;i++) h += '<i class="'+(i<n?'on':'')+'"></i>';
+  $('camdots').innerHTML = h;
+}
+
+function shoot(){
+  if(shooting) return;
+  if(state.shot){ toast('このデモで撮れるボードは1枚です', 4000); return; }
+  shooting = true;
+
+  $('viewport').innerHTML =
+    '<div class="shot" id="shot">' + boardSVG() + '</div>' +
+    '<div class="laser" id="laser"></div>' +
+    '<span class="gd tl"></span><span class="gd tr"></span>' +
+    '<span class="gd bl"></span><span class="gd br"></span>';
+  camDots(0);
+  camSay('ホワイトボード全体が入るように構えてください');
+  $('cam').classList.add('on');
+
+  at(1400, function(){ camSay('手書きの線を読み取っています'); });
+
+  at(2700, function(){
+    var l = $('laser'); if(l) l.parentNode.removeChild(l);
+    camSay('囲みと矢印の意味を判定しています');
+  });
+
+  /* 検出枠を0.3秒間隔で7つ。位置とサイズは写真に対する% */
+  for(var i=0;i<DETS.length;i++){
+    (function(k){
+      at(2700 + k*300, function(){
+        var d = DETS[k];
+        var el = document.createElement('div');
+        el.className = 'det';
+        el.style.left   = d.x + '%';
+        el.style.top    = d.y + '%';
+        el.style.width  = d.w + '%';
+        el.style.height = d.h + '%';
+        el.innerHTML = '<u>' + esc(d.l) + '</u>';
+        $('viewport').appendChild(el);
+        camSay(d.l);
+        camDots(k+1);
+      });
+    })(i);
+  }
+
+  at(2700 + DETS.length*300, function(){ camSay('工程表に起こしています'); });
+
+  at(5700, function(){
+    $('flash').classList.add('go');
+    at(200, function(){ $('flash').classList.remove('go'); });
+    $('cam').classList.remove('on');
+    $('viewport').innerHTML = '';
+    state.shot = true;
+    state.tab  = 0;
+    draw();
+    shooting = false;
+    toast('工程表と、決定・タスク ' + TASK_COUNT + '件ができました', 8000);
+  });
+}
+
+/* =========================================================
+   操作
+   ========================================================= */
+$('fab').addEventListener('click', shoot);
+
+$('tabs').addEventListener('click', function(e){
+  var b = e.target.closest ? e.target.closest('[data-tab]') : null;
+  if(b) go(parseInt(b.getAttribute('data-tab'),10));
+});
+
+$('content').addEventListener('click', function(e){
+  var b = e.target.closest ? e.target.closest('[data-act]') : null;
+  if(!b) return;
+  var a = b.getAttribute('data-act');
+  if(a==='share')  toast('出席5名に工程表を送りました');
+  if(a==='format') toast('表とマインドマップにも切り替えられます');
+  if(a==='deal')   toast('6人に、その人の分だけを送りました');
+});
+
+/* =========================================================
+   端末フレームの自動縮小
+   ========================================================= */
+function fit(){
+  var s = Math.min(1,
+    (window.innerHeight - 24) / 868,
+    (window.innerWidth  - 24) / 414);
+  $('stage').style.transform = 'scale(' + s + ')';
+}
+window.addEventListener('resize', fit);
+fit();
+draw();
+</script>
+</body>
+</html>
